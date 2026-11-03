@@ -307,6 +307,7 @@ input[type=range]{width:100%;accent-color:var(--urlaub)}
 .yvact .btn{width:100%;justify-content:center}
 .weleg{display:inline-block;width:1.8em;height:1.4em;border-radius:.3em;background:color-mix(in srgb,var(--we) 42%,transparent);vertical-align:middle}
 .yd.X.hf{box-shadow:none}
+.yd.X:not(.hf){background:#4a4d53;color:#fff;font-size:9.5px}
 
 .notebtn{justify-content:center;border-style:dashed}
 a.btn{text-decoration:none;justify-content:center}
@@ -974,7 +975,7 @@ a.btn{text-decoration:none;justify-content:center}
       let c='<span class="h">M</span><span class="h">D</span><span class="h">M</span><span class="h">D</span><span class="h">F</span><span class="h">S</span><span class="h">S</span>';
       for(let i=0;i<lead;i++)c+='<span></span>';
       for(let d=0;d<days;d++){const n=first+d,s=shift(n);
-        const hd=holiday(n);c+='<span class="yd '+s+(hd?' hf':'')+'"><b>'+(d+1)+'</b>'+(hd?'<i class="yic">'+ICON[hd]+'</i>':s==="X"?"":s)+'</span>';}
+        const hd=holiday(n);c+='<span class="yd '+s+(hd?' hf':'')+'"><b>'+(d+1)+'</b>'+(hd?'<i class="yic">'+ICON[hd]+'</i>':s==="X"?"Frei":s)+'</span>';}
       months+='<div class="ym"><h5>'+MONTHS[m]+'</h5><div class="yg">'+c+'</div></div>';
     }
     let cnt={F:0,S:0,N:0}; for(let n=dn(y,0,1);n<dn(y+1,0,1);n++){const s=shift(n);if(s!=="X")cnt[s]++}
@@ -1093,7 +1094,7 @@ a.btn{text-decoration:none;justify-content:center}
     toast("PDF wird erstellt …");
     let lib; try{lib=await loadJsPDF()}catch(e){toast("PDF-Erstellung konnte nicht geladen werden. Bitte Internet prüfen.");return}
     const doc=new lib.jsPDF({unit:"mm",format:"a4"});
-    const C={F:curCol("frueh"),S:curCol("spaet"),N:curCol("nacht"),U:curCol("urlaub"),TZ:curCol("tz"),AG:curCol("ag"),K:curCol("krank"),SU:curCol("su"),X:"#ece9e3",FT:curCol("feiertag"),WE:curCol("we")};
+    const C={F:curCol("frueh"),S:curCol("spaet"),N:curCol("nacht"),U:curCol("urlaub"),TZ:curCol("tz"),AG:curCol("ag"),K:curCol("krank"),SU:curCol("su"),X:"#4a4d53",FT:curCol("feiertag"),WE:curCol("we")};
     const fill=c=>doc.setFillColor(...hex2rgb(c)), txt=c=>doc.setTextColor(...hex2rgb(c)), stroke=c=>doc.setDrawColor(...hex2rgb(c));
     doc.setFont("helvetica","bold");doc.setFontSize(22);txt("#1d1f24");doc.text("SCHICHTPLAN "+y,12,18);
     doc.setFont("helvetica","normal");doc.setFontSize(9);txt("#6b6f78");doc.text("17,5-Modell · Bayern",198,18,{align:"right"});
@@ -1110,10 +1111,10 @@ a.btn{text-decoration:none;justify-content:center}
       for(let d=0;d<days;d++){const n=first+d,p=lead+d,cx=x0+(p%7)*cw,cy=y0+5+Math.floor(p/7)*ch,s=shift(n),t=null,h=holiday(n),key=s;
         fill(h?C.FT:C[key]);doc.roundedRect(cx+.3,cy+.3,cw-.6,ch-.6,.8,.8,"F");
         if(h&&key!=="X"){stroke(C[key]);doc.setLineWidth(.9);doc.roundedRect(cx+.75,cy+.75,cw-1.5,ch-1.5,.5,.5,"S")}
-        const ink=h?"#ffffff":(key==="X"?"#6b6f78":inkFor(C[key]));txt(ink);
+        const ink=h?"#ffffff":(key==="X"?"#ffffff":inkFor(C[key]));txt(ink);
         doc.setFont("helvetica","normal");doc.setFontSize(5.2);doc.text(String(d+1),cx+cw/2,cy+2.5,{align:"center"});
         if(h){const im=emojiPng(ICON[h]);if(im)doc.addImage(im,"PNG",cx+cw/2-1.5,cy+2.9,3,3)}
-        const lab=t?t:(s==="X"?"":s); if(lab){doc.setFont("helvetica","bold");doc.setFontSize(6.4);doc.text(lab,cx+cw/2,cy+5.2,{align:"center"})}
+        const lab=t?t:(h?"":(s==="X"?"Frei":s)); if(lab){doc.setFont("helvetica","bold");doc.setFontSize(lab==="Frei"?5.4:6.4);doc.text(lab,cx+cw/2,cy+5.2,{align:"center"})}
       }
     }
     // Fuß: Legende, Summen, Feiertage
