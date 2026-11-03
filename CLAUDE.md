@@ -15,7 +15,7 @@ Umsetzung: Claude. Immer auf Deutsch antworten, einfach erklären, Schritte für
 - Eine ältere Version läuft noch als Claude-Artifact (claude.ai/artifact/XitXTSjShxG3JBC1FLzfe6). Weiterentwicklung nur noch hier.
 
 ## Daten (nur localStorage auf dem Gerät)
-`sp_anchor2` (Montag, an dem ein Spät-Block beginnt; Standard 2026-12-21 → Nachtschicht ab So 03.01.2027), `sp_vac2` ({Tagnummer: U|TZ|AG|K|SU}), `sp_quota` ({U:30,TZ:8}), `sp_notes` ({Starttag:{t,to}}), `sp_ot` (Überstunden [{id,d,from,to,pause,min,note}]), `sp_otcfg` ({agHours:8,carry}), `sp_contacts` (Teamleiter), `sp_models` (eigene Schichtmodelle), `sp_colors`, `sp_anim`, `sp_sound`, `sp_vol`. Tagnummer = Tage seit 1.1.1970 (UTC).
+`sp_anchor2` (Montag, an dem ein Spät-Block beginnt; Standard 2026-12-21 → Nachtschicht ab So 03.01.2027), `sp_vac2` ({Tagnummer: U|TZ|AG|K|SU}), `sp_quota` ({U:30,TZ:8}), `sp_notes` ({Starttag:{t,to}}), `sp_ot` (Überstunden [{id,d,from,to,pause,min,note}]), `sp_otcfg` ({agHours:8,carry}), `sp_contacts` (Teamleiter), `sp_models` (eigene Schichtmodelle), `sp_colors`, `sp_anim`, `sp_sound`, `sp_vol`, `sp_myname` (eigener Name fürs Teilen), `sp_partners` (empfangene Partner-Pläne [{n,a,m,e,q,t}]). Tagnummer = Tage seit 1.1.1970 (UTC).
 Sicherung (JSON) enthält alles; Laden über Menü → Sicherung.
 
 ## Fachliche Regeln
@@ -29,6 +29,13 @@ Sicherung (JSON) enthält alles; Laden über Menü → Sicherung.
 
 ## Funktionen (alle vorhanden)
 Endlos-Kalender (ganze Seite scrollt, Kopf sticky), Wochentage in Kacheln, Wochenend-Band (Standardfarbe Orange #ff8000, einstellbar), Feiertagssymbole (Emoji), Tag antippen → Urlaub/TZ/Ausgleich/Krank (dunkelrot, 🌡️)/Sonderurlaub (hellrosa), ein Tag oder Zeitraum mit Mini-Kalender, „Nur Notiz hinzufügen“ + danach Angebot Google-Kalender-Link, Überstunden mit Von/Bis/Pause, Statistik-Seite, Meine Einträge (ändern/löschen/springen), Notizen-Seite, Teamleiter-Nummern, Jahresübersicht (nur Schichten + Feiertage) mit „Als PDF speichern und drucken“ (jsPDF von cdnjs), Excel/CSV-Export, Sicherung, Farben einstellbar, Schichtmodell-Editor, Anleitung mit Bildern, Impressum, Hinweis 14 Tage vor Zeitumstellung.
+
+## Partner-Funktion (Menü → Partner)
+- Teilen ohne Server: Daten stecken im Link `…/#p=1<base64url(deflate-raw(JSON))>` (Fallback `0` = unkomprimiert). Per WhatsApp (wa.me), Teilen-Menü, Link kopieren oder QR-Code (qrcode-generator 1.4.4, MIT, direkt in der Datei eingebaut, funktioniert offline).
+- Geteilt werden nur Rhythmus (Anker), eigene Schichtmodelle, Urlaubskonto und Einträge U/TZ/AG/SU ab ca. 400 Tagen zurück. **Nicht geteilt:** Krank, Notizen, Überstunden.
+- Empfänger: Link öffnen → „Speichern und ansehen“. Partner-Plan ist eine eigene, schreibgeschützte Ansicht (blaue Leiste „Plan von …“ + „Zurück zu meinem Plan“). Während der Ansicht werden die eigenen Variablen getauscht und `store.set` für eigene Daten gesperrt (`PV`, `PVKEYS`).
+- Neuer Link mit gleichem Namen ersetzt den alten Stand. Kein automatischer Live-Abgleich (Wunsch des Nutzers: ohne Server).
+- iPhone: Safari und Home-Bildschirm-App haben getrennte Speicher → Hinweis, Link in der App unter Partner → „Link übernehmen“ einzufügen.
 
 ## Animation & Sound (Wünsche des Nutzers, bitte einhalten)
 - Jahreszeiten-Hintergrund mit Teilchen (Schnee/Blüten/Sonne/Laub), Böen, Figuren passend zum Monat (Enten, Osterhase nur um Ostern, Bienen, Eichhörnchen, Laternen im Nov., Weihnachtsmann-Schlitten, Christkind, Nikolaus, Schneemann). Herbst: gelegentlich Blitz + Donner. Feuerwerk, wenn der 31.12. in der Bildschirmmitte steht, und an Silvester/Neujahr.
