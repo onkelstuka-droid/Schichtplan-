@@ -4,7 +4,7 @@ import os, re, json, shutil, hashlib, glob
 import sys
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 src=open('src/schichtplan.html',encoding='utf-8').read()
-ver=hashlib.sha1(src.encode()).hexdigest()[:10]
+ver=hashlib.sha1((src+open(__file__,encoding='utf-8').read()).encode()).hexdigest()[:10]
 head='''<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1d1f24">
@@ -15,8 +15,9 @@ head='''<!doctype html><html lang="de"><head><meta charset="utf-8">
 <script>
 // Ohne Claude: Speichern (PDF, Tabelle, Sicherung) als normaler Download
 window.claude={use:function(n){return Promise.resolve(n==="downloads"?{save:function(r){return new Promise(function(ok){
-  var b=r.data instanceof Blob?r.data:new Blob([r.data]);var u=URL.createObjectURL(b);var a=document.createElement("a");a.href=u;a.download=r.filename;
-  document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},4000);ok({status:"saved"})})}}:null)}};
+  var ext=(r.filename.split(".").pop()||"").toLowerCase();var T={pdf:"application/pdf",csv:"text/csv;charset=utf-8",json:"application/json",xlsx:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",txt:"text/plain;charset=utf-8"};
+  var b=r.data instanceof Blob&&r.data.type?r.data:new Blob([r.data],{type:T[ext]||"application/octet-stream"});var u=URL.createObjectURL(b);var a=document.createElement("a");a.href=u;a.download=r.filename;
+  document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},60000);ok({status:"saved"})})}}:null)}};
 if("serviceWorker" in navigator)addEventListener("load",function(){navigator.serviceWorker.register("sw.js")});
 </script>
 </head><body>
