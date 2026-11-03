@@ -6,7 +6,7 @@ Schichtkalender für das 17,5-Schichtmodell in Bayern – als App für das Handy
 **Umsetzung:** Claude (KI-Assistent von Anthropic) nach der Idee und den Vorgaben von Hans-Jürgen Schlichting
 
 ## App öffnen
-👉 https://onkelstuka-droid.github.io/schichtplan-/
+👉 https://onkelstuka-droid.github.io/Schichtplan-/
 
 Auf dem Handy in Chrome öffnen und „App installieren“ bzw. „Zum Startbildschirm hinzufügen“ wählen.
 Die App funktioniert danach auch ohne Internet. Alle Einträge bleiben nur auf dem eigenen Handy.
