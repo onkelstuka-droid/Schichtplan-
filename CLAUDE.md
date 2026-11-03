@@ -8,7 +8,7 @@ Umsetzung: Claude. Immer auf Deutsch antworten, einfach erklären, Schritte für
 ## Aufbau
 - `src/schichtplan.html` – **die gesamte App in einer Datei** (HTML, CSS, JS). Nur hier ändern.
 - `build.py` – baut daraus `index.html` (mit Head, Manifest-Link, Download-Ersatz für `window.claude`, Service-Worker-Registrierung), `sw.js` (Offline-Cache, Version = Hash der Quelle), `manifest.webmanifest`, `404.html`.
-- `help/*.jpg` – Bildschirmfotos für die Anleitung in der App (19 Stück, Beispieldaten).
+- `help/*.jpg` – Bildschirmfotos für die Anleitung in der App (22 Stück, Beispieldaten; Partner-Bilder: partner, partner2, partner3).
 - `icons/` – App-Symbole (192/512, maskable, apple-touch).
 - Veröffentlichen: `python3 build.py`, committen, `git push origin main`. GitHub Pages aktualisiert in 1–2 Min. Nutzer bekommen das Update beim nächsten Öffnen.
 - Das Einschalten von Pages über die API ist im Sandbox-Proxy gesperrt; Pages ist bereits eingeschaltet.
