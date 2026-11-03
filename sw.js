@@ -1,0 +1,8 @@
+// Offline-Speicher: App-Dateien werden auf dem Handy zwischengespeichert. Version wechselt bei jedem Update.
+const CACHE="schichtplan-5f15f69db6";const PRE=["./", "index.html", "manifest.webmanifest", "icons/icon-maskable-512.png", "icons/icon-maskable-192.png", "icons/icon-192.png", "icons/apple-touch-icon.png", "icons/icon-512.png", "help/tag.jpg", "help/notiz.jpg", "help/statistik.jpg", "help/kalendereintrag.jpg", "help/statistik2.jpg", "help/farben.jpg", "help/kalender.jpg", "help/jahr.jpg", "help/notizen.jpg", "help/kopf.jpg", "help/zeitraum.jpg", "help/ueberstunden.jpg", "help/modelle.jpg", "help/sicherung.jpg", "help/eintraege.jpg", "help/einstellungen.jpg", "help/feiertage.jpg", "help/teamleiter.jpg", "help/menue.jpg"];
+self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(PRE)).then(()=>self.skipWaiting()))});
+self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+self.addEventListener("fetch",e=>{const r=e.request;if(r.method!=="GET")return;const u=new URL(r.url);
+  if(r.mode==="navigate"||u.pathname.endsWith("/index.html")){ // Seite: erst online (für Updates), sonst aus dem Speicher
+    e.respondWith(fetch(r).then(res=>{const c=res.clone();caches.open(CACHE).then(x=>x.put("index.html",c));return res}).catch(()=>caches.match("index.html")));return}
+  e.respondWith(caches.match(r).then(hit=>hit||fetch(r).then(res=>{if(res.ok||res.type==="opaque"){const c=res.clone();caches.open(CACHE).then(x=>x.put(r,c))}return res})))});

@@ -1,0 +1,2003 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d1f24">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Schichtplan"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>
+// Ohne Claude: Speichern (PDF, Tabelle, Sicherung) als normaler Download
+window.claude={use:function(n){return Promise.resolve(n==="downloads"?{save:function(r){return new Promise(function(ok){
+  var b=r.data instanceof Blob?r.data:new Blob([r.data]);var u=URL.createObjectURL(b);var a=document.createElement("a");a.href=u;a.download=r.filename;
+  document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},4000);ok({status:"saved"})})}}:null)}};
+if("serviceWorker" in navigator)addEventListener("load",function(){navigator.serviceWorker.register("sw.js")});
+</script>
+</head><body>
+<title>Schichtplan 17,5</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky Kopf mit "Heute"-Karte, darunter endloser vertikaler Monats-Feed (Mo–So-Raster), Bottom-Sheets für Aktionen */
+:root{
+  --bg:#f3f2ef; --surface:#ffffff; --fg:#1d1f24; --muted:#6b6f78; --line:#e3e1dc;
+  --frueh:#f5c518; --frueh-ink:#3a2e00;
+  --spaet:#f07a1a; --spaet-ink:#ffffff;
+  --nacht:#2563c9; --nacht-ink:#ffffff;
+  --urlaub:#1f9d6b; --urlaub-ink:#ffffff; --tz:#7b4fc0; --tz-ink:#ffffff; --ag:#6cc6f0; --ag-ink:#0b2a3a; --krank:#8b1414; --krank-ink:#ffffff; --su:#f5b6cf; --su-ink:#3a1022; --ue:#12a594; --ue-ink:#ffffff;
+  --frei:#ebe9e4; --today:#1d1f24; --we:#ff8000; --feiertag:#d42a2a; --feiertag-ink:#ffffff;
+  --tint-winter:#e4ebf4; --tint-spring:#eef3e6; --tint-summer:#f8efd8; --tint-autumn:#f5e6d6;
+  --p-snow:#7896c4; --p-petal:#f2a7c3; --p-sun:#f0b429; --p-leaf1:#d9661f; --p-leaf2:#b8401c; --p-leaf3:#c99a2e; --shadow:0 8px 30px rgba(20,22,28,.14);
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121317; --surface:#1b1d22; --fg:#eceae6; --muted:#9a9ea8; --line:#2a2d34;
+  --frueh:#e8b90f; --frueh-ink:#2b2200; --spaet:#ec7413; --nacht:#3b7be0; --urlaub:#23a874; --tz:#9467dd; --ag:#5ab8e6; --krank:#a81c1c; --su:#e8a0be; --ue:#1fb8a5;
+  --frei:#23252b; --today:#eceae6; --we:#ff8000; --feiertag:#ef4747;
+  --tint-winter:#151b26; --tint-spring:#141a14; --tint-summer:#1c1910; --tint-autumn:#1d1510;
+  --p-snow:#dfe8f5; --p-petal:#d988a8; --p-sun:#e8b33a; --p-leaf1:#d9661f; --p-leaf2:#a83a1a; --p-leaf3:#b98a24; --shadow:0 8px 30px rgba(0,0,0,.5); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#121317; --surface:#1b1d22; --fg:#eceae6; --muted:#9a9ea8; --line:#2a2d34;
+  --frueh:#e8b90f; --frueh-ink:#2b2200; --spaet:#ec7413; --nacht:#3b7be0; --urlaub:#23a874; --tz:#9467dd; --ag:#5ab8e6; --krank:#a81c1c; --su:#e8a0be; --ue:#1fb8a5;
+  --frei:#23252b; --today:#eceae6; --we:#ff8000; --feiertag:#ef4747;
+  --tint-winter:#151b26; --tint-spring:#141a14; --tint-summer:#1c1910; --tint-autumn:#1d1510;
+  --p-snow:#dfe8f5; --p-petal:#d988a8; --p-sun:#e8b33a; --p-leaf1:#d9661f; --p-leaf2:#a83a1a; --p-leaf3:#b98a24; --shadow:0 8px 30px rgba(0,0,0,.5); color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{--tintnow:var(--bg)}
+body{overflow-x:hidden}
+#season,#seasonFront{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#seasonFront{z-index:4}
+.wrap{position:relative;z-index:1}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--tintnow)}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--tintnow);padding-block:10px 6px;display:grid;gap:8px;border-bottom:1px solid var(--line)}
+.more{display:block;width:100%;margin-top:14px;border:1px dashed var(--line);background:var(--surface);color:var(--fg);border-radius:12px;padding:12px;font:600 15px var(--f-body);cursor:pointer}
+#months{padding-bottom:110px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+h1{font-family:var(--f-display);font-weight:700;font-size:26px;letter-spacing:.01em;margin:0;text-transform:uppercase}
+h1 small{white-space:nowrap;font-weight:500;color:var(--muted);font-size:15px;letter-spacing:.06em;margin-left:6px}
+.iconbtn{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:12px;height:40px;padding:0 12px;font:600 14px var(--f-body);display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.iconbtn:focus-visible,button:focus-visible{outline:2px solid var(--nacht);outline-offset:2px}
+.iconbtn svg{width:18px;height:18px}
+
+.todaycard{flex:1;min-width:0;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 10px 6px 6px}
+.badge{width:38px;height:38px;border-radius:10px;font-size:19px!important;display:grid;place-items:center;font:700 22px var(--f-display)}
+.todaycard .t1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.todaycard .t2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:600 18px/1.15 var(--f-display);text-transform:uppercase;letter-spacing:.02em}
+.todaycard .t2 span{font:500 13px var(--f-body);text-transform:none;letter-spacing:0;color:var(--muted)}
+.iconbtn.sq{width:44px;height:44px;padding:0;justify-content:center;flex:none;border-radius:14px}
+.vac{text-align:right;font-size:12px;color:var(--muted);line-height:1.3}
+.budget{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.bud{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:4px 6px;display:flex;align-items:center;gap:4px;min-width:0;font-variant-numeric:tabular-nums}
+.bud em{font-style:normal;color:#fff;border-radius:5px;padding:1px 3px;font:700 10.5px var(--f-display);letter-spacing:.04em;flex:none}
+.bud b{font:700 18px/1 var(--f-display)}
+.bud .r{display:flex;align-items:center;gap:4px}
+.bud.yr{justify-content:center;gap:5px}.bud.yr b{font-size:15px}
+.bud span{font-size:10px;line-height:1.2;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.bud.over b{color:#c43c2c}
+
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);font-weight:500}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:11px;font-weight:600;color:var(--muted);text-align:center;letter-spacing:.06em;text-transform:uppercase}
+
+.month{padding-block:18px 4px}
+.month h2{font-family:var(--f-display);font-weight:600;font-size:22px;text-transform:uppercase;letter-spacing:.03em;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;text-wrap:balance}
+.month h2{flex-wrap:wrap;column-gap:10px}
+.day.TZ::after,.day.AG::after,.day.SU::after{display:none}
+.day.TZ .s,.day.AG .s,.day.SU .s{font-size:13px!important;letter-spacing:0}
+.month h2 span{white-space:nowrap;margin-left:auto;font:500 13px var(--f-body);color:var(--muted);text-transform:none;letter-spacing:0}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.day{position:relative;aspect-ratio:1/1.32;max-width:100%;border:0;border-radius:10px;padding:5px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;cursor:pointer;font-family:var(--f-body);background:var(--frei);color:var(--fg);overflow:hidden}
+.day .n{font-weight:600;font-size:14px;font-variant-numeric:tabular-nums}
+.day .s{font:700 15px var(--f-display);letter-spacing:.04em;padding-bottom:5px}
+.day.F{background:var(--frueh);color:var(--frueh-ink)}
+.day.S{background:var(--spaet);color:var(--spaet-ink)}
+.day.N{background:var(--nacht);color:var(--nacht-ink)}
+.day.X .s{color:var(--muted);font-weight:500;font-size:12px}
+.day.U{background:var(--urlaub);color:var(--urlaub-ink)}
+.day.U .s{color:var(--urlaub-ink);font-size:15px;font-weight:700}
+.day.TZ{background:var(--tz);color:var(--tz-ink)}
+.day.TZ .s{color:var(--tz-ink);font-size:15px;font-weight:700}
+.day.AG{background:var(--ag);color:var(--ag-ink)}
+.day.AG .s{color:var(--ag-ink);font-size:15px;font-weight:700}
+.day.K{background:var(--krank);color:var(--krank-ink)}
+.day.K .s{color:var(--krank-ink);font-size:15px;font-weight:700}
+.day.SU{background:var(--su);color:var(--su-ink)}
+.day.SU .s{color:var(--su-ink);font-size:15px;font-weight:700}
+.day.U::after,.day.TZ::after,.day.AG::after,.day.K::after,.day.SU::after{content:attr(data-orig);position:absolute;bottom:5px;right:6px;font:700 10px var(--f-display);opacity:.8}
+.day.today{box-shadow:0 0 0 2.5px var(--bg),0 0 0 4.5px var(--today)}
+.day.past{opacity:.55}
+.day.pick{outline:3px dashed var(--urlaub);outline-offset:1px}
+.blank{aspect-ratio:1/1.32}
+.day .w{align-self:flex-start;margin-left:6px;font-size:9.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;opacity:.75;line-height:1}
+.dow .lf{display:none}
+@media (min-width:520px){.dow .lf{display:inline}.dow .sf{display:none}}
+.day.F{--frame:var(--frueh)}.day.S{--frame:var(--spaet)}.day.N{--frame:var(--nacht)}.day.U{--frame:var(--urlaub)}.day.TZ{--frame:var(--tz)}.day.AG{--frame:var(--ag)}.day.K{--frame:var(--krank)}.day.SU{--frame:var(--su)}.day.X{--frame:var(--frei)}
+.day.ft{background:var(--feiertag);color:var(--feiertag-ink);box-shadow:inset 0 0 0 5px var(--frame)}
+.day.ft .s,.day.X.ft .s{color:var(--feiertag-ink);font-weight:700}
+.day.ft.today{box-shadow:inset 0 0 0 5px var(--frame),0 0 0 2.5px var(--bg),0 0 0 4.5px var(--today)}
+.day.ft.past{opacity:.7}
+.day[data-ic]::before{content:attr(data-ic);position:absolute;top:2px;right:3px;font-size:13px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+.hol .ic{width:18px;text-align:center}
+.hol b{color:var(--feiertag)!important}
+.hol{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:3px;font-size:13px;color:var(--muted)}
+.hol li{display:flex;gap:8px}
+.hol b{font-variant-numeric:tabular-nums;color:var(--fg);font-weight:600;min-width:42px}
+.lg-ft{font-weight:600;color:var(--feiertag-ink);background:var(--feiertag);border:3px solid var(--spaet);border-radius:5px;padding:0 4px;font-size:11px}
+.sentinel{height:1px}
+
+.fab{position:fixed;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:6;border:0;border-radius:999px;background:var(--fg);color:var(--bg);font:700 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:13px 20px;box-shadow:var(--shadow);cursor:pointer}
+
+.banner{position:fixed;left:0;right:0;bottom:0;z-index:7;background:var(--urlaub);color:var(--urlaub-ink);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:600}
+.banner button{border:1px solid rgba(255,255,255,.6);background:transparent;color:inherit;border-radius:10px;padding:8px 12px;font:600 14px var(--f-body);cursor:pointer}
+
+.scrim{position:fixed;inset:0;background:rgba(10,12,16,.45);z-index:12}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:13;background:var(--surface);border-radius:20px 20px 0 0;box-shadow:var(--shadow);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px calc(env(safe-area-inset-bottom,0px) + 20px);max-width:560px;margin:0 auto;display:grid;gap:12px;animation:up .2s ease-out;max-height:88%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+@keyframes up{from{transform:translateY(30px);opacity:.4}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);justify-self:center}
+.sheet h3{margin:0;font:600 24px var(--f-display);text-transform:uppercase;letter-spacing:.02em}
+.sheet p{margin:0;color:var(--muted);line-height:1.45}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:14px;padding:14px;font:600 16px var(--f-body);cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center}
+.btn.primary{background:var(--urlaub);border-color:var(--urlaub);color:var(--urlaub-ink)}
+.btn.danger{color:#c43c2c}
+.btn.tz{background:var(--tz);border-color:var(--tz);color:var(--tz-ink)}
+.btn.ty{background:var(--tc);border-color:var(--tc);color:var(--ti)}
+.row2>.btn:last-child:nth-child(odd){grid-column:1/-1}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.row3 .btn{justify-content:center}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.colrow{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;border:1px solid var(--line);border-radius:12px;padding:6px 8px;cursor:pointer}
+.colrow input{width:34px;height:28px;border:0;padding:0;background:none;flex:none;cursor:pointer}
+.btn.half{justify-content:center;text-align:center}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row2 .btn{flex-direction:column;gap:2px}
+.sheet h4{margin:4px 0 0;font:600 13px var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+input[type=number]{font:600 18px var(--f-body);padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%}
+.btn small{font-weight:500;opacity:.8;font-size:13px}
+label.f{display:grid;gap:6px;font-weight:600;font-size:14px}
+input[type=date]{font:500 16px var(--f-body);padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%}
+.err{color:#c43c2c;font-size:13px;min-height:1em}
+.cycle{display:flex;gap:2px;flex-wrap:wrap}
+.cycle i{width:calc((100% - 54px)/28);min-width:8px;height:14px;border-radius:3px;background:var(--frei)}
+.cycle i.F{background:var(--frueh)}.cycle i.S{background:var(--spaet)}.cycle i.N{background:var(--nacht)}
+
+.chk{display:flex;align-items:center;gap:10px;font-weight:600;padding:12px 14px;border:1px solid var(--line);border-radius:14px;cursor:pointer}
+.chk input{width:22px;height:22px;accent-color:var(--urlaub)}
+.btn[disabled]{opacity:.45;cursor:default}
+.pkbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pkbar strong{font:600 20px var(--f-display);text-transform:uppercase;letter-spacing:.03em}
+.pkbar .iconbtn{font-size:22px}
+.pk{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.pk .h{text-align:center;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase}
+.pkd{border:0;border-radius:8px;height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:var(--frei);color:var(--fg);font-family:var(--f-body);cursor:pointer;position:relative;box-shadow:inset 0 -4px 0 var(--stripe,transparent)}
+.pkd b{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.pkd i{font:700 10px var(--f-display);font-style:normal;opacity:.7;min-height:10px}
+.pkd.F{--stripe:var(--frueh)}.pkd.S{--stripe:var(--spaet)}.pkd.N{--stripe:var(--nacht)}
+.pkd.X{color:var(--muted)}
+.pkd.hf{background:var(--feiertag);color:var(--feiertag-ink)}
+.pkd.in{background:var(--sel);color:var(--selink);opacity:.75}
+.pkd.edge{opacity:1;box-shadow:0 0 0 2px var(--fg)}
+.pkinfo{font-size:14px;color:var(--fg)!important;min-height:2.9em}
+
+.yearview{position:fixed;inset:0;z-index:11;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:calc(env(safe-area-inset-top,0px) + 10px) calc(env(safe-area-inset-bottom,0px) + 24px)}
+.yvbar{display:flex;align-items:center;gap:8px;max-width:620px;margin:0 auto}
+.yvbar strong{font:700 26px var(--f-display);flex:1;text-align:center}
+.yvhint{max-width:620px;margin:8px auto 10px;font-size:13px;color:var(--muted)}
+.a4wrap{max-width:620px;margin:0 auto;position:relative;overflow:hidden}
+.a4{position:absolute;top:0;left:0;transform-origin:0 0;background:#fff;color:#1d1f24;width:794px;height:1123px;padding:34px 36px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow);font-size:13px;overflow:hidden;
+  --frei:#efede8}
+.a4head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2.5px solid #1d1f24;padding-bottom:8px}
+.a4head span{font:700 34px var(--f-display);text-transform:uppercase;letter-spacing:.02em}
+.a4head small{font-size:14px;color:#6b6f78}
+.ygrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 24px;align-content:start}
+.ym h5{margin:0 0 4px;font:700 18px var(--f-display);text-transform:uppercase;letter-spacing:.03em}
+.yg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.yg .h{text-align:center;font-size:10px;color:#6b6f78;font-weight:600}
+.yd{display:flex;flex-direction:column;align-items:center;justify-content:center;height:25px;border-radius:4px;background:var(--frei);font:700 11px/1 var(--f-display);color:#6b6f78}
+.yd b{font:500 9.5px/1.1 var(--f-body);opacity:.85}
+.yd .yic{font-style:normal;font-size:10px;line-height:1}
+.yd.F{background:var(--frueh);color:var(--frueh-ink)}.yd.S{background:var(--spaet);color:var(--spaet-ink)}.yd.N{background:var(--nacht);color:var(--nacht-ink)}
+.yd.AG{background:var(--ag);color:var(--ag-ink)}.yd.K{background:var(--krank);color:var(--krank-ink)}.yd.SU{background:var(--su);color:var(--su-ink)}
+.yd.U{background:var(--urlaub);color:var(--urlaub-ink)}.yd.TZ{background:var(--tz);color:var(--tz-ink)}
+.yd.F{--frame:var(--frueh)}.yd.S{--frame:var(--spaet)}.yd.N{--frame:var(--nacht)}.yd.U{--frame:var(--urlaub)}.yd.TZ{--frame:var(--tz)}.yd.AG{--frame:var(--ag)}.yd.K{--frame:var(--krank)}.yd.SU{--frame:var(--su)}.yd.X{--frame:var(--frei)}
+.yd.hf{background:var(--feiertag);color:#fff;box-shadow:inset 0 0 0 4.5px var(--frame)}
+.yhol .ic{display:inline-block;width:1.4em}
+.a4foot{margin-top:auto;display:grid;gap:7px;border-top:1px solid #d8d6d0;padding-top:9px}
+.a4foot .lg{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:12.5px}
+.a4foot .lg .yd{width:24px;height:20px;display:inline-flex}
+.a4foot .sum{font-weight:600;font-size:13px}
+.yhol{list-style:none;margin:0;padding:0;columns:3;font-size:11.5px;color:#3a3d44;line-height:1.45}
+.yhol b{color:var(--feiertag)}.yhol i{color:#6b6f78}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 80px);z-index:20;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:14px;max-width:calc(100% - 32px);box-shadow:var(--shadow);text-align:center}
+textarea{font:13px/1.4 ui-monospace,Menlo,monospace;width:100%;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);resize:vertical}
+.yvbar strong.st{font-size:22px;white-space:nowrap}
+.sbody{max-width:620px;margin:0 auto;display:grid;gap:10px;padding-top:12px}
+.sh{margin:14px 0 0;font:700 22px var(--f-display);text-transform:uppercase;letter-spacing:.03em}
+.smeta{margin:0;font-size:13px;color:var(--muted)}
+.scards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.scard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:4px;min-width:0}
+.scard em{justify-self:start;font-style:normal;border-radius:5px;padding:1px 6px;font:700 12px var(--f-display)}
+.scard b{font:700 30px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.scard span{font-size:11.5px;color:var(--muted);line-height:1.3}
+.ccal{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px}
+@media (min-width:560px){.ccal{grid-template-columns:repeat(4,1fr)}}
+.cm h5{margin:0 0 3px;font:700 13px var(--f-display);text-transform:uppercase;letter-spacing:.04em}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:1.5px}
+.cg i{font-style:normal;aspect-ratio:1;display:grid;place-items:center;font-size:7.5px;font-weight:600;border-radius:2.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cg i.F,.cg i.S,.cg i.N,.cg i.X{background:var(--frei)}
+.cg i.F{box-shadow:inset 0 -2px 0 var(--frueh)}.cg i.S{box-shadow:inset 0 -2px 0 var(--spaet)}.cg i.N{box-shadow:inset 0 -2px 0 var(--nacht)}
+.cg i.e.U{background:var(--urlaub);color:var(--urlaub-ink)}.cg i.e.TZ{background:var(--tz);color:var(--tz-ink)}.cg i.e.AG{background:var(--ag);color:var(--ag-ink)}.cg i.e.K{background:var(--krank);color:var(--krank-ink)}.cg i.e.SU{background:var(--su);color:var(--su-ink)}
+.cg i.hf{outline:1.5px solid var(--feiertag);outline-offset:-1.5px;color:var(--feiertag)}
+.cg i.e.hf{outline-width:2px}
+.cg i.td{outline:1.5px solid var(--fg);outline-offset:0}
+.sgrp{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.sgrp h4{margin:0 0 6px;display:flex;align-items:center;gap:8px;font:600 16px var(--f-body)}
+.sgrp h4 em{font-style:normal;border-radius:5px;padding:1px 6px;font:700 12px var(--f-display)}
+.sgrp h4 span{margin-left:auto;font-size:13px;color:var(--muted);font-weight:500}
+.sgrp ul{list-style:none;margin:0;padding:0;display:grid}
+.sgrp li+li{border-top:1px solid var(--line)}
+.sgrp li button{all:unset;box-sizing:border-box;width:100%;display:flex;justify-content:space-between;gap:10px;padding:8px 2px;cursor:pointer;font-size:14px}
+.sgrp li button:focus-visible{outline:2px solid var(--nacht)}
+.sgrp li span{color:var(--muted);font-size:13px;text-align:right}
+.sbtns{display:grid;gap:8px}
+.day.flash{animation:flash 1.6s ease-out}
+@keyframes flash{0%,40%{transform:scale(1.12);box-shadow:0 0 0 4px var(--fg)}100%{transform:none}}
+
+.day .nm{position:absolute;left:0;bottom:0;width:0;height:0;font-size:0;overflow:hidden;border-left:19px solid var(--fg);border-top:19px solid transparent;border-bottom-left-radius:10px;filter:drop-shadow(0 0 1px var(--surface))}
+.nbox{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.nbox p{margin:4px 0 0;color:var(--fg)!important;white-space:pre-wrap}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mtile{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:14px;padding:12px;display:grid;gap:2px;text-align:left;font:600 16px var(--f-body);cursor:pointer}
+.mtile span{font-size:22px;line-height:1.1}
+.mtile small{font-weight:500;font-size:12px;color:var(--muted)}
+.nlist,.clist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.nlist li{display:flex;gap:6px;align-items:stretch}
+.nitem{all:unset;box-sizing:border-box;flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:4px;cursor:pointer}
+.nitem:focus-visible{outline:2px solid var(--nacht)}
+.nd{font-size:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nd em{font-style:normal;border-radius:4px;padding:0 5px;font:700 11px var(--f-display)}
+.nt2{font-size:14px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.ned{height:auto;font-size:18px}
+.snote{display:block;width:100%;font-style:normal;font-size:12.5px;color:var(--muted);margin-top:2px;white-space:pre-wrap}
+.sgrp li button{flex-wrap:wrap}
+.ccard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px}
+.cinfo{display:grid;gap:2px}
+.cinfo b{font-size:17px}
+.cinfo span{font-size:13px;color:var(--muted)}
+.ctel{font:700 24px var(--f-display);letter-spacing:.03em;color:var(--fg);text-decoration:none;user-select:all;-webkit-user-select:all;font-variant-numeric:tabular-nums}
+.cbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cbtns .btn{justify-content:center;text-align:center;padding:10px 6px;font-size:14px;text-decoration:none}
+.inp{font:500 16px var(--f-body);padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%}
+
+.day.ot::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--ue)}
+.day[data-ic].ot::before{content:attr(data-ic);height:auto;background:none;top:2px;left:auto;right:3px}
+.day.ot{box-shadow:inset 0 5px 0 var(--ue)}
+.day.ft.ot{box-shadow:inset 0 0 0 5px var(--frame),inset 0 9px 0 var(--ue)}
+.otcalc{font-size:18px;min-height:1.3em}
+.otbars{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;align-items:end;height:110px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 8px 6px}
+.ob{display:grid;grid-template-rows:1fr auto auto;height:100%;text-align:center;gap:2px;min-width:0}
+.ob i{align-self:end;background:var(--ue);border-radius:3px 3px 0 0;min-height:1px}
+.ob b{font:600 9.5px var(--f-body);color:var(--fg)}
+.ob span{font-size:10px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chipf{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 11px;font:600 13px var(--f-body);cursor:pointer}
+.chipf small{color:var(--muted);font-weight:500}
+.chipf.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.chipf.on small{color:var(--bg)}
+.elist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.erow{display:flex;gap:5px;align-items:stretch}
+.erow .iconbtn{height:auto;width:42px;font-size:16px}
+.edel.sure{width:auto;padding:0 8px;font-size:12px;color:#c43c2c;border-color:#c43c2c}
+.eitem{all:unset;box-sizing:border-box;flex:1;min-width:0;display:flex;gap:9px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 10px;cursor:pointer}
+.eitem:focus-visible{outline:2px solid var(--nacht)}
+.eitem>em,.nchip{font-style:normal;border-radius:5px;padding:2px 6px;font:700 12px var(--f-display);flex:none;min-width:28px;text-align:center}
+.nchip{background:var(--frei)}
+.et{display:grid;gap:1px;min-width:0}
+.et b{font-size:14px}
+.et span{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.dstbar{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:6px 10px;font:500 13px var(--f-body);cursor:pointer;box-shadow:inset 3px 0 0 var(--nacht)}
+#sndBtn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+input[type=range]{width:100%;accent-color:var(--urlaub)}
+
+/* Wochenende: farbiges Band hinter Samstag und Sonntag */
+.grid,.yg,.pk,.cg{position:relative}
+.grid::before,.yg::before,.pk::before,.cg::before{content:"";position:absolute;top:-3px;bottom:-3px;right:-3px;left:calc((100% - 6*var(--gp))/7*5 + 5*var(--gp) - 3px);background:color-mix(in srgb,var(--we) 42%,transparent);border-radius:12px;z-index:0;pointer-events:none}
+.grid{--gp:4px}.pk{--gp:3px}.yg{--gp:3px}.cg{--gp:1.5px}
+.cg::before{border-radius:4px;top:-1.5px;bottom:-1.5px;right:-1.5px;left:calc((100% - 6*var(--gp))/7*5 + 5*var(--gp) - 1.5px)}
+.yg::before{border-radius:5px;top:12px;bottom:-2px}
+.grid>*,.yg>*,.pk>*,.cg>*{position:relative;z-index:1}
+.dow>div:nth-child(n+6){color:color-mix(in srgb,var(--we) 45%,var(--fg));background:color-mix(in srgb,var(--we) 42%,transparent);border-radius:6px 6px 0 0}
+.pk .h:nth-child(n+6),.yg .h:nth-child(n+6){color:color-mix(in srgb,var(--we) 50%,#1d1f24)}
+.day .w{}
+
+.yvact{max-width:620px;margin:10px auto 0}
+.yvact .btn{width:100%;justify-content:center}
+.weleg{display:inline-block;width:1.8em;height:1.4em;border-radius:.3em;background:color-mix(in srgb,var(--we) 42%,transparent);vertical-align:middle}
+.yd.X.hf{box-shadow:none}
+
+.notebtn{justify-content:center;border-style:dashed}
+a.btn{text-decoration:none;justify-content:center}
+.mrow{display:flex;align-items:center;gap:6px}
+.mseg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;flex:1;min-width:0}
+.mt{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:9px;padding:8px 2px;font:600 12.5px var(--f-body);cursor:pointer}
+.mt.on{background:var(--c);color:var(--ci);border-color:var(--c);box-shadow:0 0 0 2px var(--fg) inset}
+.mstep{display:flex;align-items:center;gap:2px;flex:none}
+.mstep button{width:30px;height:34px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;font:700 16px var(--f-body);cursor:pointer}
+.mstep b{min-width:22px;text-align:center;font-variant-numeric:tabular-nums}
+.mdel{border:0;background:none;color:#c43c2c;font-size:16px;cursor:pointer;padding:4px;flex:none}
+.mchips{display:flex;width:90px;height:12px;border-radius:4px;overflow:hidden;flex:none;gap:1px}
+.mchips i{display:block;height:100%}
+.mprev .mp{height:34px;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;font:700 12px var(--f-display)}
+.mprev .mp b{font:500 9.5px var(--f-body);opacity:.8}
+
+.helptile{grid-template-columns:auto 1fr;align-items:center;column-gap:12px;background:var(--surface)}
+.helptile span{grid-row:span 2;font-size:28px}
+.hsec{display:grid;gap:8px;scroll-margin-top:10px}
+.hsec .sh{display:flex;align-items:center;gap:10px;font-size:20px}
+.hn{display:inline-grid;place-items:center;min-width:26px;height:26px;border-radius:50%;background:var(--fg);color:var(--bg);font:700 14px var(--f-display)}
+.htxt{margin:0;line-height:1.5;max-width:62ch}
+.himg{display:block;width:min(280px,100%);height:auto;border-radius:16px;border:1px solid var(--line);box-shadow:var(--shadow);margin:4px auto 6px;background:var(--surface)}
+
+.impr{display:grid;gap:4px}
+.impr h4{margin:10px 0 0}
+.impr p{margin:0;color:var(--fg)!important;line-height:1.5}
+.impapp{font-size:17px}.impapp span{font-size:13px;color:var(--muted)}
+</style>
+
+<canvas id="season" aria-hidden="true"></canvas>
+<canvas id="seasonFront" aria-hidden="true"></canvas>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <div class="todaycard" id="todayCard"></div>
+      <button class="iconbtn sq" id="sndBtn" aria-label="Sound an"></button>
+      <button class="iconbtn sq" id="menuBtn" aria-label="Menü"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <button class="iconbtn sq" hidden id="statBtn" aria-label="Statistik und Speichern"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
+      <button class="iconbtn sq" hidden id="setBtn" aria-label="Einstellungen und Legende"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+    <button type="button" class="dstbar" id="dstBar" hidden></button>
+    <div class="budget" id="budget"></div>
+    <div class="dow"><div><span class="lf">Montag</span><span class="sf">Mo</span></div><div><span class="lf">Dienstag</span><span class="sf">Di</span></div><div><span class="lf">Mittwoch</span><span class="sf">Mi</span></div><div><span class="lf">Donnerst.</span><span class="sf">Do</span></div><div><span class="lf">Freitag</span><span class="sf">Fr</span></div><div><span class="lf">Samstag</span><span class="sf">Sa</span></div><div><span class="lf">Sonntag</span><span class="sf">So</span></div></div>
+  </header>
+  <template id="legendTpl"><div class="legend">
+      <span><i style="background:var(--frueh)"></i>Früh</span>
+      <span><i style="background:var(--spaet)"></i>Spät</span>
+      <span><i style="background:var(--nacht)"></i>Nacht</span>
+      <span><i style="background:var(--urlaub)"></i>U Urlaub</span>
+      <span><i style="background:var(--tz)"></i>TZ-Urlaub</span>
+      <span><i style="background:var(--ag)"></i>AG Ausgleich</span>
+      <span><i style="background:var(--krank)"></i>🌡️ K Krank</span>
+      <span><i style="background:var(--su)"></i>SU Sonderurlaub</span>
+      <span><i style="background:linear-gradient(var(--ue) 35%,var(--frei) 35%)"></i>Balken oben = Überstunden</span>
+      <span><i style="background:var(--frei);border:1px solid var(--line)"></i>Frei</span>
+      <span><em class="lg-ft" style="font-style:normal">12</em>Feiertag (frei)</span>
+      <span><i style="background:linear-gradient(45deg,var(--fg) 50%,var(--frei) 50%)"></i>Ecke unten links = Notiz</span>
+      <span>🎅 🐰 Bildchen = Feier- und Festtage</span>
+    </div>
+</template>
+
+  <main id="feed">
+    <button class="more" id="moreBtn" type="button">Frühere Monate anzeigen</button>
+    <div id="months"></div>
+    <div class="sentinel" id="botS"></div>
+  </main>
+</div>
+
+<button class="fab" id="todayBtn">Heute</button>
+<div class="banner" id="banner" hidden><span id="bannerTxt">Letzten Urlaubstag antippen</span><button id="bannerCancel">Abbrechen</button></div>
+<div class="yearview" id="yearView" hidden></div>
+<div class="yearview" id="statsView" hidden></div>
+<div class="yearview" id="notesView" hidden></div>
+<div class="yearview" id="helpView" hidden></div>
+<div class="yearview" id="entriesView" hidden></div>
+<div class="yearview" id="contactsView" hidden></div>
+<div class="toast" id="toast" hidden role="status"></div>
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"></div>
+
+<script>
+(function(){
+  // 28-Tage-Zyklus ab Montag: 6×Spät (Mo–Sa), So frei, 6×Früh (Mo–Sa), 6×Nacht (So–Fr), 9 Tage frei
+  const PATTERN = [..."SSSSSS","X",..."FFFFFF",..."NNNNNN",..."XXXXXXXXX"];
+  const NAMES = {F:"Frühschicht",S:"Spätschicht",N:"Nachtschicht",X:"Frei",U:"Urlaub"};
+  const SHORT = {F:"F",S:"S",N:"N",X:"frei"};
+  const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+  const WD = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+  const WDL = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+  const store = {
+    get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+    set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  };
+
+  const dn = (y,m,d)=>Math.round(Date.UTC(y,m,d)/864e5);
+  const fromDn = n=>{const d=new Date(n*864e5);return {y:d.getUTCFullYear(),m:d.getUTCMonth(),d:d.getUTCDate(),w:d.getUTCDay()}};
+  const iso = n=>{const o=fromDn(n);return o.y+"-"+String(o.m+1).padStart(2,"0")+"-"+String(o.d).padStart(2,"0")};
+  const parseIso = s=>{const [y,m,d]=s.split("-").map(Number);return dn(y,m-1,d)};
+  const now = new Date();
+  const TODAY = dn(now.getFullYear(),now.getMonth(),now.getDate());
+
+  let anchor = parseIso(store.get("sp_anchor2","2026-12-21")); // Montag, an dem ein Spät-Block beginnt
+  // Urlaub: {Tagnummer: "U" | "TZ"}; alte Einträge (nur Liste) werden als U übernommen
+  let vac = store.get("sp_vac2",null);
+  if(!vac){vac={};store.get("sp_vac",[]).forEach(n=>vac[n]="U")}
+  let quota = Object.assign({U:30,TZ:8}, store.get("sp_quota",{}));
+  const saveVac = ()=>store.set("sp_vac2",vac);
+  const vt = n=>vac[n]||null;
+  let notes=store.get("sp_notes",{}); const saveNotes=()=>store.set("sp_notes",notes);
+  let ot=store.get("sp_ot",[]); const saveOt=()=>store.set("sp_ot",ot);
+  let otCfg=Object.assign({agHours:8,carry:0},store.get("sp_otcfg",{}));
+  let contacts=store.get("sp_contacts",[]); const saveContacts=()=>store.set("sp_contacts",contacts);
+  let pickStart=null, pickType="U";
+  const TYPE = {
+    U:{name:"Urlaub",short:"U",col:"var(--urlaub)",ink:"var(--urlaub-ink)",quota:true},
+    TZ:{name:"TZ-Urlaub",short:"TZ",col:"var(--tz)",ink:"var(--tz-ink)",quota:true},
+    AG:{name:"Ausgleich",short:"AG",col:"var(--ag)",ink:"var(--ag-ink)",quota:false},
+    K:{name:"Krank",short:"K",col:"var(--krank)",ink:"var(--krank-ink)",quota:false},
+    SU:{name:"Sonderurlaub",short:"SU",col:"var(--su)",ink:"var(--su-ink)",quota:false}};
+  const KINDS=["U","TZ","AG","K","SU"];
+
+  let models=store.get("sp_models",[]); const saveModels=()=>{store.set("sp_models",models);mCache=null};
+  let mCache=null;
+  function modelFor(n){ if(!mCache)mCache=models.map(m=>{const pat=[];m.blocks.forEach(([t,c])=>{for(let i=0;i<c;i++)pat.push(t)});return {m,a:parseIso(m.from),b:parseIso(m.to),pat}});
+    for(let i=mCache.length-1;i>=0;i--){const c=mCache[i];if(n>=c.a&&n<=c.b&&c.pat.length)return c}return null}
+  const rawShift = n=>{const c=modelFor(n);return c?c.pat[(n-c.a)%c.pat.length]:PATTERN[((n-anchor)%28+28)%28]};
+  // An allen Feiertagen (inkl. Heiligabend und Silvester) wird nicht gearbeitet
+  const shift = n=>{const s=rawShift(n);return s!=="X"&&holiday(n)?"X":s};
+  const fmt = n=>{const o=fromDn(n);return WDL[o.w]+", "+o.d+". "+MONTHS[o.m]+" "+o.y};
+  const fmtS = n=>fmt(n).replace(/ \d{4}$/,"");
+  // Verbrauch: zählt nur Urlaub auf geplanten Schichttagen
+  function used(y,t){let c=0;for(const k in vac){const n=+k;if(vac[k]===t&&shift(n)!=="X"&&!holiday(n)&&fromDn(n).y===y)c++  /* Feiertage kosten keinen Urlaubstag */}return c}
+  const left = (y,t)=>quota[t]-used(y,t);
+
+  // Gesetzliche Feiertage Bayern
+  const holCache={};
+  function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return dn(y,mo-1,da)}
+  function holidays(y){
+    if(holCache[y])return holCache[y];
+    const e=easter(y), M=new Map([
+      [dn(y,0,1),"Neujahr"],[dn(y,0,6),"Heilige Drei Könige"],[e-2,"Karfreitag"],[e+1,"Ostermontag"],
+      [dn(y,4,1),"Tag der Arbeit"],[e+39,"Christi Himmelfahrt"],[e+50,"Pfingstmontag"],[e+60,"Fronleichnam"],
+      [dn(y,7,15),"Mariä Himmelfahrt"],[dn(y,9,3),"Tag der Deutschen Einheit"],[dn(y,10,1),"Allerheiligen"],
+      [dn(y,11,24),"Heiligabend"],[dn(y,11,25),"1. Weihnachtstag"],[dn(y,11,26),"2. Weihnachtstag"],[dn(y,11,31),"Silvester"]]);
+    return holCache[y]=M;
+  }
+  const holiday = n=>holidays(fromDn(n).y).get(n);
+  // Bildchen für Feiertage und besondere Tage (Festtage zählen nicht als Feiertag)
+  const ICON={"Neujahr":"🍀","Heilige Drei Könige":"👑","Karfreitag":"✝️","Ostermontag":"🐰","Tag der Arbeit":"🌷","Christi Himmelfahrt":"☁️","Pfingstmontag":"🕊️","Fronleichnam":"🌸","Mariä Himmelfahrt":"🌻","Tag der Deutschen Einheit":"🇩🇪","Allerheiligen":"🕯️","1. Weihnachtstag":"🎅","2. Weihnachtstag":"🎁",
+    "Faschingsdienstag":"🎭","Faschingsbeginn":"🎉","Weiberfastnacht":"🎭","Rosenmontag":"🎊","Ostersonntag":"🥚","Muttertag":"💐","Nikolaus":"🎅","Heiligabend":"🎄","Silvester":"🎆","Sommerzeit":"🕑","Winterzeit":"🕑"};
+  const spCache={};
+  function specials(y){ if(spCache[y])return spCache[y]; const e=easter(y), may1=dn(y,4,1), w=fromDn(may1).w;
+    return spCache[y]=new Map([[dn(y,10,11),"Faschingsbeginn"],[e-52,"Weiberfastnacht"],[e-48,"Rosenmontag"],[e-47,"Faschingsdienstag"],[e,"Ostersonntag"],[may1+((7-w)%7)+7,"Muttertag"],[dn(y,11,6),"Nikolaus"]]); }
+  const dst = n=>{const y=fromDn(n).y;return n===dstDay(y,2)?"Sommerzeit":n===dstDay(y,9)?"Winterzeit":null};
+  function dstDay(y,m){const l=dn(y,m+1,0);return l-fromDn(l).w} // letzter Sonntag im Monat
+  const DST_TXT={Sommerzeit:"Zeitumstellung: Uhr wird nachts von 2 auf 3 Uhr vorgestellt. Die Nacht ist eine Stunde kürzer.",Winterzeit:"Zeitumstellung: Uhr wird nachts von 3 auf 2 Uhr zurückgestellt. Die Nacht ist eine Stunde länger."};
+  function dstNight(n){const sp=dst(n);if(sp!=="Sommerzeit"&&sp!=="Winterzeit")return "";const sa=n-1,s1=shift(sa),s2=shift(n);
+    const ns=s1==="N";return ns?(sp==="Sommerzeit"?"Deine Nachtschicht von Samstag auf Sonntag dauert eine Stunde kürzer.":"Deine Nachtschicht von Samstag auf Sonntag dauert eine Stunde länger."):"In der Nacht von Samstag auf Sonntag hast du keine Nachtschicht, für dich ändert sich also nur die Uhrzeit."}
+  const special = n=>specials(fromDn(n).y).get(n);
+  const icon = n=>{const h=holiday(n)||special(n)||dst(n);return h?ICON[h]:null};
+  const label = n=>{const t=vt(n);return t?TYPE[t].name:NAMES[shift(n)]};
+
+  const hm = m=>{const s=m<0?"−":"";m=Math.abs(Math.round(m));const h=Math.floor(m/60),r=m%60;return s+h+(r?","+String(Math.round(r/60*100)).padStart(2,"0").replace(/0$/,""):"")+" h"};
+  const hShort = m=>{const v=Math.round(m/60*10)/10;return String(v).replace(".",",").replace("-","−")};
+  const toMin = t=>{const [h,m]=t.split(":").map(Number);return h*60+m};
+  function otMinutes(from,to,pause){let d=toMin(to)-toMin(from);if(d<=0)d+=1440;return Math.max(0,d-(pause||0))}
+  const otOn = n=>ot.filter(o=>o.d===n);
+  function otYear(y){const a=dn(y,0,1),b=dn(y+1,0,1);return ot.filter(o=>o.d>=a&&o.d<b).reduce((s,o)=>s+o.min,0)}
+  function agCount(pred){let c=0;for(const k in vac){const n=+k;if(vac[k]==="AG"&&shift(n)!=="X"&&!holiday(n)&&pred(n))c++}return c}
+  function otSaldo(){ // Übertrag + alle Überstunden − Ausgleichstage × Stunden
+    return otCfg.carry*60 + ot.reduce((s,o)=>s+o.min,0) - agCount(()=>true)*otCfg.agHours*60 }
+  // ---------- Monats-Feed ----------
+  const monthsEl = document.getElementById("months");
+  let first = {y:now.getFullYear(),m:now.getMonth()-12}, last = {y:now.getFullYear(),m:now.getMonth()+8};
+  const norm = o=>{const d=new Date(Date.UTC(o.y,o.m,1));return {y:d.getUTCFullYear(),m:d.getUTCMonth()}};
+  first = norm(first); last = norm(last);
+
+  function buildMonth(y,m){
+    const sec = document.createElement("section");
+    sec.className="month"; sec.dataset.y=y; sec.dataset.m=m;
+    const h = document.createElement("h2");
+    const days = new Date(Date.UTC(y,m+1,0)).getUTCDate();
+    h.innerHTML = MONTHS[m]+" "+y+'<span class="mstat"></span>';
+    sec.appendChild(h);
+    const g = document.createElement("div"); g.className="grid";
+    const start = dn(y,m,1), lead = (fromDn(start).w+6)%7;
+    for(let i=0;i<lead;i++){const b=document.createElement("div");b.className="blank";g.appendChild(b)}
+    for(let d=0;d<days;d++){
+      const n=start+d, el=document.createElement("button");
+      el.type="button"; el.dataset.d=n;
+      el.innerHTML='<span class="w">'+WD[fromDn(n).w]+'</span><span class="n">'+(d+1)+'</span><span class="s"></span><span class="nm" hidden>✎</span>';
+      g.appendChild(el); paint(el);
+    }
+    sec.appendChild(g);
+    const ul=document.createElement("ul");ul.className="hol";sec.appendChild(ul);
+    statMonth(sec);
+    return sec;
+  }
+  function paint(el){
+    const n=+el.dataset.d, s=shift(n), t=vt(n), ft=holiday(n);
+    el.className="day "+(t||s)+(ft?" ft":"")+(n===TODAY?" today":"")+(n<TODAY?" past":"")+(pickStart===n?" pick":"");
+    el.querySelector(".s").textContent = t?TYPE[t].short:SHORT[s];
+    if(t && s!=="X") el.dataset.orig=s; else delete el.dataset.orig;
+    const ic=t==="K"?"🌡️":icon(n); if(ic) el.dataset.ic=ic; else delete el.dataset.ic;
+    el.querySelector(".nm").hidden=!noteAt(n);
+    el.classList.toggle("ot",otOn(n).length>0);
+    el.setAttribute("aria-label",fmt(n)+(ft?" ("+ft+")":special(n)?" ("+special(n)+")":"")+": "+label(n));
+  }
+  function statMonth(sec){
+    const c={F:0,S:0,N:0,U:0,TZ:0,AG:0,K:0,SU:0}, hs=[];
+    sec.querySelectorAll("[data-d]").forEach(e=>{const n=+e.dataset.d,s=shift(n),t=vt(n);
+      if(t){if(s!=="X"&&!holiday(n))c[t]++}else if(s!=="X")c[s]++;
+      const h=holiday(n),sp=special(n),ds=dst(n);if(ds)hs.push('<li><span class="ic">🕑</span><b style="color:var(--muted)!important">'+fromDn(n).d+'.'+(fromDn(n).m+1)+'.</b><span>Zeitumstellung, '+(ds==="Sommerzeit"?'Uhr 2→3 vor':'Uhr 3→2 zurück')+'</span></li>');if(h||sp){const o=fromDn(n);hs.push('<li><span class="ic">'+icon(n)+'</span><b'+(h?'':' style="color:var(--muted)!important"')+'>'+o.d+'.'+(o.m+1)+'.</b><span>'+(h||sp+' (kein Feiertag)')+' · '+label(n)+'</span></li>')}});
+    let fts=0;sec.querySelectorAll("[data-d]").forEach(e=>{const n=+e.dataset.d;if(holiday(n)&&shift(n)!=="X")fts++});
+    sec.querySelector(".mstat").textContent = (c.F+c.S+c.N)+" Schichten"+(fts?" · "+fts+" FT":"")+(c.U?" · "+c.U+" U":"")+(c.TZ?" · "+c.TZ+" TZ":"")+(c.AG?" · "+c.AG+" AG":"")+(c.K?" · "+c.K+" K":"")+(c.SU?" · "+c.SU+" SU":"");
+    const ul=sec.querySelector(".hol"); ul.innerHTML=hs.join(""); ul.hidden=!hs.length;
+  }
+  function repaintAll(){
+    document.querySelectorAll("[data-d]").forEach(paint);
+    document.querySelectorAll(".month").forEach(statMonth);
+    renderToday(); renderBudget();
+  }
+
+  let m0=first;
+  while(m0.y<last.y || (m0.y===last.y && m0.m<=last.m)){monthsEl.appendChild(buildMonth(m0.y,m0.m)); m0=norm({y:m0.y,m:m0.m+1});}
+
+  function appendMonths(k){for(let i=0;i<k;i++){last=norm({y:last.y,m:last.m+1});monthsEl.appendChild(buildMonth(last.y,last.m))}}
+  const header=document.querySelector("header");
+  const docH=()=>document.documentElement.scrollHeight;
+  function prependMonths(k){
+    const h0=docH(), y0=window.scrollY;
+    const frag=document.createDocumentFragment(), list=[];
+    for(let i=0;i<k;i++){first=norm({y:first.y,m:first.m-1});list.unshift(buildMonth(first.y,first.m))}
+    list.forEach(s=>frag.appendChild(s));
+    monthsEl.insertBefore(frag,monthsEl.firstChild);
+    window.scrollTo(0,y0+docH()-h0);
+  }
+  document.getElementById("moreBtn").onclick=()=>prependMonths(12);
+  let ready=false, viewYear=fromDn(TODAY).y, ticking=false;
+  let nyeShown=false;
+  function onScroll(){
+    ticking=false;
+    // unten nachladen (nur bei echtem Scrollen, max. 30 Jahre)
+    if(ready && monthsEl.children.length<360 && docH()-(window.scrollY+window.innerHeight)<1500) appendMonths(6);
+    // Silvester (31.12.) in der Bildschirmmitte: Feuerwerk mit Raketen-Sound
+    { const el=document.querySelector('[data-d="'+dn(viewYear,11,31)+'"]')||document.querySelector('[data-d="'+dn(viewYear-1,11,31)+'"]');
+      if(el){const r=el.getBoundingClientRect(),mid=(r.top+r.bottom)/2,inMid=mid>innerHeight*.3&&mid<innerHeight*.7;
+        if(inMid&&!nyeShown&&typeof critters!=="undefined"&&animOn&&!reduceMotion&&!critters.some(c=>c.kind==="fireworks")){nyeShown=true;critters.push({kind:"fireworks",dir:1,x:0,vx:0,t:0,dur:360,rockets:[],sparks:[]})}
+        if(!inMid&&(mid<-innerHeight*.2||mid>innerHeight*1.2))nyeShown=false} }
+    // Jahr/Jahreszeit des Monats, der gerade unter dem Kopf steht
+    const top=header.getBoundingClientRect().bottom+30;
+    for(const sec of monthsEl.children){ if(sec.getBoundingClientRect().bottom>top){const y=+sec.dataset.y;setSeason(+sec.dataset.m);if(y!==viewYear){viewYear=y;renderBudget()}break} }
+  }
+  window.addEventListener("scroll",()=>{if(!ticking){ticking=true;requestAnimationFrame(onScroll)}},{passive:true});
+
+  function scrollToToday(smooth){
+    const el=document.querySelector('[data-d="'+TODAY+'"]');
+    if(!el)return;
+    const sec=el.closest(".month");
+    const top=sec.getBoundingClientRect().top+window.scrollY-header.offsetHeight-6;
+    const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({top, behavior:smooth&&!reduce?"smooth":"auto"});
+  }
+  document.getElementById("todayBtn").onclick=()=>scrollToToday(true);
+  requestAnimationFrame(()=>{scrollToToday(false);setTimeout(()=>ready=true,300)});
+
+  // ---------- Heute-Karte & Urlaubskonto ----------
+  function renderToday(){
+    const s=shift(TODAY), t=vt(TODAY);
+    let next="";
+    if(t||s==="X"){ for(let i=1;i<60;i++){const n=TODAY+i;if(!vt(n)&&shift(n)!=="X"){next="nächste: "+NAMES[shift(n)]+", "+fmtS(n);break}} }
+    else { let i=0; while(shift(TODAY+i+1)===s && !vt(TODAY+i+1)) i++; next = i? "noch "+i : "letzte im Block"; }
+    const bg=t?TYPE[t].col:{F:"var(--frueh)",S:"var(--spaet)",N:"var(--nacht)",X:"var(--frei)"}[s];
+    const ink=t?TYPE[t].ink:{F:"var(--frueh-ink)",S:"var(--spaet-ink)",N:"var(--nacht-ink)",X:"var(--muted)"}[s];
+    document.getElementById("todayCard").innerHTML=
+      '<div class="badge" style="background:'+bg+';color:'+ink+'">'+(t?TYPE[t].short:s==="X"?"–":s)+'</div>'+
+      '<div style="min-width:0"><div class="t1">Heute · '+fmtS(TODAY)+(holiday(TODAY)?' · '+holiday(TODAY):'')+'</div><div class="t2">'+label(TODAY)+' <span>· '+next+'</span></div></div>';
+    const dn2=[dstDay(fromDn(TODAY).y,2),dstDay(fromDn(TODAY).y,9),dstDay(fromDn(TODAY).y+1,2)].find(d=>d>=TODAY&&d-TODAY<=14), bar=document.getElementById("dstBar");
+    if(dn2!=null){const sp=dst(dn2),k=dn2-TODAY;bar.hidden=false;bar.innerHTML='🕑 <b>'+(k===0?'Heute Nacht':k===1?'Morgen':'In '+k+' Tagen')+'</b> ('+fmtS(dn2)+'): '+(sp==="Sommerzeit"?'Uhr 2→3 vorstellen':'Uhr 3→2 zurückstellen')+(shift(dn2-1)==="N"?' · Nachtschicht '+(sp==="Sommerzeit"?'1 h kürzer':'1 h länger'):'');bar.dataset.go=dn2}
+    else bar.hidden=true;
+  }
+  function ftInShift(y){let c=0;holidays(y).forEach((_,n)=>{if(rawShift(n)!=="X")c++});return c}
+  function renderBudget(){
+    const y=viewYear;
+    const pill=(lab,bg,ink,val,txt,tip,over)=>'<div class="bud'+(over?' over':'')+'" title="'+tip+'"><em style="background:'+bg+';color:'+ink+'">'+lab+'</em><b>'+val+'</b>'+(txt?'<span>'+txt+'</span>':'')+'</div>';
+    const P=k=>[k,TYPE[k].col,TYPE[k].ink];
+    const sal=otSaldo();
+    document.getElementById("budget").innerHTML=
+      pill(...P("U"),left(y,"U"),"/"+quota.U,"Urlaub übrig "+y,left(y,"U")<0)+
+      pill(...P("TZ"),left(y,"TZ"),"/"+quota.TZ,"TZ-Urlaub übrig "+y,left(y,"TZ")<0)+
+      pill(...P("AG"),used(y,"AG"),"","Ausgleichstage "+y)+
+      pill("ÜS","var(--ue)","var(--ue-ink)",hShort(sal),"h","Überstunden-Saldo",sal<0)+
+      pill(...P("K"),used(y,"K"),"","Krankheitstage "+y)+
+      pill(...P("SU"),used(y,"SU"),"","Sonderurlaub "+y)+
+      pill("FT","var(--feiertag)","var(--feiertag-ink)",ftInShift(y),"","Feiertage, die auf eine Schicht fallen (frei) "+y)+
+      '<div class="bud yr" title="Zähler gelten für dieses Jahr"><b>'+y+'</b></div>';
+  }
+  // ---------- Jahreszeiten-Hintergrund ----------
+  const SEASONS=["winter","winter","spring","spring","spring","summer","summer","summer","autumn","autumn","autumn","winter"];
+  const cv=document.getElementById("season"), cxB=cv.getContext("2d"), cvF=document.getElementById("seasonFront"), cxF=cvF.getContext("2d"); let cx=cxB;
+  const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let season=null, parts=[], extras=[], cols={}, W=0, H=0, dpr=1, T=0;
+  let wind=0, gust=0, gustTarget=0, nextGust=0, lastScroll=window.scrollY, scrollV=0, drift=0, nextCritter=0, critter=null;
+  function readCols(){const cs=getComputedStyle(document.documentElement);
+    ["snow","petal","sun","leaf1","leaf2","leaf3"].forEach(k=>cols[k]=cs.getPropertyValue("--p-"+k).trim());
+    if(season){const t=cs.getPropertyValue("--tint-"+season).trim();document.body.style.backgroundColor=t;document.documentElement.style.setProperty("--tintnow",t)}}
+  function resize(){dpr=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;for(const [c,x] of [[cv,cxB],[cvF,cxF]]){c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0)}}
+  const rnd=(a,b)=>a+Math.random()*(b-a), pick=a=>a[Math.floor(Math.random()*a.length)];
+  function spawn(p,init){
+    p.z=rnd(.45,1.45);                       // Tiefe: klein/langsam/blass hinten, groß/schnell vorne
+    p.x=rnd(-20,W+20); p.y=init?rnd(0,H):(season==="summer"?H+12:-14);
+    const z=p.z;
+    if(season==="winter"){p.r=rnd(1.4,3.2)*z;p.crystal=z>1.05&&Math.random()<.55;if(p.crystal)p.r=rnd(4,7)*z;p.vy=rnd(.45,.9)*z;p.c="snow"}
+    if(season==="spring"){p.r=rnd(5,8)*z;p.vy=rnd(.4,.8)*z;p.c="petal"}
+    if(season==="summer"){p.r=rnd(1.2,2.8)*z;p.vy=-rnd(.15,.5)*z;p.c="sun";p.tw=rnd(0,6.28)}
+    if(season==="autumn"){p.r=rnd(6,11)*z;p.vy=rnd(.5,1.05)*z;p.c=pick(["leaf1","leaf2","leaf3"]);p.lobed=Math.random()<.45}
+    p.sw=rnd(.4,1.5); p.ph=rnd(0,6.28); p.rot=rnd(0,6.28); p.vr=rnd(-.035,.035); p.flip=rnd(0,6.28); p.vf=rnd(.03,.08);
+    p.a=Math.min(.95,(season==="summer"?rnd(.35,.8):rnd(.5,.9))*(.55+z*.35)); p.life=null; return p;
+  }
+  function setSeason(m){
+    if(m!==curMonth){curMonth=m;const ok=pool(m);critters.forEach(c=>{if(!ok.includes(c.kind)&&c.kind!=="fireworks"&&c.kind!=="confetti")c.fade=c.fade||30});nextCritter=Math.min(nextCritter,T+90)} const s=SEASONS[m]; if(s===season)return; season=s; readCols();
+    const n=Math.max(22,Math.min(55,Math.round(W*H/9000)));
+    parts=Array.from({length:n},()=>spawn({},true)).sort((a,b)=>a.z-b.z); extras=[]; drift=season==="winter"?drift:0;
+    nextCritter=Math.min(nextCritter,T+rnd(90,240)); if(reduceMotion)draw();
+  }
+  // Antippen: kleiner Wirbel an der Stelle
+  addEventListener("pointerdown",e=>{ if(!animOn||reduceMotion||!season)return;
+    for(let i=0;i<10;i++){const p=spawn({},true);p.x=e.clientX;p.y=e.clientY;const a=rnd(0,6.28),v=rnd(1.5,4);p.vx=Math.cos(a)*v;p.vy0=Math.sin(a)*v;p.life=rnd(60,110);p.z=rnd(.9,1.3);extras.push(p)}
+    if(extras.length>60)extras.splice(0,extras.length-60);
+  },{passive:true});
+
+  function drawFlake(p){cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.strokeStyle=cols.snow;cx.lineWidth=Math.max(.8,p.z*.9);cx.lineCap="round";cx.beginPath();
+    for(let i=0;i<3;i++){cx.rotate(Math.PI/3);cx.moveTo(-p.r,0);cx.lineTo(p.r,0);
+      for(const s of[-1,1]){cx.moveTo(s*p.r*.55,0);cx.lineTo(s*p.r*.8,p.r*.22);cx.moveTo(s*p.r*.55,0);cx.lineTo(s*p.r*.8,-p.r*.22)}}
+    cx.stroke();cx.restore()}
+  function drawPetal(p){cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.scale(Math.cos(p.flip),1);cx.beginPath();
+    cx.moveTo(0,-p.r*.5);cx.bezierCurveTo(p.r*.6,-p.r*.45,p.r*.55,p.r*.4,0,p.r*.5);cx.bezierCurveTo(-p.r*.55,p.r*.4,-p.r*.6,-p.r*.45,0,-p.r*.5);cx.fill();cx.restore()}
+  function drawLeaf(p){cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.scale(Math.cos(p.flip),1);cx.beginPath();const r=p.r;
+    if(p.lobed){for(let i=0;i<5;i++){const a=-Math.PI/2+(i-2)*.55;cx.lineTo(Math.cos(a)*r,Math.sin(a)*r);cx.lineTo(Math.cos(a+.27)*r*.5,Math.sin(a+.27)*r*.5)}cx.lineTo(0,r*.35);}
+    else{cx.moveTo(0,-r);cx.quadraticCurveTo(r*.9,0,0,r);cx.quadraticCurveTo(-r*.9,0,0,-r)}
+    cx.closePath();cx.fill();cx.globalAlpha*=.6;cx.strokeStyle="rgba(0,0,0,.35)";cx.lineWidth=.8;cx.beginPath();cx.moveTo(0,-r*.8);cx.lineTo(0,r*1.25);cx.stroke();cx.restore()}
+  function drawMote(p){const tw=.55+.45*Math.sin(T*.06+p.tw);cx.globalAlpha=p.a*tw;const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*3.2);g.addColorStop(0,cols.sun);g.addColorStop(1,"rgba(255,220,120,0)");cx.fillStyle=g;cx.beginPath();cx.arc(p.x,p.y,p.r*3.2,0,6.28);cx.fill()}
+  function drawP(p){cx.globalAlpha=(cx===cxF?.72:1)*p.a*(p.life!=null?Math.min(1,p.life/40):1);cx.fillStyle=cols[p.c];
+    if(season==="autumn")drawLeaf(p); else if(season==="spring")drawPetal(p); else if(season==="summer")drawMote(p);
+    else if(p.crystal)drawFlake(p); else{cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.28);cx.fill()}}
+  // ---------- Animierte Figuren ----------
+  const EMF='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  function emoji(ch,x,y,size,flip,rot){cx.save();cx.translate(x,y);if(rot)cx.rotate(rot);if(flip)cx.scale(-1,1);cx.font=size+"px "+EMF;cx.textAlign="center";cx.textBaseline="middle";cx.fillText(ch,0,0);cx.restore()}
+  function sparkle(x,y,r,a){cx.save();cx.globalAlpha=a;cx.fillStyle="#ffd84d";cx.translate(x,y);cx.beginPath();for(let i=0;i<4;i++){cx.rotate(Math.PI/2);cx.moveTo(0,0);cx.lineTo(r*.25,r*.25);cx.lineTo(0,r);cx.lineTo(-r*.25,r*.25)}cx.fill();cx.restore()}
+  function canvasBird(x,y,s,ph){const f=Math.sin(ph)*5*s;cx.strokeStyle="rgba(40,45,60,.7)";cx.lineWidth=2*s;cx.lineCap="round";cx.beginPath();cx.moveTo(x-10*s,y+f);cx.quadraticCurveTo(x-5*s,y-3*s,x,y);cx.quadraticCurveTo(x+5*s,y-3*s,x+10*s,y+f);cx.stroke()}
+  // Welche Figuren passen zum angezeigten Monat?
+  function pool(m){
+    const y=typeof viewYear==="number"?viewYear:fromDn(TODAY).y, e=easter(y), eo=fromDn(e);
+    // Osterhase nur im Oster-Monat und in den 3 Wochen davor
+    const bunny=(m===eo.m)||(m===eo.m-1&&eo.d<=21);
+    const P={
+      0:["birds","snowman","star","snowman"],            // Januar: Winter
+      1:["birds","snowman","star"],                      // Februar: Winter
+      2:["birds","birds","butterfly"],                   // März: Frühlingsanfang
+      3:["ducks","ladybug","butterfly","birds"],         // April
+      4:["ducks","ladybug","butterfly","bee"],           // Mai
+      5:["bee","butterfly","ducks","ladybug"],           // Juni: Sommer
+      6:["bee","butterfly","ladybug","ducks"],           // Juli
+      7:["bee","butterfly","ducks"],                     // August
+      8:["birds","squirrel","hedgehog"],                 // September: Herbst
+      9:["squirrel","hedgehog","birds"],                 // Oktober
+      10:["lanterns","squirrel","birds"],                // November: St. Martin, Eichhörnchen
+      11:["sleigh","christkind","nikolaus","snowman","star"] // Dezember
+    }[m].slice();
+    if(bunny)P.push("bunny","bunny","bunny");
+    return P;
+  }
+  let critters=[], curMonth=fromDn(TODAY).m;
+  function newCritter(){
+    const k=pick(pool(curMonth)), dir=Math.random()<.5?1:-1, sx=dir>0?-60:W+60, ground=H-46;
+    const c={kind:k,dir,x:sx,t:0};
+    if(k==="birds"){c.y=rnd(H*.12,H*.4);c.vx=dir*rnd(1.4,2.1);c.n=3+Math.floor(Math.random()*4)}
+    if(k==="star"){c.x=rnd(W*.2,W*.9);c.y=-20;c.vx=dir*rnd(4,6);c.vy=rnd(2.2,3.2)}
+    if(k==="butterfly"){c.y=rnd(H*.2,H*.6);c.vx=dir*rnd(.8,1.3)}
+    if(k==="bunny"){c.y=ground;c.vx=dir*rnd(1.6,2.2);c.size=34}
+    if(k==="ducks"){c.y=ground;c.vx=dir*rnd(.55,.8);c.n=2+Math.floor(Math.random()*3)}
+    if(k==="ladybug"){c.x=rnd(W*.15,W*.85);c.y=dir>0?-30:H+30;c.ang=dir>0?Math.PI/2:-Math.PI/2;c.v=rnd(.6,.9);c.turn=0}
+    if(k==="hedgehog"){c.y=ground;c.vx=dir*rnd(.45,.7)}
+    if(k==="sleigh"){c.y=rnd(H*.12,H*.3);c.vx=dir*rnd(2.2,3)}
+    if(k==="nikolaus"){c.y=ground-4;c.vx=dir*rnd(.6,.85)}
+    if(k==="christkind"){c.y=rnd(H*.2,H*.45);c.vx=dir*rnd(.7,1)}
+    if(k==="snowman"){c.y=ground-4;c.vx=dir*rnd(.35,.5)}
+    if(k==="bee"){c.y=rnd(H*.25,H*.65);c.vx=dir*rnd(1.1,1.6)}
+    if(k==="squirrel"){c.y=ground;c.vx=dir*rnd(1.4,1.9)}
+    if(k==="lanterns"){c.y=ground-6;c.vx=dir*rnd(.45,.6);c.n=3+Math.floor(Math.random()*3)}
+    if(k==="fireworks"){c.x=0;c.vx=0;c.dur=rnd(420,600);c.rockets=[];c.sparks=[]}
+    critters.push(c);
+  }
+  const FWC=["#ff3b3b","#ffb800","#1fa2ff","#2fd14a","#ff3fc4","#9b5cff","#ff7a00"];
+  function stepCritter(c){c.t++;
+    if(c.fade!=null){c.fade--; if(c.fade<=0)return false}
+    const onScr=c.x>20&&c.x<W-20;
+    if(c.kind==="ducks"){if(c.nq==null)c.nq=50; if(onScr&&--c.nq<=0){sndCritter("quack",c.x);c.nq=rnd(160,300)}}
+    if(c.kind==="sleigh"&&!c.ho&&c.x>-140&&c.x<W+140){c.ho=1;sndCritter("sleigh",c.x,c)}
+    if(c.kind==="nikolaus"&&onScr&&!c.ho){c.ho=1;sndCritter("nikolaus",c.x,c)}
+    if(c.kind==="confetti"){ if(c.t<150)for(let i=0;i<4;i++)c.bits.push({x:rnd(0,W),y:-10,vx:rnd(-1,1),vy:rnd(1.5,3.2),r:rnd(0,6.28),vr:rnd(-.2,.2),w:rnd(5,9),h:rnd(3,6),col:pick(["#ff3b3b","#ffb800","#1fa2ff","#2fd14a","#ff3fc4","#9b5cff"]),f:rnd(0,6.28)});
+      c.bits=c.bits.filter(b=>{b.x+=b.vx+Math.sin(b.f+=.12)*.8;b.y+=b.vy;b.r+=b.vr;return b.y<H+20});return c.t<150||c.bits.length}
+    if(c.kind==="fireworks"){
+      if(c.t<c.dur&&Math.random()<.035){c.rockets.push({x:rnd(W*.12,W*.88),y:H+10,vx:rnd(-.6,.6),vy:-rnd(8.5,11),col:pick(FWC),tr:[]})}
+      c.rockets=c.rockets.filter(r=>{r.tr.push([r.x,r.y]);if(r.tr.length>8)r.tr.shift();r.x+=r.vx;r.y+=r.vy;r.vy+=.13;
+        if(r.vy>-1.2){if(typeof sndBoom==='function')sndBoom();const n=32+Math.floor(Math.random()*18),two=Math.random()<.4?pick(FWC):r.col,ring=Math.random()<.35;
+          for(let i=0;i<n;i++){const a=i/n*6.283+rnd(-.05,.05),v=ring?3.2:rnd(1,3.6);c.sparks.push({x:r.x,y:r.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rnd(55,85),max:85,col:i%2?r.col:two})}
+          return false}return true});
+      c.sparks=c.sparks.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=.975;p.vy=p.vy*.975+.045;p.life--;return p.life>0});
+      return c.t<c.dur||c.rockets.length||c.sparks.length;
+    }
+    if(c.kind==="ladybug"){c.turn+=rnd(-.06,.06);c.turn*=.96;c.ang+=c.turn*.15;c.x+=Math.cos(c.ang)*c.v;c.y+=Math.sin(c.ang)*c.v;
+      if(c.t>80&&Math.random()<.004){c.fly=60} if(c.fly){c.fly--;c.x+=Math.cos(c.ang)*2.5;c.y+=Math.sin(c.ang)*2.5}
+      return c.x>-60&&c.x<W+60&&c.y>-60&&c.y<H+60}
+    c.x+=c.vx; if(c.vy)c.y+=c.vy;
+    return c.x>-200&&c.x<W+200&&c.y<H+60;
+  }
+  function drawCritters(){
+    for(const c of critters){const f=c.dir>0, t=c.t; const A=c.fade!=null?c.fade/30:1; cx.globalAlpha=A;
+      if(c.kind==="birds"){for(let i=0;i<c.n;i++){const off=i===0?0:Math.ceil(i/2)*16, side=i%2?-1:1; canvasBird(c.x-c.dir*off,c.y+(i?side*off*.55:0)+Math.sin(t*.04+i)*2,.9,t*.25+i)}}
+      else if(c.kind==="star"){cx.save();cx.translate(c.x,c.y);cx.rotate(Math.atan2(c.vy,c.vx));const g=cx.createLinearGradient(-110,0,0,0);g.addColorStop(0,"rgba(255,255,255,0)");g.addColorStop(1,"#ffe9a8");cx.strokeStyle=g;cx.lineWidth=2.5;cx.beginPath();cx.moveTo(-110,0);cx.lineTo(0,0);cx.stroke();cx.restore();sparkle(c.x,c.y,7,1)}
+      else if(c.kind==="butterfly"){emoji("🦋",c.x,c.y+Math.sin(t*.08)*14,26,f,Math.sin(t*.3)*.15)}
+      else if(c.kind==="bunny"){const ph=(t*.09)%Math.PI, hop=Math.sin(ph)*32;emoji("🐇",c.x,c.y-hop,34,f,(Math.cos(ph))*-.25*c.dir);
+        if(Math.sin(ph)<.08){cx.globalAlpha=.25;cx.fillStyle="#000";cx.beginPath();cx.ellipse(c.x,c.y+14,12,3,0,0,6.28);cx.fill()}
+        if(t%140===70&&curMonth<=4)c.egg=(c.egg||[]).concat([[c.x,c.y+8,pick(["🥚","🥚","🐣"])]]);
+        (c.egg||[]).forEach(e=>emoji(e[2],e[0],e[1],20))}
+      else if(c.kind==="ducks"){emoji("🦆",c.x,c.y+Math.abs(Math.sin(t*.12))*-3,34,f,Math.sin(t*.12)*.12);
+        for(let i=1;i<=c.n;i++)emoji("🐤",c.x-c.dir*(30+i*24),c.y+6-Math.abs(Math.sin(t*.16+i))*4,20,f,Math.sin(t*.16+i)*.18)}
+      else if(c.kind==="ladybug"){emoji("🐞",c.x,c.y,c.fly?26:22,false,c.ang+Math.PI/2)}
+      else if(c.kind==="hedgehog"){emoji("🦔",c.x,c.y+Math.abs(Math.sin(t*.2))*-2,30,f);if(Math.random()<.01)c.leaf=1;}
+      else if(c.kind==="sleigh"){const y=c.y+Math.sin(t*.03)*10;
+        for(let i=0;i<14;i++)sparkle(c.x-c.dir*(90+i*12),y+Math.sin((t-i*4)*.03)*10+rnd(-3,3),3+Math.random()*2,(1-i/14)*.8);
+        emoji("🦌",c.x+c.dir*52,y-4+Math.sin(t*.2)*2,26,f); emoji("🦌",c.x+c.dir*26,y-2+Math.sin(t*.2+1)*2,26,f);
+        emoji("🛷",c.x-c.dir*6,y+8,30,!f); emoji("🎅",c.x-c.dir*8,y-8,24,f); emoji("🎁",c.x-c.dir*26,y,16)}
+      else if(c.kind==="nikolaus"){const b=Math.abs(Math.sin(t*.1))*-4;emoji("🎅",c.x,c.y+b-6,34,f);emoji("🎒",c.x-c.dir*20,c.y+b+2,20,f);
+        if(t%90===45)c.drop=(c.drop||[]).concat([[c.x-c.dir*20,c.y+16,pick(["🍫","🍊","🥜","🍬"])]]);(c.drop||[]).forEach(e=>emoji(e[2],e[0],e[1],16))}
+      else if(c.kind==="snowman"){const w=Math.sin(t*.05)*.08;emoji("⛄",c.x,c.y-6,36,f,w);if(t%50<25)sparkle(c.x+c.dir*14,c.y-30,3,.6*A)}
+      else if(c.kind==="bee"){const yy=c.y+Math.sin(t*.12)*18+Math.sin(t*.031)*30;emoji("🐝",c.x,yy,22,f,Math.sin(t*.4)*.15);
+        cx.save();cx.globalAlpha=.35*A;cx.strokeStyle="rgba(60,50,20,.6)";cx.setLineDash([2,4]);cx.beginPath();for(let i=1;i<20;i++){const tt=t-i*3;cx.lineTo(c.x-c.vx*i*3,c.y+Math.sin(tt*.12)*18+Math.sin(tt*.031)*30)}cx.stroke();cx.restore()}
+      else if(c.kind==="squirrel"){const ph=(t*.13)%Math.PI,hop=Math.sin(ph)*16;emoji("🐿️",c.x,c.y-hop,30,f);if(c.t%160<70)emoji("🌰",c.x+c.dir*14,c.y-hop-4,13)}
+      else if(c.kind==="lanterns"){for(let i=0;i<c.n;i++){const lx=c.x-c.dir*i*42,ly=c.y-28+Math.sin(t*.06+i*1.3)*4;
+          cx.save();cx.globalAlpha=.45*A;const g=cx.createRadialGradient(lx,ly,0,lx,ly,30);g.addColorStop(0,"#ffd27a");g.addColorStop(1,"rgba(255,210,122,0)");cx.fillStyle=g;cx.beginPath();cx.arc(lx,ly,30,0,6.28);cx.fill();cx.restore();
+          cx.strokeStyle="rgba(80,60,40,.7)";cx.lineWidth=1.2;cx.beginPath();cx.moveTo(lx,ly-12);cx.lineTo(lx+c.dir*-8,ly-26);cx.stroke();
+          emoji("🏮",lx,ly,22,false,Math.sin(t*.06+i*1.3)*.12)}}
+      else if(c.kind==="confetti"){for(const b of c.bits){cx.save();cx.translate(b.x,b.y);cx.rotate(b.r);cx.scale(1,Math.cos(b.f));cx.fillStyle=b.col;cx.globalAlpha=.9*A;cx.fillRect(-b.w/2,-b.h/2,b.w,b.h);cx.restore()}}
+      else if(c.kind==="fireworks"){cx.save();if(matchMedia("(prefers-color-scheme: dark)").matches&&document.documentElement.dataset.theme!=="light"||document.documentElement.dataset.theme==="dark")cx.globalCompositeOperation="lighter";
+        for(const r of c.rockets){cx.strokeStyle=r.col;cx.lineWidth=2;cx.globalAlpha=.8*A;cx.beginPath();r.tr.forEach((q,i)=>i?cx.lineTo(q[0],q[1]):cx.moveTo(q[0],q[1]));cx.lineTo(r.x,r.y);cx.stroke()}
+        for(const p of c.sparks){const L=Math.max(0,p.life/p.max);cx.fillStyle=p.col;cx.globalAlpha=L*.25*A;cx.beginPath();cx.arc(p.x,p.y,5,0,6.28);cx.fill();cx.globalAlpha=L*A;cx.beginPath();cx.arc(p.x,p.y,2.3,0,6.28);cx.fill()}
+        cx.restore()}
+      else if(c.kind==="christkind"){const y=c.y+Math.sin(t*.04)*16;for(let i=0;i<10;i++)sparkle(c.x-c.dir*(18+i*11)+rnd(-3,3),y+Math.sin((t-i*5)*.04)*16+rnd(-4,4),2.5+Math.random()*2.5,(1-i/10)*.9);
+        cx.save();cx.globalAlpha=.35;const g=cx.createRadialGradient(c.x,y,0,c.x,y,34);g.addColorStop(0,"#fff5c0");g.addColorStop(1,"rgba(255,245,192,0)");cx.fillStyle=g;cx.beginPath();cx.arc(c.x,y,34,0,6.28);cx.fill();cx.restore();
+        emoji("👼",c.x,y,32,f,Math.sin(t*.05)*.1)}
+    }
+    cx.globalAlpha=1;
+  }
+
+  const FRONT=1.22; // Teilchen davor schweben über den Kalender
+  // Gewitter (Herbst): ab und zu ein Blitz mit Aufleuchten, danach Donner
+  let bolt=null, nextBolt=900;
+  function makeBolt(){const x0=rnd(W*.15,W*.85),yEnd=rnd(H*.45,H*.8),main=[[x0,-10]];let x=x0,y=-10;
+    while(y<yEnd){y+=rnd(14,34);x+=rnd(-22,22);main.push([x,y])}
+    const br=[];for(let i=0;i<3;i++){const k=2+Math.floor(Math.random()*(main.length-3));let [bx,by]=main[k];const b=[[bx,by]],dir=Math.random()<.5?-1:1;
+      for(let j=0;j<4+Math.floor(Math.random()*4);j++){by+=rnd(10,24);bx+=dir*rnd(4,20);b.push([bx,by])}br.push(b)}
+    return {t:0,main,br,far:Math.random()}}
+  function drawBolt(){ if(!bolt)return; const t=bolt.t, on=t<5||(t>8&&t<12)||(t>15&&t<17);
+    // Aufleuchten des Himmels (sanft, nicht blendend)
+    const fl=t<3?.32:t<6?.18:t>8&&t<11?.24:t<20?.08*(1-(t-11)/9):0;
+    if(fl>0){cx=cxF;cx.save();cx.globalAlpha=fl;cx.fillStyle="#eef3ff";cx.fillRect(0,0,W,H);cx.restore()}
+    if(on){cx=cxF;cx.save();cx.strokeStyle="#ffffff";cx.shadowColor="#9ec0ff";cx.shadowBlur=18;cx.lineCap="round";cx.lineJoin="round";
+      const path=(pts,w)=>{cx.lineWidth=w;cx.beginPath();pts.forEach(([x,y],i)=>i?cx.lineTo(x,y):cx.moveTo(x,y));cx.stroke()};
+      cx.globalAlpha=.95;path(bolt.main,3.2);cx.globalAlpha=.7;bolt.br.forEach(b=>path(b,1.6));cx.restore()}}
+  function draw(){
+    cx=cxF; cx.clearRect(0,0,W,H);
+    for(const p of parts)if(p.z>FRONT)drawP(p);
+    for(const p of extras)drawP(p);
+    drawCritters();
+    cx=cxB; cx.clearRect(0,0,W,H);
+    if(season==="summer"){ // Sonne mit langsam drehenden Strahlen
+      const sx=W*.86,sy=26,R=Math.max(W,H)*.75;cx.save();cx.globalAlpha=.32;const g=cx.createRadialGradient(sx,sy,0,sx,sy,R*.7);g.addColorStop(0,cols.sun);g.addColorStop(1,"rgba(255,200,80,0)");cx.fillStyle=g;cx.fillRect(0,0,W,H);
+      cx.translate(sx,sy);cx.rotate(T*.0012);cx.globalAlpha=.10+.04*Math.sin(T*.01);cx.fillStyle=cols.sun;
+      for(let i=0;i<12;i++){cx.rotate(Math.PI/6);cx.beginPath();cx.moveTo(0,0);cx.lineTo(R,-R*.06);cx.lineTo(R,R*.06);cx.closePath();cx.fill()}cx.restore()}
+    for(const p of parts)if(p.z<=FRONT)drawP(p);
+    if(season==="winter"&&drift>0){ // Schneewehe am unteren Rand
+      cx.globalAlpha=.75;cx.fillStyle=cols.snow;cx.beginPath();cx.moveTo(0,H);
+      for(let x=0;x<=W;x+=12)cx.lineTo(x,H-drift*(.7+.3*Math.sin(x*.025+1.3)+.15*Math.sin(x*.07)));cx.lineTo(W,H);cx.closePath();cx.fill()}
+    cx.globalAlpha=1;
+    drawBolt(); cx=cxB;
+  }
+  let animOn=store.get("sp_anim",true), cleared=false;
+  function setAnim(on){animOn=on;store.set("sp_anim",on);cleared=false;if(on&&reduceMotion)draw()}
+  function step(p){
+    const z=p.z, w=(wind+gust)*z;
+    p.ph+=.014; p.flip+=p.vf*(1+Math.abs(gust)*.6); p.rot+=p.vr*(1+Math.abs(gust)*.8);
+    if(p.life!=null){p.x+=p.vx;p.y+=p.vy0;p.vx*=.95;p.vy0=p.vy0*.95+(season==="summer"?-.02:.04);p.life--;return}
+    p.x+=Math.sin(p.ph)*p.sw*.55+w; p.y+=p.vy-scrollV*.18*z;
+    if(season==="summer")p.x+=Math.sin(T*.01+p.tw)*.3;
+  }
+  function tick(){
+    if(!animOn){ if(!cleared){cxB.clearRect(0,0,W,H);cxF.clearRect(0,0,W,H);cleared=true} }
+    else if(!document.hidden){
+      T++;
+      // Wind und Böen
+      wind=Math.sin(T*.0035)*.45;
+      if(T>nextGust){gustTarget=rnd(1.4,3.2)*(Math.random()<.5?-1:1)*(season==="summer"?.4:1);nextGust=T+rnd(420,900)}
+      gust+=(gustTarget-gust)*.02; gustTarget*=.985;
+      // Scroll-Schwung
+      const sy=window.scrollY; scrollV=scrollV*.85+(sy-lastScroll)*.15; lastScroll=sy;
+      for(const p of parts){step(p); if(p.y>H+16||p.y<-16||p.x<-40||p.x>W+40){const z=p.z;spawn(p,false);p.z=z;
+        if(p.x<0&&gust+wind>0)p.x=rnd(-30,0); if(p.x>W&&gust+wind<0)p.x=rnd(W,W+30)}}
+      // Seiteneinstieg bei starkem Wind
+      if(Math.abs(gust)>1){const p=parts[Math.floor(Math.random()*parts.length)];if(p.y>H*.9){p.x=gust>0?-20:W+20;p.y=rnd(0,H*.8)}}
+      extras=extras.filter(p=>{step(p);return p.life>0});
+      if(season==="winter")drift=Math.min(22,drift+.004);
+      // gelegentlicher Besuch: Schmetterling, Vögel, Sternschnuppe
+      if(T>nextCritter&&critters.length<2){newCritter();nextCritter=T+rnd(420,900)}
+      if(season==="autumn"&&!bolt&&T>nextBolt){bolt=makeBolt();nextBolt=T+rnd(1800,4200);if(typeof sndThunder==="function")sndThunder(bolt.far)}
+      if(bolt&&++bolt.t>22)bolt=null;
+      // An Silvester und Neujahr (heute) oder wenn der 31.12. im Bild ist: öfter Feuerwerk
+      if(!critters.some(c=>c.kind==="fireworks")&&T%240===0){const o=fromDn(TODAY);const nye=(o.m===11&&o.d===31)||(o.m===0&&o.d===1);
+        if(nye){critters.push({kind:"fireworks",dir:1,x:0,vx:0,t:0,dur:rnd(420,600),rockets:[],sparks:[]})}}
+      critters=critters.filter(stepCritter);
+      draw();
+    }
+    requestAnimationFrame(tick);
+  }
+  resize(); setSeason(fromDn(TODAY).m);
+  addEventListener("resize",()=>{resize();if(reduceMotion)draw()});
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",()=>{readCols();if(reduceMotion)draw()});
+  new MutationObserver(()=>{readCols();if(reduceMotion)draw()}).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+  if(!reduceMotion)requestAnimationFrame(tick); else if(animOn)draw();
+
+  renderToday(); renderBudget();
+
+  // ---------- Sheets ----------
+  const sheet=document.getElementById("sheet"), scrim=document.getElementById("scrim");
+  function openSheet(html){sheet.innerHTML='<div class="grab"></div>'+html;sheet.hidden=false;scrim.hidden=false}
+  function closeSheet(){sheet.hidden=true;scrim.hidden=true}
+  scrim.onclick=closeSheet;
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeSheet();cancelPick()}});
+
+  // ---------- Urlaub eintragen ----------
+  const banner=document.getElementById("banner");
+  function cancelPick(){const p=pickStart;pickStart=null;banner.hidden=true;document.getElementById("todayBtn").hidden=false;if(p!=null){const e=document.querySelector('[data-d="'+p+'"]');e&&paint(e)}}
+  document.getElementById("bannerCancel").onclick=cancelPick;
+
+  monthsEl.addEventListener("click",e=>{
+    const el=e.target.closest("[data-d]"); if(!el)return;
+    const n=+el.dataset.d;
+    dayMenu(n);
+  });
+
+  function blockOf(n){ // zusammenhängender Urlaub gleicher Art, freie Tage dazwischen werden überbrückt
+    const t=vt(n); let a=n,b=n;
+    for(let i=b+1;;i++){ if(vt(i)===t){b=i;continue} if(shift(i)==="X"&&!vt(i))continue; break }
+    for(let i=a-1;;i--){ if(vt(i)===t){a=i;continue} if(shift(i)==="X"&&!vt(i))continue; break }
+    return [a,b];
+  }
+  function dayMenu(n){
+    eventFx(n);
+    const s=shift(n), t=vt(n), ft=holiday(n), y=fromDn(n).y;
+    let html='<h3>'+fmt(n)+'</h3>'+(ft?'<p><b style="color:var(--feiertag)">'+icon(n)+' Feiertag: '+ft+'</b></p>':special(n)?'<p><b style="color:var(--fg)">'+ICON[special(n)]+' '+special(n)+'</b> (kein gesetzlicher Feiertag)</p>':'')+(dst(n)?'<div class="nbox"><b>🕑 '+dst(n)+' beginnt</b><p>'+DST_TXT[dst(n)]+' '+dstNight(n)+'</p></div>':'')+
+      (ft?'<p>An '+ft+' wird nicht gearbeitet.'+(rawShift(n)!=="X"?' Laut Rhythmus wäre '+NAMES[rawShift(n)]+'.':'')+'</p>':'')+
+      (modelFor(n)?'<p>Schichtmodell: <b>'+esc(modelFor(n).m.name)+'</b></p>':'')+
+      '<p>Plan: <b>'+NAMES[s]+'</b>'+(t?' · eingetragen als <b>'+(t==="K"?"🌡️ ":"")+TYPE[t].name+'</b>':'')+'</p>';
+    if(!noteAt(n)) html+='<button class="btn notebtn" data-a="note">📝 Nur Notiz hinzufügen</button>';
+    if(!t){
+      if(ft&&s!=="X") html+='<p>An diesem Feiertag wird <b>nichts abgezogen und nichts gezählt</b>.</p>';
+      html+='<h4>Was möchtest du eintragen?</h4><div class="row2">'+KINDS.map(k=>tyBtn(k,'data-a="type"',TYPE[k].name,sub(k,y))).join("")+'</div>';
+    } else {
+      html+='<h4>Ändern in</h4><div class="row2">'+KINDS.filter(k=>k!==t).map(k=>tyBtn(k,'data-a="swap"',TYPE[k].name,"")).join("")+'</div>';
+      html+='<button class="btn danger" data-a="del1">'+TYPE[t].name+' an diesem Tag entfernen</button>';
+      const [a,b]=blockOf(n);
+      if(b>a){let w=0;for(let i=a;i<=b;i++)if(vt(i)===t&&shift(i)!=="X")w++;
+        html+='<button class="btn danger" data-a="delblk">Ganzen Zeitraum entfernen <small>'+dShort(a)+' – '+dShort(b)+' · '+w+' Tage</small></button>';}
+    }
+    const ol=otOn(n);
+    html+='<h4>Überstunden</h4>'+ol.map(o=>'<button class="btn" data-a="otedit" data-id="'+o.id+'">⏱ '+o.from+'–'+o.to+' <small>'+hm(o.min)+(o.note?' · '+esc(o.note):'')+'</small></button>').join("")+
+      '<button class="btn ty" style="--tc:var(--ue);--ti:var(--ue-ink)" data-a="otnew">⏱ Überstunden eintragen</button>';
+    const na=noteAt(n);
+    html+= na ? '<div class="nbox"><b>📝 Notiz'+(na[1].to?' ('+dShort(na[0])+' – '+dShort(na[1].to)+')':'')+'</b><p>'+esc(na[1].t)+'</p></div><button class="btn" data-a="note">Notiz bearbeiten</button>'
+              : '';
+    html+='<button class="btn" data-a="close">Schließen</button>';
+    openSheet(html);
+    sheet.onclick=ev=>{
+      const btn=ev.target.closest("[data-a]"); if(!btn)return;
+      const a=btn.dataset.a, ty=btn.dataset.t;
+      if(a==="note") return noteSheet(n);
+      if(a==="otnew") return otSheet(n);
+      if(a==="otedit") return otSheet(n,btn.dataset.id);
+      if(a==="type"){ if(s==="X") return openPicker(n,ty); return askLength(n,ty); }
+      if(a==="swap"){vac[n]=ty;saveVac();repaintAll()}
+      if(a==="del1"){delete vac[n];saveVac();repaintAll()}
+      if(a==="delblk"){const [x,z]=blockOf(n);for(let i=x;i<=z;i++)if(vt(i)===t)delete vac[i];saveVac();repaintAll()}
+      closeSheet();
+    };
+  }
+  const dShort = n=>{const o=fromDn(n);return WD[o.w]+" "+o.d+"."+(o.m+1)+".";};
+  const tyStyle = k=>'style="--tc:'+TYPE[k].col+';--ti:'+TYPE[k].ink+'"';
+  const tyBtn = (k,attr,txt,small)=>'<button class="btn ty half" '+tyStyle(k)+' '+attr+' data-t="'+k+'">'+txt+(small?'<small>'+small+'</small>':'')+'</button>';
+  const sub = (k,y)=>TYPE[k].quota? left(y,k)+' von '+quota[k]+' übrig' : used(y,k)+' Tage in '+y;
+
+  // Schritt 2: ein Tag oder mehrere?
+  function askLength(n,ty){
+    openSheet('<h3>'+TYPE[ty].name+'</h3><p>Ab '+fmt(n)+'</p>'+
+      '<button class="btn ty" '+tyStyle(ty)+' data-a="one">Nur dieser eine Tag <small>'+dShort(n)+'</small></button>'+
+      '<button class="btn" data-a="multi">Mehrere Tage <small>von – bis im Kalender wählen</small></button>'+
+      '<button class="btn" data-a="close">Abbrechen</button>');
+    sheet.onclick=ev=>{
+      const a=ev.target.closest("[data-a]")?.dataset.a; if(!a)return;
+      if(a==="one"){vac[n]=ty;saveVac();repaintAll();noteSheet(n,{prompt:true})}
+      else if(a==="multi") openPicker(n,ty);
+      else closeSheet();
+    };
+  }
+
+  // Schritt 3: kleiner Kalender zum Auswählen von–bis
+  function openPicker(start,ty,opt){
+    opt=opt||{}; const st={a:opt.a!=null?opt.a:start,b:opt.b!=null?opt.b:null,y:fromDn(start).y,m:fromDn(start).m};
+    function count(){ if(st.b==null)return null; let d=0,w=0,add=0,clash=[],hol=0;
+      for(let i=st.a;i<=st.b;i++){d++; if(shift(i)!=="X"){w++; const o=vt(i); if(o&&o!==ty)clash.push(o); if(holiday(i)){hol++;continue} if(o!==ty||(opt.replace&&i>=opt.replace[0]&&i<=opt.replace[1]))add++}} return {d,w,add,clash,hol}; }
+    function render(){
+      const first=dn(st.y,st.m,1), days=new Date(Date.UTC(st.y,st.m+1,0)).getUTCDate(), lead=(fromDn(first).w+6)%7;
+      let cells="";
+      for(let i=0;i<lead;i++)cells+='<span></span>';
+      for(let d=0;d<days;d++){const n=first+d,s=shift(n),end=st.b==null?st.a:st.b,inr=n>=st.a&&n<=end;
+        const cls="pkd "+s+(inr?" in":"")+(n===st.a||n===st.b?" edge":"")+(holiday(n)?" hf":"")+(vt(n)?" has":"");
+        cells+='<button type="button" class="'+cls+'" data-pd="'+n+'"><b>'+(d+1)+'</b><i>'+(vt(n)||(s==="X"?"":s))+'</i></button>';}
+      const c=count(), y=fromDn(st.a).y, T=TYPE[ty];
+      let info;
+      if(st.b==null) info='Von <b>'+dShort(st.a)+'</b>: jetzt den <b>letzten Tag</b> antippen';
+      else {
+        info='Von <b>'+dShort(st.a)+'</b> bis <b>'+dShort(st.b)+'</b><br>'+c.d+' Kalendertage, davon <b>'+c.w+' Schichttage</b>'+
+          (c.hol?' ('+c.hol+(c.hol===1?' Feiertag zählt':' Feiertage zählen')+' nicht)':'')+'<br>→ ';
+        info+= T.quota ? c.add+' '+ty+' werden abgezogen, danach '+(left(y,ty)-c.add+(opt.replace?(()=>{let r=0;for(let i=opt.replace[0];i<=opt.replace[1];i++)if(vt(i)===ty&&shift(i)!=="X"&&!holiday(i))r++;return r})():0))+' von '+quota[ty]+' übrig'
+                       : c.add+' '+T.name+'-Tage werden gezählt, dann '+(used(y,ty)+c.add)+' in '+y;
+        if(c.clash.length){const k=[...new Set(c.clash)].map(x=>TYPE[x].name).join(", ");
+          info+='<br>'+c.clash.length+' Tag(e) mit '+k+' werden ersetzt'+(c.clash.some(x=>TYPE[x].quota)?' (der Urlaub wird dir gutgeschrieben)':'')+'.';}
+      }
+      sheet.innerHTML='<div class="grab"></div><h3>'+T.name+': Zeitraum</h3>'+
+        '<div class="pkbar"><button type="button" class="iconbtn sq" data-nav="-1" aria-label="Vorheriger Monat">‹</button><strong>'+MONTHS[st.m]+' '+st.y+'</strong><button type="button" class="iconbtn sq" data-nav="1" aria-label="Nächster Monat">›</button></div>'+
+        '<div class="pk" style="--sel:'+T.col+';--selink:'+T.ink+'"><span class="h">Mo</span><span class="h">Di</span><span class="h">Mi</span><span class="h">Do</span><span class="h">Fr</span><span class="h">Sa</span><span class="h">So</span>'+cells+'</div>'+
+        '<p class="pkinfo">'+info+'</p>'+
+        '<button class="btn ty half" '+tyStyle(ty)+' data-a="ok"'+(st.b==null?' disabled':'')+'>'+T.name+' eintragen</button>'+
+        '<button class="btn half" data-a="close">Abbrechen</button>';
+    }
+    sheet.hidden=false; scrim.hidden=false; render();
+    sheet.onclick=ev=>{
+      const nav=ev.target.closest("[data-nav]"), pd=ev.target.closest("[data-pd]"), a=ev.target.closest("[data-a]")?.dataset.a;
+      if(nav){const o=norm({y:st.y,m:st.m+ +nav.dataset.nav});st.y=o.y;st.m=o.m;render();return}
+      if(pd){const n=+pd.dataset.pd;
+        if(st.b!=null){st.a=n;st.b=null} else if(n<st.a){st.b=st.a;st.a=n} else st.b=n;
+        render();return}
+      if(a==="ok"&&st.b!=null){ if(opt.replace){for(let i=opt.replace[0];i<=opt.replace[1];i++)if(vt(i)===ty)delete vac[i]} for(let i=st.a;i<=st.b;i++) if(shift(i)!=="X") vac[i]=ty; saveVac();repaintAll(); if(opt.replace){closeSheet();refreshOverlays();toast("Zeitraum geändert");return} let f=st.a; while(shift(f)==="X"&&f<st.b)f++; let l=st.b; while(shift(l)==="X"&&l>f)l--; noteSheet(f,{prompt:true,to:l>f?l:null})}
+      if(a==="close")closeSheet();
+    };
+  }
+
+  // ---------- Jahresübersicht (A4) ----------
+  const yv=document.getElementById("yearView");
+  function renderYear(y){
+    let months="";
+    for(let m=0;m<12;m++){
+      const first=dn(y,m,1), days=new Date(Date.UTC(y,m+1,0)).getUTCDate(), lead=(fromDn(first).w+6)%7;
+      let c='<span class="h">M</span><span class="h">D</span><span class="h">M</span><span class="h">D</span><span class="h">F</span><span class="h">S</span><span class="h">S</span>';
+      for(let i=0;i<lead;i++)c+='<span></span>';
+      for(let d=0;d<days;d++){const n=first+d,s=shift(n);
+        const hd=holiday(n);c+='<span class="yd '+s+(hd?' hf':'')+'"><b>'+(d+1)+'</b>'+(hd?'<i class="yic">'+ICON[hd]+'</i>':s==="X"?"":s)+'</span>';}
+      months+='<div class="ym"><h5>'+MONTHS[m]+'</h5><div class="yg">'+c+'</div></div>';
+    }
+    let cnt={F:0,S:0,N:0}; for(let n=dn(y,0,1);n<dn(y+1,0,1);n++){const s=shift(n);if(s!=="X")cnt[s]++}
+    const hl=[...holidays(y)].map(([n,name])=>'<li><span class="ic">'+ICON[name]+'</span><b>'+fromDn(n).d+'.'+(fromDn(n).m+1)+'.</b> '+name+'</li>').join("");
+    yv.innerHTML='<div class="yvbar"><button type="button" class="iconbtn sq" data-y="-1" aria-label="Vorheriges Jahr">‹</button><strong>'+y+'</strong><button type="button" class="iconbtn sq" data-y="1" aria-label="Nächstes Jahr">›</button><button type="button" class="iconbtn" data-y="x">Schließen</button></div>'+
+      '<div class="yvact"><button type="button" class="btn primary" data-y="pdf">📄 Als PDF speichern und drucken</button></div>'+
+      '<p class="yvhint">Das PDF öffnest du nach dem Speichern auf dem Handy und druckst es über „Drucken“ oder „Teilen → Drucken“.</p>'+
+      '<div class="a4wrap"><div class="a4"><div class="a4head"><span>Schichtplan '+y+'</span><small>17,5-Modell · Bayern</small></div>'+
+      '<div class="ygrid">'+months+'</div>'+
+      '<div class="a4foot"><div class="lg"><span class="yd F">F</span>Früh <span class="yd S">S</span>Spät <span class="yd N">N</span>Nacht <span class="yd X">&nbsp;</span>Frei <span class="yd X hf">&nbsp;</span>Feiertag (frei) <span class="weleg"></span>Wochenende</div>'+
+      '<div class="sum">Früh '+cnt.F+' · Spät '+cnt.S+' · Nacht '+cnt.N+' · Schichten gesamt '+(cnt.F+cnt.S+cnt.N)+' · Feiertage auf Schichttagen '+ftInShift(y)+'</div>'+
+      '<ul class="yhol">'+hl+'</ul></div></div></div>';
+    fitA4();
+    yv.onclick=ev=>{const b=ev.target.closest("[data-y]");if(!b)return;if(b.dataset.y==="x"){yv.hidden=true;document.body.style.overflow="";return}if(b.dataset.y==="pdf"){savePdf(y);return}renderYear(y+ +b.dataset.y)};
+  }
+  function fitA4(){const w=yv.querySelector(".a4wrap");if(!w)return;const k=Math.min(1,w.clientWidth/794);w.style.height=(1123*k)+"px";w.firstChild.style.transform="scale("+k+")"}
+  addEventListener("resize",()=>{if(!yv.hidden)fitA4()});
+  function openYear(y){yv.hidden=false;renderYear(y);yv.scrollTop=0;document.body.style.overflow="hidden"}
+
+  // ---------- Farben ----------
+  const COLKEYS=[["frueh","Frühschicht"],["spaet","Spätschicht"],["nacht","Nachtschicht"],["urlaub","Urlaub (U)"],["tz","TZ-Urlaub"],["ag","Ausgleich (AG)"],["krank","Krank (K)"],["su","Sonderurlaub (SU)"],["ue","Überstunden (ÜS)"],["feiertag","Feiertag"],["we","Wochenende (Band)"]];
+  let colors=store.get("sp_colors",{});
+  function inkFor(hex){const h=hex.replace("#","");const r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16);
+    return (0.299*r+0.587*g+0.114*b)/255>0.6?"#1d1f24":"#ffffff"}
+  function applyColors(){const st=document.documentElement.style;
+    COLKEYS.forEach(([k])=>{st.removeProperty("--"+k);st.removeProperty("--"+k+"-ink")});
+    for(const k in colors){st.setProperty("--"+k,colors[k]);st.setProperty("--"+k+"-ink",inkFor(colors[k]))}}
+  applyColors();
+  const curCol = k=>{const v=getComputedStyle(document.documentElement).getPropertyValue("--"+k).trim();return /^#[0-9a-f]{6}$/i.test(v)?v:"#888888"};
+
+  // ---------- Speichern / Laden ----------
+  let dl=null;
+  try{ window.claude?.use?.("downloads").then(d=>{dl=d}).catch(()=>{}) }catch(e){}
+  const todayIso=()=>iso(TODAY);
+  function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,3200)}
+  async function saveFile(filename,data,fallbackText){
+    if(dl){ try{ await dl.save({filename,data}); toast("Gespeichert: "+filename); return }
+      catch(e){ if(e&&e.code==="declined") return; } }
+    // Fallback: Text zum Kopieren anzeigen
+    if(fallbackText==null){toast("Speichern ist in dieser Ansicht nicht möglich. Öffne den Schichtplan in der Claude-App oder auf claude.ai.");return}
+    openSheet('<h3>Zum Kopieren</h3><p>Direktes Speichern geht in dieser Ansicht nicht. Kopiere den Text und sichere ihn z. B. in einer Notiz oder schick ihn dir per WhatsApp.</p>'+
+      '<textarea id="cpTxt" readonly rows="6">'+fallbackText.replace(/</g,"&lt;")+'</textarea>'+
+      '<button class="btn primary" data-a="copy">Text kopieren</button><button class="btn" data-a="close">Schließen</button>');
+    sheet.onclick=ev=>{const a=ev.target.closest("[data-a]")?.dataset.a;if(!a)return;
+      if(a==="close")return closeSheet();
+      const ta=document.getElementById("cpTxt");
+      navigator.clipboard?.writeText(ta.value).then(()=>toast("Kopiert"),()=>{ta.select();toast("Text markiert, jetzt kopieren")}) ?? (ta.select(),toast("Text markiert, jetzt kopieren"));};
+  }
+  function backupData(){return {app:"schichtplan-17-5",version:1,saved:todayIso(),anchor:iso(anchor),quota,vac,colors,anim:animOn,notes,contacts,ot,otCfg,models}}
+  function saveBackup(){const j=JSON.stringify(backupData()); saveFile("Schichtplan-Sicherung-"+todayIso()+".json",j,j)}
+  function parseBackup(txt){
+    let d; try{d=JSON.parse(txt)}catch(e){return null}
+    if(!d||d.app!=="schichtplan-17-5"||typeof d.vac!=="object")return null;
+    for(const k in d.vac){if(!TYPE[d.vac[k]]||!/^\d+$/.test(k))return null}
+    return d;
+  }
+  function restoreSheet(){
+    openSheet('<h3>Sicherung laden</h3><p>Wähle die gespeicherte Datei (.json) oder füge den kopierten Sicherungstext ein.</p>'+
+      '<label class="btn" for="bkFile">Datei auswählen <small>.json</small><input type="file" id="bkFile" accept=".json,application/json,text/plain" hidden></label>'+
+      '<textarea id="bkTxt" rows="4" placeholder="Oder Sicherungstext hier einfügen"></textarea>'+
+      '<div class="err" id="bkErr"></div><div id="bkConfirm"></div>'+
+      '<button class="btn" data-a="check">Text prüfen</button><button class="btn" data-a="close">Abbrechen</button>');
+    const show=txt=>{const d=parseBackup(txt), box=document.getElementById("bkConfirm"), er=document.getElementById("bkErr");
+      if(!d){er.textContent="Das ist keine gültige Schichtplan-Sicherung. Bitte die .json-Datei aus „Sicherung speichern“ verwenden.";box.innerHTML="";return}
+      er.textContent=""; const cnt={}; for(const k in d.vac)cnt[d.vac[k]]=(cnt[d.vac[k]]||0)+1;
+      box.innerHTML='<p>Sicherung vom <b>'+(d.saved||"?")+'</b>: '+(Object.keys(cnt).map(k=>cnt[k]+' '+k).join(", ")||"keine Einträge")+(d.notes?', '+Object.keys(d.notes).length+' Notizen':'')+(d.contacts?', '+d.contacts.length+' Teamleiter':'')+(d.ot?', '+d.ot.length+' Überstunden-Einträge':'')+'.<br>Deine jetzigen Einträge werden dabei ersetzt.</p>'+
+        '<button class="btn primary" data-a="apply">Sicherung jetzt laden</button>';
+      box.dataset.json=JSON.stringify(d);};
+    document.getElementById("bkFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>show(String(r.result));r.readAsText(f)};
+    sheet.onclick=ev=>{const a=ev.target.closest("[data-a]")?.dataset.a;if(!a)return;
+      if(a==="close")return closeSheet();
+      if(a==="check")return show(document.getElementById("bkTxt").value.trim());
+      if(a==="apply"){const d=JSON.parse(document.getElementById("bkConfirm").dataset.json);
+        vac=d.vac; saveVac();
+        if(d.quota){quota=Object.assign({U:30,TZ:8},d.quota);store.set("sp_quota",quota)}
+        if(d.anchor&&fromDn(parseIso(d.anchor)).w===1){anchor=parseIso(d.anchor);store.set("sp_anchor2",d.anchor)}
+        if(d.colors){colors=d.colors;store.set("sp_colors",colors);applyColors()}
+        if(typeof d.anim==="boolean")setAnim(d.anim);
+        if(d.notes&&typeof d.notes==="object"){notes=d.notes;saveNotes()}
+        if(Array.isArray(d.ot)){ot=d.ot.filter(o=>o&&o.id&&o.from&&o.to);saveOt()}
+        if(Array.isArray(d.models)){models=d.models;saveModels()}
+        if(d.otCfg){otCfg=Object.assign({agHours:8,carry:0},d.otCfg);store.set("sp_otcfg",otCfg)}
+        if(Array.isArray(d.contacts)){contacts=d.contacts.filter(c=>c&&c.name&&c.tel);saveContacts()}
+        repaintAll(); closeSheet(); toast("Sicherung geladen");}
+    };
+  }
+
+  // Einträge eines Jahres als zusammenhängende Zeiträume
+  function entries(y){
+    const out=[], a0=dn(y,0,1), a1=dn(y+1,0,1); let cur=null;
+    for(let n=a0;n<a1;n++){const t=vt(n);
+      if(t){ if(cur&&cur.t===t&&cur.last+1===n){cur.last=n;cur.days.push(n)} else {cur={t,first:n,last:n,days:[n]};out.push(cur)} }
+      else if(cur&&shift(n)==="X"&&!vt(n)){ /* freie Tage überbrücken */ const nx=(()=>{for(let i=n+1;i<a1;i++){if(vt(i))return vt(i)===cur.t?i:-1;if(shift(i)!=="X")return -1}return -1})(); if(nx>0){cur.last=n;continue} cur=null }
+      else cur=null;
+    }
+    out.forEach(e=>{e.count=e.days.filter(n=>shift(n)!=="X"&&!holiday(n)).length; e.hol=e.days.filter(n=>holiday(n)&&shift(n)!=="X").length});
+    return out;
+  }
+  function csvFor(y){
+    const rows=[["Datum","Wochentag","Eintrag","Geplante Schicht","Feiertag","Wird gezählt","Notiz","Von","Bis","Stunden"]];
+    for(let n=dn(y,0,1);n<dn(y+1,0,1);n++){const t=vt(n);if(!t)continue;const o=fromDn(n),s=shift(n),h=holiday(n);
+      rows.push([String(o.d).padStart(2,"0")+"."+String(o.m+1).padStart(2,"0")+"."+o.y,WDL[o.w],TYPE[t].name,NAMES[s],h||"",(s!=="X"&&!h)?"ja":"nein",(noteAt(n)||[0,{t:""}])[1].t])}
+    ot.filter(o=>fromDn(o.d).y===y).forEach(o=>{const d=fromDn(o.d);rows.push([String(d.d).padStart(2,"0")+"."+String(d.m+1).padStart(2,"0")+"."+d.y,WDL[d.w],"Überstunden",NAMES[shift(o.d)],holiday(o.d)||"","",o.note||"",o.from,o.to,String(Math.round(o.min/60*100)/100).replace(".",",")])});
+    return "﻿"+rows.map(r=>r.map(c=>/[;"\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c).join(";")).join("\r\n");
+  }
+
+  // ---------- Jahresplan als PDF ----------
+  function loadJsPDF(){return new Promise((res,rej)=>{if(window.jspdf)return res(window.jspdf);const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";s.onload=()=>res(window.jspdf);s.onerror=rej;document.head.appendChild(s)})}
+  const hex2rgb=h=>{h=h.replace("#","");return [parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]};
+  const emCache={};
+  function emojiPng(ch){if(!ch)return null;if(emCache[ch])return emCache[ch];try{const c=document.createElement("canvas");c.width=c.height=64;const x=c.getContext("2d");
+    x.font='52px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';x.textAlign="center";x.textBaseline="middle";x.fillText(ch,32,36);return emCache[ch]=c.toDataURL("image/png")}catch(e){return null}}
+  async function savePdf(y){
+    if(!dl){toast("PDF-Speichern geht nur in der Claude-App oder auf claude.ai.");return}
+    toast("PDF wird erstellt …");
+    let lib; try{lib=await loadJsPDF()}catch(e){toast("PDF-Erstellung konnte nicht geladen werden. Bitte Internet prüfen.");return}
+    const doc=new lib.jsPDF({unit:"mm",format:"a4"});
+    const C={F:curCol("frueh"),S:curCol("spaet"),N:curCol("nacht"),U:curCol("urlaub"),TZ:curCol("tz"),AG:curCol("ag"),K:curCol("krank"),SU:curCol("su"),X:"#ece9e3",FT:curCol("feiertag"),WE:curCol("we")};
+    const fill=c=>doc.setFillColor(...hex2rgb(c)), txt=c=>doc.setTextColor(...hex2rgb(c)), stroke=c=>doc.setDrawColor(...hex2rgb(c));
+    doc.setFont("helvetica","bold");doc.setFontSize(22);txt("#1d1f24");doc.text("SCHICHTPLAN "+y,12,18);
+    doc.setFont("helvetica","normal");doc.setFontSize(9);txt("#6b6f78");doc.text("17,5-Modell · Bayern",198,18,{align:"right"});
+    stroke("#1d1f24");doc.setLineWidth(.6);doc.line(12,21,198,21);
+    const mw=58.6, gap=5.1, cw=mw/7, ch=6.3, top=27, mh=50;
+    for(let m=0;m<12;m++){
+      const x0=12+(m%3)*(mw+gap), y0=top+Math.floor(m/3)*mh;
+      doc.setFont("helvetica","bold");doc.setFontSize(10);txt("#1d1f24");doc.text(MONTHS[m].toUpperCase(),x0,y0);
+      doc.setFont("helvetica","normal");doc.setFontSize(6);txt("#6b6f78");
+      ["M","D","M","D","F","S","S"].forEach((d,i)=>{if(i>4)txt("#4a3a2a");doc.text(d,x0+i*cw+cw/2,y0+3.6,{align:"center"})});
+      const first=dn(y,m,1),days=new Date(Date.UTC(y,m+1,0)).getUTCDate(),lead=(fromDn(first).w+6)%7,rows=Math.ceil((lead+days)/7);
+      // Wochenend-Band hinter Samstag und Sonntag
+      doc.setGState(new doc.GState({opacity:.42}));fill(C.WE);doc.roundedRect(x0+5*cw-.3,y0+1.2,2*cw+.6,4+rows*ch+.4,1.6,1.6,"F");doc.setGState(new doc.GState({opacity:1}));
+      for(let d=0;d<days;d++){const n=first+d,p=lead+d,cx=x0+(p%7)*cw,cy=y0+5+Math.floor(p/7)*ch,s=shift(n),t=null,h=holiday(n),key=s;
+        fill(h?C.FT:C[key]);doc.roundedRect(cx+.3,cy+.3,cw-.6,ch-.6,.8,.8,"F");
+        if(h&&key!=="X"){stroke(C[key]);doc.setLineWidth(.9);doc.roundedRect(cx+.75,cy+.75,cw-1.5,ch-1.5,.5,.5,"S")}
+        const ink=h?"#ffffff":(key==="X"?"#6b6f78":inkFor(C[key]));txt(ink);
+        doc.setFont("helvetica","normal");doc.setFontSize(5.2);doc.text(String(d+1),cx+cw/2,cy+2.5,{align:"center"});
+        if(h){const im=emojiPng(ICON[h]);if(im)doc.addImage(im,"PNG",cx+cw/2-1.5,cy+2.9,3,3)}
+        const lab=t?t:(s==="X"?"":s); if(lab){doc.setFont("helvetica","bold");doc.setFontSize(6.4);doc.text(lab,cx+cw/2,cy+5.2,{align:"center"})}
+      }
+    }
+    // Fuß: Legende, Summen, Feiertage
+    let fy=230; stroke("#d8d6d0");doc.setLineWidth(.3);doc.line(12,fy-4,198,fy-4);
+    let lx=12; [["F","Früh"],["S","Spät"],["N","Nacht"],["X","Frei"],["FT","Feiertag (frei)"],["WE","Wochenende"]].forEach(([k,l])=>{
+      if(k==="WE")doc.setGState(new doc.GState({opacity:.42}));fill(C[k]);doc.roundedRect(lx,fy-3,5,4,.6,.6,"F");doc.setGState(new doc.GState({opacity:1}));doc.setFont("helvetica","normal");doc.setFontSize(7.5);txt("#1d1f24");doc.text(l,lx+6.2,fy);lx+=6.2+doc.getTextWidth(l)+4});
+    let cnt={F:0,S:0,N:0};for(let n=dn(y,0,1);n<dn(y+1,0,1);n++){const s=shift(n);if(s!=="X")cnt[s]++}
+    fy+=7;doc.setFont("helvetica","bold");doc.setFontSize(8);
+    doc.text("Früh "+cnt.F+" · Spät "+cnt.S+" · Nacht "+cnt.N+" · Schichten gesamt "+(cnt.F+cnt.S+cnt.N)+" · Feiertage auf Schichttagen "+ftInShift(y),12,fy);
+    fy+=6;doc.setFontSize(7.2);const hl=[...holidays(y)];
+    hl.forEach(([n,name],i)=>{const col=Math.floor(i/5),row=i%5,yy=fy+row*4;let x=12+col*62;const o=fromDn(n);
+      {const im=emojiPng(ICON[name]);if(im)doc.addImage(im,"PNG",x,yy-2.8,3.4,3.4)}x+=4.5;doc.setFont("helvetica","bold");txt(C.FT);doc.text(o.d+"."+(o.m+1)+".",x,yy);
+      doc.setFont("helvetica","normal");txt("#1d1f24");doc.text(name,x+9,yy)});
+    try{ await dl.save({filename:"Schichtplan-"+y+".pdf",data:doc.output("arraybuffer")}); toast("PDF gespeichert") }
+    catch(e){ if(!e||e.code!=="declined") toast("Speichern hat nicht geklappt. Bitte später noch einmal versuchen.") }
+  }
+
+  // ---------- Statistik ----------
+  const sv=document.getElementById("statsView");
+  let svYear=null;
+  function renderStats(y){ svYear=y;
+    const ent=entries(y), yy=y;
+    const card=(k,big,sub)=>'<div class="scard"><em style="background:'+TYPE[k].col+';color:'+TYPE[k].ink+'">'+k+'</em><b>'+big+'</b><span>'+sub+'</span></div>';
+    let cnt={F:0,S:0,N:0};for(let n=dn(y,0,1);n<dn(y+1,0,1);n++){const s=shift(n);if(s!=="X"&&!vt(n))cnt[s]++}
+    const cards=card("U",used(y,"U"),"genommen · "+left(y,"U")+" von "+quota.U+" übrig")+
+      card("TZ",used(y,"TZ"),"genommen · "+left(y,"TZ")+" von "+quota.TZ+" übrig")+
+      card("AG",used(y,"AG"),"Ausgleichstage")+card("K",used(y,"K"),"Krankheitstage")+card("SU",used(y,"SU"),"Sonderurlaub")+
+      '<div class="scard"><em style="background:var(--feiertag);color:var(--feiertag-ink)">FT</em><b>'+ftInShift(y)+'</b><span>Feiertage auf Schichttagen, frei</span></div>';
+    const oy=otYear(y), agm=agCount(n=>fromDn(n).y===y)*otCfg.agHours*60, ocnt=ot.filter(o=>fromDn(o.d).y===y).length;
+    const otBlock='<h3 class="sh">Überstunden '+y+'</h3><div class="scards">'+
+      '<div class="scard"><em style="background:var(--ue);color:var(--ue-ink)">ÜS</em><b>'+hShort(oy)+'</b><span>Stunden geleistet ('+ocnt+'×)</span></div>'+
+      '<div class="scard"><em style="background:var(--ag);color:var(--ag-ink)">AG</em><b>−'+hShort(agm)+'</b><span>Stunden durch Ausgleich ('+otCfg.agHours+' h/Tag)</span></div>'+
+      '<div class="scard"><em style="background:var(--fg);color:var(--bg)">±</em><b>'+hShort(otSaldo())+'</b><span>Saldo gesamt (inkl. Übertrag '+String(otCfg.carry).replace(".",",")+' h)</span></div></div>'+
+      '<div class="otbars">'+MONTHS.map((mn,m)=>{const a=dn(y,m,1),b=dn(y,m+1,1);const v=ot.filter(o=>o.d>=a&&o.d<b).reduce((s,o)=>s+o.min,0);return [mn,v]}).map(([mn,v],_,arr)=>{const mx=Math.max(60,...arr.map(x=>x[1]));return '<div class="ob"><i style="height:'+(v/mx*100)+'%"></i><b>'+(v?hShort(v):'')+'</b><span>'+mn.slice(0,1)+'</span></div>'}).join("")+'</div>';
+    // kompakter Kalender
+    let cal="";
+    for(let m=0;m<12;m++){const first=dn(y,m,1),days=new Date(Date.UTC(y,m+1,0)).getUTCDate(),lead=(fromDn(first).w+6)%7;let c="";
+      for(let i=0;i<lead;i++)c+='<i></i>';
+      for(let d=0;d<days;d++){const n=first+d,t=vt(n),s=shift(n),h=holiday(n);
+        c+='<i class="'+(t?"e "+t:s)+(h?" hf":"")+(n===TODAY?" td":"")+'" title="'+fmt(n)+': '+label(n)+(h?' ('+h+')':'')+'">'+(d+1)+'</i>'}
+      cal+='<div class="cm"><h5>'+MONTHS[m].slice(0,3)+'</h5><div class="cg">'+c+'</div></div>'}
+    // Liste
+    const groups=KINDS.map(k=>{const list=ent.filter(e=>e.t===k);if(!list.length)return "";
+      const total=list.reduce((s,e)=>s+e.count,0);
+      return '<section class="sgrp"><h4><em style="background:'+TYPE[k].col+';color:'+TYPE[k].ink+'">'+k+'</em>'+TYPE[k].name+' <span>'+total+' Tag'+(total===1?'':'e')+' gezählt</span></h4><ul>'+
+        list.map(e=>'<li><button type="button" data-go="'+e.first+'"><b>'+(e.first===e.last?dShort(e.first):dShort(e.first)+' – '+dShort(e.last))+'</b><span>'+e.count+' Tag'+(e.count===1?'':'e')+(e.hol?' · '+e.hol+' Feiertag'+(e.hol===1?'':'e')+' nicht gezählt':'')+'</span>'+(noteAt(e.first)?'<i class="snote">📝 '+esc(noteAt(e.first)[1].t)+'</i>':'')+'</button></li>').join("")+'</ul></section>'}).join("");
+    sv.innerHTML='<div class="yvbar"><button type="button" class="iconbtn sq" data-y="-1" aria-label="Vorheriges Jahr">‹</button><strong class="st">Statistik '+y+'</strong><button type="button" class="iconbtn sq" data-y="1" aria-label="Nächstes Jahr">›</button><button type="button" class="iconbtn" data-y="x">Schließen</button></div>'+
+      '<div class="sbody"><div class="scards">'+cards+'</div>'+
+      '<p class="smeta">Geplante Schichten ohne Einträge: Früh '+cnt.F+' · Spät '+cnt.S+' · Nacht '+cnt.N+'</p>'+
+      otBlock+'<h3 class="sh">Jahreskalender</h3><div class="ccal">'+cal+'</div>'+
+      '<p class="smeta">Farbig gefüllt = deine Einträge. Grau mit Farbstrich = normale Schicht (gelb Früh, orange Spät, blau Nacht). Roter Rahmen = Feiertag.</p>'+
+      '<h3 class="sh">Alle Einträge</h3>'+(groups||'<p class="smeta">In '+y+' ist noch nichts eingetragen. Tippe im Kalender auf einen Tag, um Urlaub, Ausgleich, Krank oder Sonderurlaub einzutragen.</p>')+
+      '<h3 class="sh">Speichern</h3><div class="sbtns">'+
+      '<button type="button" class="btn" data-s="pdf">Jahresplan '+y+' als PDF <small>A4, zum Drucken</small></button>'+
+      '<button type="button" class="btn" data-s="csv">Einträge '+y+' als Tabelle <small>CSV für Excel</small></button>'+
+      '<button type="button" class="btn" data-s="bak">Sicherung speichern <small>alle Einträge, alle Jahre</small></button>'+
+      '<button type="button" class="btn" data-s="res">Sicherung laden <small>z. B. auf neuem Handy</small></button></div></div>';
+    sv.onclick=ev=>{
+      const b=ev.target.closest("[data-y]"), g=ev.target.closest("[data-go]"), s=ev.target.closest("[data-s]")?.dataset.s;
+      if(b){ if(b.dataset.y==="x"){closeStats();return} renderStats(y+ +b.dataset.y); sv.scrollTop=0; return }
+      if(g){ closeStats(); const n=+g.dataset.go; jumpTo(n); return }
+      if(s==="pdf") savePdf(y);
+      if(s==="csv") {const c=csvFor(y); saveFile("Schichtplan-Eintraege-"+y+".csv",c,c)}
+      if(s==="bak") saveBackup();
+      if(s==="res") restoreSheet();
+    };
+  }
+  function openStats(){sv.hidden=false;renderStats(viewYear);sv.scrollTop=0;document.body.style.overflow="hidden"}
+  function closeStats(){sv.hidden=true;document.body.style.overflow=""}
+  function jumpTo(n){
+    const o=fromDn(n);
+    while(first.y>o.y||(first.y===o.y&&first.m>o.m))prependMonths(12);
+    while(last.y<o.y||(last.y===o.y&&last.m<o.m))appendMonths(6);
+    const el=document.querySelector('[data-d="'+n+'"]'); if(!el)return;
+    const top=el.closest(".month").getBoundingClientRect().top+window.scrollY-header.offsetHeight-6;
+    window.scrollTo({top});
+    el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"),1600);
+  }
+  document.getElementById("statBtn").onclick=openStats;
+
+  // ---------- Überstunden ----------
+  // ot = [{id, d:Tag, from:"HH:MM", to:"HH:MM", pause:Min, min:Minuten, note}]
+  function otSheet(n,id){
+    const ex=id?ot.find(o=>o.id===id):null, s=shift(n);
+    const defFrom={F:"14:00",S:"22:00",N:"06:00",X:"06:00"}[s], defTo={F:"16:00",S:"23:00",N:"08:00",X:"14:00"}[s];
+    const o=ex||{from:defFrom,to:defTo,pause:0,note:""};
+    openSheet('<h3>'+(ex?'Überstunden ändern':'Überstunden eintragen')+'</h3><p>'+fmt(n)+' · Plan: '+NAMES[s]+'</p>'+
+      '<div class="row2"><label class="f" for="otFrom">Von<input type="time" id="otFrom" class="inp" value="'+o.from+'"></label>'+
+      '<label class="f" for="otTo">Bis<input type="time" id="otTo" class="inp" value="'+o.to+'"></label></div>'+
+      '<label class="f" for="otPause">Pause in Minuten<input type="number" id="otPause" class="inp" min="0" max="600" step="5" inputmode="numeric" value="'+(o.pause||0)+'"></label>'+
+      '<div class="otcalc" id="otCalc"></div>'+
+      '<label class="f" for="otNote">Notiz (optional)<input type="text" id="otNote" class="inp" maxlength="120" value="'+esc(o.note||"")+'" placeholder="z. B. Kollege krank, Inventur"></label>'+
+      '<div class="err" id="otErr"></div>'+
+      '<button class="btn ty" style="--tc:var(--ue);--ti:var(--ue-ink)" data-a="otsave">Speichern</button>'+
+      (ex?'<button class="btn danger" data-a="otdel">Überstunden löschen</button>':'')+
+      '<button class="btn" data-a="close">Abbrechen</button>');
+    const calc=()=>{const f=document.getElementById("otFrom").value,t=document.getElementById("otTo").value,p=+document.getElementById("otPause").value||0;
+      const el=document.getElementById("otCalc"); if(!f||!t){el.textContent="";return 0}
+      const m=otMinutes(f,t,p); el.innerHTML='= <b>'+hm(m)+'</b>'+(toMin(t)<=toMin(f)?' (über Mitternacht)':''); return m};
+    ["otFrom","otTo","otPause"].forEach(i=>document.getElementById(i).oninput=calc); calc();
+    sheet.onclick=ev=>{const a=ev.target.closest("[data-a]")?.dataset.a;if(!a)return;
+      if(a==="close")return closeSheet();
+      if(a==="otdel"){ot=ot.filter(x=>x.id!==id);saveOt();repaintAll();closeSheet();toast("Überstunden gelöscht");refreshOverlays();return}
+      const f=document.getElementById("otFrom").value,t=document.getElementById("otTo").value,p=Math.max(0,+document.getElementById("otPause").value||0);
+      if(!f||!t){document.getElementById("otErr").textContent="Bitte Von- und Bis-Zeit eintragen.";return}
+      const m=otMinutes(f,t,p); if(m<=0){document.getElementById("otErr").textContent="Die Pause ist länger als die Arbeitszeit.";return}
+      const rec={id:ex?ex.id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),d:n,from:f,to:t,pause:p,min:m,note:document.getElementById("otNote").value.trim()};
+      if(ex)ot[ot.findIndex(x=>x.id===id)]=rec; else ot.push(rec);
+      ot.sort((x,y)=>x.d-y.d||toMin(x.from)-toMin(y.from)); saveOt(); repaintAll(); closeSheet(); toast(hm(m)+" gespeichert"); refreshOverlays();
+    };
+  }
+
+  // ---------- Meine Einträge ----------
+  const ev2=document.getElementById("entriesView");
+  let evYear=null, evFilter="all";
+  function refreshOverlays(){ if(!ev2.hidden)renderEntries(); if(!nv.hidden)renderNotes(); if(!sv.hidden)renderStats(svYear) }
+  function renderEntries(){
+    const y=evYear, items=[];
+    entries(y).forEach(e=>items.push({kind:e.t,d:e.first,e}));
+    ot.filter(o=>fromDn(o.d).y===y).forEach(o=>items.push({kind:"UE",d:o.d,o}));
+    Object.keys(notes).map(Number).filter(k=>fromDn(k).y===y).forEach(k=>items.push({kind:"NOTE",d:k,k}));
+    items.sort((a,b)=>a.d-b.d);
+    const F=[["all","Alle"],...KINDS.map(k=>[k,k]),["UE","ÜS"],["NOTE","Notizen"]];
+    const shown=items.filter(i=>evFilter==="all"||i.kind===evFilter);
+    const chip=(k)=>k==="UE"?'<em style="background:var(--ue);color:var(--ue-ink)">ÜS</em>':k==="NOTE"?'<em class="nchip">📝</em>':'<em style="background:'+TYPE[k].col+';color:'+TYPE[k].ink+'">'+k+'</em>';
+    const row=i=>{let title,sub,key;
+      if(i.e){const e=i.e;title=(e.first===e.last?dShort(e.first):dShort(e.first)+' – '+dShort(e.last));sub=TYPE[e.t].name+' · '+e.count+' Tag'+(e.count===1?'':'e')+(e.hol?' · '+e.hol+' FT nicht gezählt':'');key='e:'+e.t+':'+e.first+':'+e.last}
+      else if(i.o){const o=i.o;title=dShort(o.d)+' · '+o.from+'–'+o.to;sub='Überstunden '+hm(o.min)+(o.pause?' (−'+o.pause+' Min. Pause)':'')+(o.note?' · '+esc(o.note):'');key='o:'+o.id}
+      else {const nt=notes[i.k];title=nt.to?dShort(i.k)+' – '+dShort(nt.to):dShort(i.k);sub=esc(nt.t);key='n:'+i.k}
+      return '<li class="erow"><button type="button" class="eitem" data-go="'+i.d+'">'+chip(i.kind)+'<span class="et"><b>'+title+'</b><span>'+sub+'</span></span></button>'+
+        '<button type="button" class="iconbtn sq" data-ed="'+key+'" aria-label="Ändern">✎</button>'+
+        '<button type="button" class="iconbtn sq edel" data-del="'+key+'" aria-label="Löschen">🗑</button></li>'};
+    ev2.innerHTML='<div class="yvbar"><button type="button" class="iconbtn sq" data-y="-1" aria-label="Vorheriges Jahr">‹</button><strong class="st">Einträge '+y+'</strong><button type="button" class="iconbtn sq" data-y="1" aria-label="Nächstes Jahr">›</button><button type="button" class="iconbtn" data-y="x">Schließen</button></div>'+
+      '<div class="sbody"><div class="chips">'+F.map(([k,l])=>'<button type="button" class="chipf'+(evFilter===k?' on':'')+'" data-f="'+k+'">'+l+' <small>'+(k==="all"?items.length:items.filter(i=>i.kind===k).length)+'</small></button>').join("")+'</div>'+
+      (shown.length?'<ul class="elist">'+shown.map(row).join("")+'</ul>':'<p class="smeta">Keine Einträge'+(evFilter==="all"?'':' dieser Art')+' in '+y+'.</p>')+
+      '<p class="smeta">Antippen springt zum Tag. ✎ ändert, 🗑 löscht (zweimal tippen).</p></div>';
+    ev2.onclick=evt=>{const t=evt.target;
+      const yb=t.closest("[data-y]"); if(yb){ if(yb.dataset.y==="x"){closeOverlay(ev2);return} evYear+= +yb.dataset.y; renderEntries(); return }
+      const fb=t.closest("[data-f]"); if(fb){evFilter=fb.dataset.f;renderEntries();return}
+      const g=t.closest("[data-go]"); if(g){closeOverlay(ev2);jumpTo(+g.dataset.go);return}
+      const ed=t.closest("[data-ed]"); if(ed){editKey(ed.dataset.ed);return}
+      const dl2=t.closest("[data-del]"); if(dl2){
+        if(dl2.dataset.sure!=="1"){ev2.querySelectorAll("[data-del]").forEach(b=>{b.dataset.sure="";b.textContent="🗑";b.classList.remove("sure")});dl2.dataset.sure="1";dl2.textContent="Löschen?";dl2.classList.add("sure");return}
+        deleteKey(dl2.dataset.del); return }
+    };
+  }
+  function deleteKey(key){const p=key.split(":");
+    if(p[0]==="e"){for(let i=+p[2];i<=+p[3];i++)if(vt(i)===p[1])delete vac[i];saveVac()}
+    if(p[0]==="o"){ot=ot.filter(o=>o.id!==p[1]);saveOt()}
+    if(p[0]==="n"){delete notes[p[1]];saveNotes()}
+    repaintAll(); refreshOverlays(); toast("Gelöscht");
+  }
+  function editKey(key){const p=key.split(":");
+    if(p[0]==="o"){const o=ot.find(x=>x.id===p[1]);if(o)otSheet(o.d,o.id);return}
+    if(p[0]==="n"){noteSheet(+p[1]);return}
+    const t=p[1],a=+p[2],b=+p[3];
+    openSheet('<h3>'+TYPE[t].name+' ändern</h3><p>'+(a===b?fmt(a):dShort(a)+' – '+dShort(b))+'</p>'+
+      '<button class="btn" data-a="range">Zeitraum ändern <small>im Kalender neu wählen</small></button>'+
+      '<h4>Art ändern in</h4><div class="row2">'+KINDS.filter(k=>k!==t).map(k=>tyBtn(k,'data-a="retype"',TYPE[k].name,"")).join("")+'</div>'+
+      '<button class="btn danger" data-a="del">'+TYPE[t].name+' löschen</button><button class="btn" data-a="close">Abbrechen</button>');
+    sheet.onclick=evt=>{const btn=evt.target.closest("[data-a]");if(!btn)return;const a2=btn.dataset.a;
+      if(a2==="close")return closeSheet();
+      if(a2==="del"){closeSheet();return deleteKey(key)}
+      if(a2==="retype"){for(let i=a;i<=b;i++)if(vt(i)===t)vac[i]=btn.dataset.t;saveVac();repaintAll();closeSheet();refreshOverlays();toast("Geändert");return}
+      if(a2==="range"){openPicker(a,t,{a,b,replace:[a,b]})}
+    };
+  }
+
+  // ---------- Notizen ----------
+  // notes[startTag] = {t:"Text", to:endTag|null}
+  function noteAt(n){ if(notes[n])return [n,notes[n]]; for(const k in notes){const s=+k,o=notes[k];if(o.to&&s<n&&n<=o.to)return [s,o]} return null }
+  const esc = x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  function noteSheet(n,opt){
+    opt=opt||{}; const ex=noteAt(n), start=ex?ex[0]:n, cur=ex?ex[1]:{t:"",to:opt.to||null};
+    const range=cur.to&&cur.to!==start?dShort(start)+' – '+dShort(cur.to):fmt(start);
+    openSheet('<h3>'+(opt.prompt?'Notiz hinzufügen?':(ex?'Notiz bearbeiten':'Neue Notiz'))+'</h3>'+
+      '<p>'+range+(vt(start)?' · '+TYPE[vt(start)].name:'')+'</p>'+
+      '<label class="f" for="noteTxt">Notiz<textarea id="noteTxt" rows="4" maxlength="500" placeholder="z. B. Arzttermin 9 Uhr, Urlaub genehmigt von Herrn M., Überstunden aus Oktober …">'+esc(cur.t)+'</textarea></label>'+
+      '<button class="btn primary" data-a="nsave">Notiz speichern</button>'+
+      (ex?'<button class="btn danger" data-a="ndel">Notiz löschen</button>':'')+
+      '<button class="btn" data-a="close">'+(opt.prompt?'Ohne Notiz weiter':'Abbrechen')+'</button>');
+    if(!opt.prompt) setTimeout(()=>document.getElementById("noteTxt")?.focus(),50);
+    sheet.onclick=ev=>{const a=ev.target.closest("[data-a]")?.dataset.a;if(!a)return;
+      if(a==="nsave"){const v=document.getElementById("noteTxt").value.trim();
+        if(v){notes[start]={t:v,to:cur.to&&cur.to!==start?cur.to:null}} else delete notes[start];
+        saveNotes();repaintAll();if(!nv.hidden)renderNotes();
+        if(v)return calAsk(start,cur.to&&cur.to!==start?cur.to:null,v);
+        closeSheet();toast("Notiz gelöscht");return}
+      if(a==="ndel"){delete notes[start];saveNotes();repaintAll();closeSheet();toast("Notiz gelöscht");if(!nv.hidden)renderNotes();return}
+      closeSheet();};
+  }
+  // In den Handy-Kalender übernehmen (Google Kalender öffnet sich mit fertig ausgefülltem Termin)
+  function gcalUrl(a,b,txt){const f=n=>iso(n).replace(/-/g,""),end=(b||a)+1,first=txt.split("\n")[0].slice(0,60);
+    return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(first)+"&dates="+f(a)+"/"+f(end)+"&details="+encodeURIComponent(txt+"\n\n(aus Schichtplan 17,5)")}
+  function calAsk(a,b,txt){
+    openSheet('<h3>Notiz gespeichert</h3><p>Möchtest du sie auch in deinen Handy-Kalender eintragen?</p>'+
+      '<div class="nbox"><b>'+(b?dShort(a)+' – '+dShort(b):fmt(a))+'</b><p>'+esc(txt)+'</p></div>'+
+      '<a class="btn primary" href="'+gcalUrl(a,b,txt)+'" target="_blank" rel="noopener" data-a="gcal">📅 In Google Kalender eintragen</a>'+
+      '<p class="smeta">Der Google Kalender öffnet sich mit dem fertigen Termin, du musst nur noch auf „Speichern“ tippen.</p>'+
+      '<button class="btn" data-a="close">Nein, danke</button>');
+    sheet.onclick=ev=>{const a2=ev.target.closest("[data-a]")?.dataset.a;if(a2==="gcal"){setTimeout(closeSheet,300);return}if(a2==="close")closeSheet()};
+  }
+  const nv=document.getElementById("notesView");
+  function renderNotes(){
+    const keys=Object.keys(notes).map(Number).sort((a,b)=>a-b);
+    const up=keys.filter(k=>(notes[k].to||k)>=TODAY), past=keys.filter(k=>(notes[k].to||k)<TODAY).reverse();
+    const item=k=>{const o=notes[k],t=vt(k);
+      return '<li><button type="button" class="nitem" data-go="'+k+'"><span class="nd"><b>'+(o.to?dShort(k)+' – '+dShort(o.to):dShort(k))+'</b> '+fromDn(k).y+
+        (t?' <em style="background:'+TYPE[t].col+';color:'+TYPE[t].ink+'">'+t+'</em>':'')+(holiday(k)?' <em style="background:var(--feiertag);color:var(--feiertag-ink)">FT</em>':'')+'</span>'+
+        '<span class="nt2">'+esc(o.t)+'</span></button><button type="button" class="iconbtn sq ned" data-edit="'+k+'" aria-label="Notiz bearbeiten">✎</button></li>'};
+    nv.innerHTML='<div class="yvbar"><strong class="st" style="text-align:left">Notizen</strong><button type="button" class="iconbtn" data-n="x">Schließen</button></div>'+
+      '<div class="sbody">'+
+      (keys.length?'':'<p class="smeta">Noch keine Notizen. Tippe im Kalender auf einen Tag und wähle „Notiz hinzufügen“. Beim Eintragen von Urlaub, TZ, Ausgleich, Krank oder Sonderurlaub wirst du auch gefragt.</p>')+
+      (up.length?'<h3 class="sh">Anstehend</h3><ul class="nlist">'+up.map(item).join("")+'</ul>':'')+
+      (past.length?'<h3 class="sh">Vergangen</h3><ul class="nlist">'+past.map(item).join("")+'</ul>':'')+'</div>';
+    nv.onclick=ev=>{const c=ev.target.closest("[data-n]"),g=ev.target.closest("[data-go]"),e=ev.target.closest("[data-edit]");
+      if(c){closeOverlay(nv);return}
+      if(e){noteSheet(+e.dataset.edit);return}
+      if(g){closeOverlay(nv);jumpTo(+g.dataset.go)}};
+  }
+  function openOverlay(el){el.hidden=false;el.scrollTop=0;document.body.style.overflow="hidden"}
+  function closeOverlay(el){el.hidden=true;document.body.style.overflow=""}
+
+  // ---------- Teamleiter ----------
+  const cv2=document.getElementById("contactsView");
+  function renderContacts(){
+    cv2.innerHTML='<div class="yvbar"><strong class="st" style="text-align:left">Teamleiter</strong><button type="button" class="iconbtn" data-c="x">Schließen</button></div>'+
+      '<div class="sbody">'+
+      (contacts.length?'<ul class="clist">'+contacts.map((c,i)=>{const num=c.tel.replace(/[^\d+]/g,"");
+        return '<li class="ccard"><div class="cinfo"><b>'+esc(c.name)+'</b>'+(c.info?'<span>'+esc(c.info)+'</span>':'')+
+          '<a class="ctel" href="tel:'+esc(num)+'">'+esc(c.tel)+'</a></div>'+
+          '<div class="cbtns"><a class="btn ty half" style="--tc:var(--urlaub);--ti:var(--urlaub-ink)" href="tel:'+esc(num)+'">Anrufen</a>'+
+          '<button type="button" class="btn half" data-copy="'+i+'">Nummer kopieren</button>'+
+          '<button type="button" class="btn half" data-cedit="'+i+'">Bearbeiten</button></div></li>'}).join("")+'</ul>'
+        :'<p class="smeta">Noch keine Nummern eingetragen.</p>')+
+      '<button type="button" class="btn primary" data-cadd="1">Teamleiter hinzufügen</button>'+
+      '<p class="smeta">„Anrufen“ öffnet die Telefon-App. Klappt das in deiner Ansicht nicht, kopiere die Nummer.</p></div>';
+    cv2.onclick=ev=>{const t=ev.target;
+      if(t.closest("[data-c]")){closeOverlay(cv2);return}
+      if(t.closest("[data-cadd]")){contactSheet(-1);return}
+      const ce=t.closest("[data-cedit]"); if(ce){contactSheet(+ce.dataset.cedit);return}
+      const cp=t.closest("[data-copy]"); if(cp){const v=contacts[+cp.dataset.copy].tel;
+        try{navigator.clipboard.writeText(v).then(()=>toast("Nummer kopiert: "+v),()=>toast("Bitte die Nummer lange antippen und kopieren"))}catch(e){toast("Bitte die Nummer lange antippen und kopieren")}}
+    };
+  }
+  function contactSheet(i){
+    const c=i>=0?contacts[i]:{name:"",tel:"",info:""};
+    openSheet('<h3>'+(i>=0?'Teamleiter bearbeiten':'Teamleiter hinzufügen')+'</h3>'+
+      '<label class="f" for="cName">Name<input type="text" id="cName" class="inp" maxlength="60" autocomplete="off" value="'+esc(c.name)+'" placeholder="z. B. Thomas Huber"></label>'+
+      '<label class="f" for="cTel">Telefonnummer<input type="tel" id="cTel" class="inp" maxlength="30" inputmode="tel" value="'+esc(c.tel)+'" placeholder="z. B. 0171 2345678"></label>'+
+      '<label class="f" for="cInfo">Bemerkung (optional)<input type="text" id="cInfo" class="inp" maxlength="80" value="'+esc(c.info||"")+'" placeholder="z. B. Schichtgruppe B, Halle 3"></label>'+
+      '<div class="err" id="cErr"></div>'+
+      '<button class="btn primary" data-a="csave">Speichern</button>'+
+      (i>=0?'<button class="btn danger" data-a="cdel">Teamleiter löschen</button>':'')+
+      '<button class="btn" data-a="close">Abbrechen</button>');
+    sheet.onclick=ev=>{const a=ev.target.closest("[data-a]")?.dataset.a;if(!a)return;
+      if(a==="close")return closeSheet();
+      if(a==="cdel"){ if(sheet.dataset.sure!=="1"){sheet.dataset.sure="1";ev.target.closest("[data-a]").textContent="Wirklich löschen? Nochmal tippen";return}
+        contacts.splice(i,1);saveContacts();closeSheet();renderContacts();toast("Gelöscht");return}
+      const name=document.getElementById("cName").value.trim(), tel=document.getElementById("cTel").value.trim(), info=document.getElementById("cInfo").value.trim();
+      if(!name||!/\d{3,}/.test(tel.replace(/\s/g,""))){document.getElementById("cErr").textContent="Bitte Name und eine Telefonnummer mit Ziffern eintragen.";return}
+      if(i>=0)contacts[i]={name,tel,info}; else contacts.push({name,tel,info});
+      saveContacts();closeSheet();renderContacts();toast("Gespeichert");
+    };
+    sheet.dataset.sure="";
+  }
+
+  // ---------- Menü ----------
+  document.getElementById("menuBtn").onclick=()=>{
+    const nc=Object.keys(notes).length;
+    openSheet('<h3>Menü</h3><div class="mgrid">'+
+      '<button class="mtile" data-m="stats"><span>📊</span>Statistik<small>Zähler, Jahreskalender, PDF</small></button>'+
+      '<button class="mtile" data-m="entries"><span>📋</span>Meine Einträge<small>ändern, löschen, hinspringen</small></button>'+
+      '<button class="mtile" data-m="notes"><span>📝</span>Notizen<small>'+(nc?nc+' Notiz'+(nc===1?'':'en'):'noch keine')+'</small></button>'+
+      '<button class="mtile" data-m="contacts"><span>📞</span>Teamleiter<small>'+(contacts.length?contacts.length+' Nummer'+(contacts.length===1?'':'n'):'Nummern eintragen')+'</small></button>'+
+      '<button class="mtile" data-m="year"><span>🗓️</span>Jahresübersicht<small>ganzes Jahr, A4</small></button>'+
+      '<button class="mtile" data-m="models"><span>🔁</span>Schichtmodelle<small>'+(models.length?models.length+' eigene':'eigenes anlegen')+'</small></button>'+
+      '<button class="mtile" data-m="settings"><span>⚙️</span>Einstellungen<small>Farben, Urlaub, Rhythmus</small></button>'+
+      '<button class="mtile" data-m="help"><span>📖</span>Anleitung<small>alle Funktionen mit Bildern</small></button>'+
+      '<button class="mtile" data-m="impressum"><span>ℹ️</span>Impressum<small>Idee, Umsetzung, Datenschutz</small></button>'+
+      '<button class="mtile" data-m="backup"><span>💾</span>Sicherung<small>speichern oder laden</small></button></div>'+
+      '<button class="btn" data-a="close">Schließen</button>');
+    sheet.onclick=ev=>{const m=ev.target.closest("[data-m]")?.dataset.m, a=ev.target.closest("[data-a]")?.dataset.a;
+      if(a==="close")return closeSheet(); if(!m)return;
+      closeSheet();
+      if(m==="stats")openStats();
+      if(m==="notes"){renderNotes();openOverlay(nv)}
+      if(m==="entries"){evYear=viewYear;renderEntries();openOverlay(ev2)}
+      if(m==="contacts"){renderContacts();openOverlay(cv2)}
+      if(m==="year")openYear(viewYear);
+      if(m==="models")modelsSheet();
+      if(m==="help")openHelp();
+      if(m==="impressum")openImpressum();
+      if(m==="settings")document.getElementById("setBtn").click();
+      if(m==="backup"){openSheet('<h3>Sicherung</h3><p>Deine Einträge, Notizen und Teamleiter-Nummern liegen nur auf diesem Handy. Speichere ab und zu eine Sicherung.</p><button class="btn primary" data-a="bak">Sicherung speichern</button><button class="btn" data-a="res">Sicherung laden</button><button class="btn" data-a="close">Schließen</button>');
+        sheet.onclick=e2=>{const b=e2.target.closest("[data-a]")?.dataset.a;if(b==="bak"){closeSheet();saveBackup()}else if(b==="res")restoreSheet();else if(b==="close")closeSheet()}}
+    };
+  };
+
+  // ---------- Sound je Jahreszeit (alles live erzeugt, keine Dateien) ----------
+  function makeSoundEngine(ctx){
+    const E={ctx}, R=Math.random, sr=ctx.sampleRate;
+    const rr=(a,b)=>a+R()*(b-a), pk=a=>a[Math.floor(R()*a.length)];
+    // Ausgang: sanfter Tiefpass + Kompressor, damit nichts schrill oder zu laut wird
+    const master=ctx.createGain(); master.gain.value=0;
+    const tone=ctx.createBiquadFilter(); tone.type="lowpass"; tone.frequency.value=7500; tone.Q.value=.5;
+    const comp=ctx.createDynamicsCompressor(); comp.threshold.value=-20; comp.knee.value=12; comp.ratio.value=4; comp.attack.value=.005; comp.release.value=.25;
+    const trim=ctx.createGain(); trim.gain.value=1; master.connect(trim); trim.connect(tone); tone.connect(comp); comp.connect(ctx.destination); E.master=master; E.trim=trim;
+    // Hall (Wald/Wiese-Gefühl)
+    const len=Math.floor(sr*2.6), ir=ctx.createBuffer(2,len,sr);
+    for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<len;i++)d[i]=(R()*2-1)*Math.pow(1-i/len,3.2)*(i<sr*.012?i/(sr*.012):1)}
+    const conv=ctx.createConvolver(); conv.buffer=ir; const wet=ctx.createGain(); wet.gain.value=.55; conv.connect(wet); wet.connect(master);
+    function out(pan,rev){const g=ctx.createGain(); let n=g;
+      if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=pan||0;g.connect(p);n=p}
+      n.connect(master); if(rev){const s=ctx.createGain();s.gain.value=rev;n.connect(s);s.connect(conv)} return g}
+    // Rauschen: weiß, rosa, braun
+    function nbuf(kind){const b=ctx.createBuffer(1,sr*4,sr),d=b.getChannelData(0);let b0=0,b1=0,b2=0,br=0;
+      for(let i=0;i<d.length;i++){const w=R()*2-1;
+        if(kind==="pink"){b0=.99765*b0+w*.099046;b1=.963*b1+w*.2965164;b2=.57*b2+w*1.0526913;d[i]=(b0+b1+b2+w*.1848)*.18}
+        else if(kind==="brown"){br=(br+.02*w)/1.02;d[i]=br*3.2} else d[i]=w*.5}
+      return b}
+    const NB={white:nbuf("white"),pink:nbuf("pink"),brown:nbuf("brown")}; E.NB=NB;
+    function loop(kind){const s=ctx.createBufferSource();s.buffer=NB[kind];s.loop=true;s.start(0,R()*3);return s}
+    function bed(kind,filters,pan,rev){const g=ctx.createGain();g.gain.value=0;let n=loop(kind);
+      for(const [type,f,q] of filters){const bq=ctx.createBiquadFilter();bq.type=type;bq.frequency.value=f;bq.Q.value=q||.7;n.connect(bq);n=bq}
+      n.connect(g);g.connect(out(pan,rev));return {g,f:n}}
+    // Grundgeräusche
+    const wind=bed("brown",[["lowpass",420,.6]],0,.15);
+    const whistle=bed("pink",[["bandpass",820,9]],-.3,.4);
+    const leaves=bed("pink",[["bandpass",3200,.6],["lowpass",6000]],.25,.2);
+    const rain=bed("pink",[["highpass",1800],["lowpass",7000]],0,.2);
+    const fire=bed("brown",[["lowpass",160]],-.2,0);
+    // Bach: mehrere schmale Bänder, die sich ständig leicht verschieben (Plätschern)
+    const brook={g:ctx.createGain(),bands:[]}; brook.g.gain.value=0; brook.g.connect(out(.35,.3));
+    [[380,3],[720,4],[1150,5],[1900,6],[2900,7]].forEach(([f,q])=>{const bq=ctx.createBiquadFilter();bq.type="bandpass";bq.frequency.value=f;bq.Q.value=q;
+      const gg=ctx.createGain();gg.gain.value=.5;loop("pink").connect(bq);bq.connect(gg);gg.connect(brook.g);brook.bands.push({bq,gg,f})});
+    E.beds={wind,whistle,leaves,rain,fire,brook};
+
+    // --- Einzelne Geräusche ---
+    function env(g,t,a,peak,d){g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(peak,t+a);g.gain.setTargetAtTime(0,t+a,d/4)}
+    function tone1(t,f0,f1,dur,vol,pan,rev,type){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type||"sine";
+      o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);env(g,t,Math.min(.02,dur*.25),vol,dur);
+      o.connect(g);g.connect(out(pan,rev));o.start(t);o.stop(t+dur*2+.3)}
+    // Bach ohne Rauschen: viele kleine, tonale Bläschen
+    E.bubble=(t,pan,big)=>{const f=big?rr(200,340):rr(260,820),o=ctx.createOscillator(),g=ctx.createGain(),d=big?rr(.06,.1):rr(.018,.045);
+      o.type="sine";o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*rr(1.35,1.9),t+d);
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(big?rr(.06,.09):rr(.02,.045),t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+d*1.6);
+      o.connect(g);g.connect(out(pan,.3));o.start(t);o.stop(t+d*2+.05)};
+    E.brookTick=(t,dens)=>{const n=Math.round(dens*(3+R()*5));for(let i=0;i<n;i++)E.bubble(t+R()*.25,rr(.15,.75));if(R()<.04*dens)E.bubble(t+R()*.25,rr(.2,.6),true)};
+    // Wassertropfen / Blubbern
+    E.droplet=(t,pan)=>{const f=rr(450,900);tone1(t,f,f*rr(1.8,2.8),rr(.03,.06),rr(.025,.05),pan,.6)};
+    // Grille: weicher Zirp aus 3–4 Silben, leise und weit weg
+    E.cricket=(t,f,pan)=>{const n=pk([3,3,4]);for(let i=0;i<n;i++){const tt=t+i*.045,o=ctx.createOscillator(),g=ctx.createGain(),bp=ctx.createBiquadFilter();
+      o.type="sine";o.frequency.value=f*rr(.997,1.003);bp.type="bandpass";bp.frequency.value=f;bp.Q.value=6;
+      g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(.0045,tt+.012);g.gain.linearRampToValueAtTime(0,tt+.032);
+      const lpc=ctx.createBiquadFilter();lpc.type="lowpass";lpc.frequency.value=5200;o.connect(bp);bp.connect(g);g.connect(lpc);lpc.connect(out(pan,.8));o.start(tt);o.stop(tt+.05)}};
+    // Vögel: drei verschiedene Gesänge
+    E.blackbird=(t,pan)=>{let tt=t;const n=4+Math.floor(R()*5);let f=rr(1500,2300);
+      for(let i=0;i<n;i++){const d=rr(.09,.26),o=ctx.createOscillator(),g=ctx.createGain(),v=ctx.createOscillator(),vg=ctx.createGain();
+        const nf=Math.min(3200,Math.max(1300,f*rr(.8,1.3)));o.frequency.setValueAtTime(f,tt);o.frequency.exponentialRampToValueAtTime(nf,tt+d*.6);f=nf;
+        v.frequency.value=rr(5,8);vg.gain.value=f*.012;v.connect(vg);vg.connect(o.frequency);
+        env(g,tt,.02,rr(.035,.055),d);o.connect(g);g.connect(out(pan,.45));o.start(tt);v.start(tt);o.stop(tt+d+.4);v.stop(tt+d+.4);tt+=d+rr(.02,.08)}};
+    E.tit=(t,pan)=>{let tt=t;const hi=rr(3600,4300),lo=hi*rr(.72,.8);for(let i=0;i<pk([3,4,5]);i++){tone1(tt,hi,hi*.97,.11,.024,pan,.45);tone1(tt+.14,lo,lo*.98,.12,.022,pan,.45);tt+=.32}};
+    E.finch=(t,pan)=>{let tt=t,f=rr(3800,4400);for(let i=0;i<pk([9,11,13]);i++){tone1(tt,f,f*.82,.045,.014,pan,.4);tt+=.06;f*=.975}tone1(tt+.05,f*1.2,f*.7,.18,.02,pan,.45)};
+    E.cuckoo=(t,pan)=>{let tt=t;for(let i=0;i<pk([2,3,4]);i++){tone1(tt,720,690,.22,.035,pan,.7);tone1(tt+.32,575,560,.3,.03,pan,.7);tt+=1.1}};
+    E.owl=(t,pan)=>{tone1(t,410,380,.5,.03,pan,.8);tone1(t+.9,420,360,.25,.02,pan,.8);tone1(t+1.25,400,350,.7,.03,pan,.8)};
+    E.crow=(t,pan)=>{for(let i=0;i<pk([2,3]);i++){const tt=t+i*.45,o=ctx.createOscillator(),g=ctx.createGain(),bp=ctx.createBiquadFilter();o.type="sawtooth";
+      o.frequency.setValueAtTime(rr(560,640),tt);o.frequency.linearRampToValueAtTime(rr(420,480),tt+.28);bp.type="bandpass";bp.frequency.value=1300;bp.Q.value=1.8;
+      env(g,tt,.02,.03,.28);o.connect(bp);bp.connect(g);g.connect(out(pan,.6));o.start(tt);o.stop(tt+.6)}};
+    // Ente: zwei kurze "Quak"
+    // Frosch
+    E.frog=(t,pan)=>{const o=ctx.createOscillator(),g=ctx.createGain(),am=ctx.createOscillator(),ag=ctx.createGain(),bp=ctx.createBiquadFilter();
+      o.type="sawtooth";o.frequency.value=rr(140,180);am.frequency.value=rr(22,30);ag.gain.value=.5;am.connect(ag);ag.connect(g.gain);
+      bp.type="bandpass";bp.frequency.value=650;bp.Q.value=3;env(g,t,.03,.022,.45);o.connect(bp);bp.connect(g);g.connect(out(pan,.5));o.start(t);am.start(t);o.stop(t+.8);am.stop(t+.8)};
+    // Biene: leises Summen, das vorbeizieht
+    E.bee=(t)=>{const dur=rr(2.4,3.6),len=Math.floor(dur*sr),buf=ctx.createBuffer(1,len,sr),x=buf.getChannelData(0);
+      // Flügelschlag ca. 230 Hz mit vielen Obertönen; Tonhöhe und Lautstärke schwanken unregelmäßig
+      let ph=0,f=rr(205,245),fd=0,a=1,ad=0;const H=[1,.55,.42,.3,.22,.15,.1,.07],near=rr(.35,.6);
+      for(let j=0;j<len;j++){const u=j/len;if(j%64===0){fd=fd*.96+(R()-.5)*.9;ad=ad*.9+(R()-.5)*.08}
+        const dop=u<near?1.03:1.03-(u-near)*.12; const fi=(f+fd)*dop; ph+=6.283*fi/sr; let v=0;
+        for(let h=0;h<H.length;h++)v+=H[h]*Math.sin(ph*(h+1)+h*1.3);
+        a=Math.max(.6,Math.min(1.2,1+ad));x[j]=v*.22*a}
+      const src=ctx.createBufferSource();src.buffer=buf;const lp=ctx.createBiquadFilter(),g=ctx.createGain();lp.type="lowpass";lp.frequency.value=2400;lp.Q.value=.4;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.13,t+dur*near);g.gain.linearRampToValueAtTime(0,t+dur);
+      src.connect(lp);lp.connect(g);let n=g;
+      if(ctx.createStereoPanner){const p=ctx.createStereoPanner(),d=R()<.5?1:-1;p.pan.setValueAtTime(-.85*d,t);p.pan.linearRampToValueAtTime(.85*d,t+dur);g.connect(p);n=p}
+      n.connect(master);const s2=ctx.createGain();s2.gain.value=.12;n.connect(s2);s2.connect(conv);src.start(t)};
+    // Kaminfeuer-Knistern
+    E.crackle=(t)=>{const s=ctx.createBufferSource();s.buffer=NB.white;const hp=ctx.createBiquadFilter();hp.type="highpass";hp.frequency.value=rr(1500,3500);const g=ctx.createGain();
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(rr(.03,.09),t+.001);g.gain.exponentialRampToValueAtTime(.0001,t+rr(.008,.03));s.connect(hp);hp.connect(g);g.connect(out(rr(-.4,.1),.15));s.start(t,R()*3);s.stop(t+.06)};
+    // Schlittenglöckchen
+    E.bells=(t)=>{let tt=t;const pan=rr(-.6,.6);for(let k=0;k<pk([6,8,10]);k++){[2637,3951,5274].forEach((f,i)=>tone1(tt,f*rr(.996,1.004),f,.4,.012/(i+1),pan,.6,"triangle"));tt+=pk([.13,.13,.26])}};
+    // Donner: kurzer Knall (bei nahem Blitz) und langes, rollendes Grollen
+    E.thunder=(t,far)=>{const dur=rr(3.5,6),s=ctx.createBufferSource();s.buffer=NB.brown;s.loop=true;const lp=ctx.createBiquadFilter();lp.type="lowpass";
+      lp.frequency.setValueAtTime(far>.5?260:520,t);lp.frequency.exponentialRampToValueAtTime(110,t+dur);const g=ctx.createGain();g.gain.setValueAtTime(0,t);
+      let tt=t;const peak=far>.5?.55:.85;g.gain.linearRampToValueAtTime(peak,t+(far>.5?.35:.08));
+      while(tt<t+dur-.6){tt+=rr(.25,.7);g.gain.linearRampToValueAtTime(peak*rr(.35,1)*(1-(tt-t)/dur),tt)}g.gain.linearRampToValueAtTime(0,t+dur);
+      s.connect(lp);lp.connect(g);g.connect(out(rr(-.4,.4),.45));s.start(t,R()*3);s.stop(t+dur+.1);
+      if(far<.5){const c=ctx.createBufferSource();c.buffer=NB.white;const hp=ctx.createBiquadFilter();hp.type="lowpass";hp.frequency.value=2500;const cg=ctx.createGain();
+        cg.gain.setValueAtTime(.5,t);cg.gain.setTargetAtTime(0,t,.08);c.connect(hp);hp.connect(cg);cg.connect(out(0,.3));c.start(t,R()*3);c.stop(t+.5)}};
+    // Feuerwerk
+    E.boom=(t)=>{const s=ctx.createBufferSource();s.buffer=NB.brown;const f=ctx.createBiquadFilter();f.type="lowpass";f.frequency.setValueAtTime(700,t);f.frequency.exponentialRampToValueAtTime(80,t+1);
+      const g=ctx.createGain();env(g,t,.004,.55,1.1);s.connect(f);f.connect(g);g.connect(out(rr(-.5,.5),.5));s.start(t,R()*3);s.stop(t+1.6);
+      for(let i=0;i<16;i++)E.crackle(t+.3+R()*1.1)};
+
+    // --- Mischung und Ablauf ---
+    const MIX={winter:{wind:.095,whistle:.02,leaves:0,rain:0,fire:.05,brook:0},
+               spring:{wind:0,whistle:0,leaves:0,rain:0,fire:0,brook:0},
+               summer:{wind:0,whistle:0,leaves:0,rain:0,fire:0,brook:0},
+               autumn:{wind:.075,whistle:.006,leaves:0,rain:0,fire:0,brook:0}};
+    // ---- Realistische Vogelstimmen: Silben mit fließender Tonhöhe, Obertönen und Entfernung ----
+    function curve(pts,n){n=n||32;const a=new Float32Array(n);for(let i=0;i<n;i++){const x=i/(n-1)*(pts.length-1),k=Math.min(pts.length-2,Math.floor(x)),u=x-k,s=u*u*(3-2*u);a[i]=pts[k]+(pts[k+1]-pts[k])*s}return a}
+    const HUMP=new Float32Array(24).map((_,i)=>Math.pow(Math.sin(Math.PI*i/23),.7));
+    const SHARP=new Float32Array(24).map((_,i)=>i<3?i/3:Math.pow(1-(i-3)/20,1.6));
+    function syl(t,pts,dur,vol,b,o){o=o||{};const g=ctx.createGain(),lp=ctx.createBiquadFilter();
+      lp.type="lowpass";lp.frequency.value=11000-b.dist*7500;lp.Q.value=.5;g.gain.setValueAtTime(0,t);
+      g.gain.setValueCurveAtTime((o.sharp?SHARP:HUMP).map(v=>v*vol*(1-b.dist*.55)),t,dur);
+      const fc=curve(pts.map(f=>f*b.pitch));
+      [[1,1],[2,o.h2||.06],[3,o.h3||0]].forEach(([m,a])=>{if(!a)return;const os=ctx.createOscillator(),ga=ctx.createGain();os.type="sine";
+        os.frequency.setValueCurveAtTime(fc.map(f=>f*m),t,dur);ga.gain.value=a;os.connect(ga);ga.connect(g);
+        if(o.am){const am=ctx.createOscillator(),ag=ctx.createGain();am.frequency.value=o.am;ag.gain.value=.45*a;am.connect(ag);ag.connect(ga.gain);am.start(t);am.stop(t+dur+.02)}
+        os.start(t);os.stop(t+dur+.02)});
+      g.connect(lp);lp.connect(out(b.pan,.12+b.dist*.55))}
+    // Amsel: flötende, weiche Motive, am Ende leises Zwitschern
+    E.amsel=(t,b)=>{let tt=t;const n=3+Math.floor(R()*4);let f=rr(1600,2300);
+      for(let i=0;i<n;i++){const d=rr(.1,.28),f2=Math.min(3000,Math.max(1250,f*rr(.75,1.3))),mid=(f+f2)/2*rr(.95,1.12);
+        syl(tt,[f,mid,f2,f2*rr(.93,1.03)],d,rr(.05,.075),b,{h2:.05});f=f2;tt+=d+rr(.03,.09)}
+      const tw=Math.floor(R()*5);for(let i=0;i<tw;i++){const f0=rr(5200,7200);syl(tt,[f0,f0*rr(.75,1.2)],rr(.025,.05),.018,b,{sharp:1});tt+=rr(.04,.07)}
+      return tt-t};
+    // Kohlmeise: "zi-zi-bä", klar und rhythmisch
+    E.meise=(t,b)=>{let tt=t;const hi=rr(5200,6200),lo=rr(3300,3900),reps=3+Math.floor(R()*4);
+      for(let i=0;i<reps;i++){syl(tt,[hi,hi*.86,hi*.8],.085,.05,b,{sharp:1,h2:.03});syl(tt+.11,[lo,lo*1.02,lo*.97],.09,.045,b,{sharp:1,h2:.04});tt+=rr(.27,.31)}
+      return tt-t};
+    // Buchfink: schneller, abfallender Triller mit Schlussschnörkel
+    E.fink=(t,b)=>{let tt=t,f=rr(5000,5800),gap=.085;
+      for(let i=0;i<5;i++){syl(tt,[f,f*.72],.055,.04,b,{sharp:1});tt+=gap;gap*=.93}
+      f*=.75;for(let i=0;i<4;i++){syl(tt,[f*1.05,f*.8],.05,.045,b,{sharp:1});tt+=.06;f*=.96}
+      syl(tt+.04,[2600,4200,3400,2300],.24,.06,b,{h2:.05});return tt+.3-t};
+    // Rotkehlchen: hohe, perlende, unregelmäßige Töne
+    E.rotkehlchen=(t,b)=>{let tt=t;const n=6+Math.floor(R()*8);
+      for(let i=0;i<n;i++){const f=rr(2600,7400),d=rr(.04,.16),tr=R()<.25;
+        if(tr){for(let k=0;k<4;k++){syl(tt,[f,f*rr(.85,1.1)],.03,.025,b,{sharp:1});tt+=.035}}
+        else syl(tt,[f,f*rr(.8,1.25),f*rr(.85,1.15)],d,rr(.022,.04),b);
+        tt+=d*.4+rr(.02,.09)}
+      return tt-t};
+    // Spatz: "tschilp"
+    E.spatz=(t,b)=>{let tt=t;const n=2+Math.floor(R()*5);for(let i=0;i<n;i++){const f=rr(3200,3800);syl(tt,[f,f*1.35,f*1.1],rr(.07,.1),.045,b,{h2:.25,h3:.08});tt+=rr(.22,.5)}return tt-t};
+    // Ringeltaube: weiches "gu-guuu-gu, gu-gu"
+    E.taube=(t,b)=>{let tt=t;const f=rr(420,480);const ph=[[.22,1],[.48,1.04],[.22,.98],[.2,.97],[.32,.96]];
+      for(let r=0;r<2+Math.floor(R()*2);r++){ph.forEach(([d,m],i)=>{syl(tt,[f*m*.97,f*m*1.02,f*m],d,.07,b,{h2:.18,h3:.05});tt+=d+.13});tt+=.8}
+      return tt-t};
+    // Kuckuck: fallende Terz, weich, aus der Ferne
+    E.kuckuck=(t,b)=>{let tt=t;for(let i=0;i<3+Math.floor(R()*4);i++){syl(tt,[640,660,630],.2,.07,b,{h2:.12});syl(tt+.32,[530,540,515],.32,.065,b,{h2:.12});tt+=1.05}return tt-t};
+    // Teichfrosch: knarrendes "quak-quak-quak", schnell gepulst
+    E.frosch=(t,b)=>{let tt=t;const n=3+Math.floor(R()*5),pr=rr(42,62)*b.pitch,F1=rr(650,850),F2=rr(1350,1650);
+      for(let i=0;i<n;i++){const d=rr(.18,.28),len=Math.floor(d*sr),buf=ctx.createBuffer(1,len,sr),x=buf.getChannelData(0);
+        // "koax": Folge kurzer Kehlkopf-Pulse, jeder ein abklingender Klang mit zwei Formanten
+        let next=0,k=0;const rate0=pr*.9,rate1=pr*1.12;
+        for(let j=0;j<len;j++){if(j>=next){k=0;const u=j/len;next=j+Math.floor(sr/(rate0+(rate1-rate0)*u)*rr(.95,1.05))}
+          const tt2=k/sr;x[j]=(Math.sin(6.283*F1*tt2)*Math.exp(-tt2*420)+.6*Math.sin(6.283*F2*tt2)*Math.exp(-tt2*600)+.25*Math.sin(6.283*F1*.5*tt2)*Math.exp(-tt2*300));k++}
+        for(let j=0;j<len;j++){const u=j/len;x[j]*=Math.pow(Math.sin(Math.PI*Math.min(1,u*1.15)),.6)}
+        const src=ctx.createBufferSource(),g=ctx.createGain(),lp=ctx.createBiquadFilter();src.buffer=buf;
+        g.gain.value=.1*(1-b.dist*.5);lp.type="lowpass";lp.frequency.value=4000-b.dist*2200;
+        src.connect(g);g.connect(lp);lp.connect(out(b.pan,.18+b.dist*.4));src.start(tt);tt+=d+rr(.12,.22)}
+      return tt-t};
+    // Singende Vögel als "Individuen" mit eigenem Platz, Entfernung und Rhythmus
+    const SP={frosch:[1.5,5],amsel:[3,6],meise:[3,6],fink:[7,12],rotkehlchen:[3,7],spatz:[2,5],taube:[8,16],kuckuck:[10,20]};
+    function makeBirds(season){const list=season==="spring"?["meise","fink","rotkehlchen","meise","fink",R()<.6?"kuckuck":"rotkehlchen"]:["spatz","spatz","rotkehlchen","fink"];
+      return list.map(sp=>({sp,pan:rr(-.85,.85),dist:sp==="kuckuck"?rr(.55,.85):sp==="frosch"?rr(.35,.8):rr(.1,.7),pitch:rr(.94,1.06),next:rr(.2,6),bout:0}))}
+    E.birds=null; E.birdSeason=null;
+    E.birdTick=(t,season,active)=>{if(E.birdSeason!==season){E.birds=makeBirds(season);E.birdSeason=season;E.bt=t}
+      const dt=t-(E.bt||t);E.bt=t;for(const b of E.birds){b.next-=dt;if(b.next<=0){
+        if(R()>active){b.next=rr(2,5);continue}
+        const len=E[b.sp](t+R()*.2,b)||1,[a,z]=SP[b.sp];b.next=len+rr(a,z)*(b.bout++%4===3?2.2:1)}}};
+    E.cr=[{f:rr(4100,4300),p:-.6,n:0,per:rr(.7,.9)},{f:rr(4450,4650),p:.5,n:.3,per:rr(.8,1.05)},{f:rr(3850,4000),p:.1,n:.55,per:rr(.95,1.2)}];
+    E.season=null;
+    E.tick=(t,season,month,g,ducks)=>{ // plant die nächsten 0,25 s
+      const M=MIX[season]; if(!M)return;
+      E.trim.gain.setTargetAtTime(season==="spring"||season==="summer"?.75:1,t,.8);
+      const nov=season==="autumn"&&month===10; // November: deutlich weniger Wind
+      for(const k in M){const tgt=M[k]*(nov&&(k==="wind"||k==="whistle")?.3:1)*(k==="wind"||k==="leaves"||k==="whistle"?1+g*(nov?.6:1.8):1);E.beds[k].g.gain.setTargetAtTime(tgt,t,season!==E.season?1.5:.5)}
+      E.beds.wind.f.frequency.setTargetAtTime(330+g*700+Math.sin(t*.27)*90,t,.5);
+      if(M.brook)for(let k=0;k<5;k++){const tk=t+k*.05;E.beds.brook.bands.forEach(b=>{b.bq.frequency.setTargetAtTime(b.f*rr(.8,1.25),tk,.02);b.gg.gain.setTargetAtTime(rr(.1,1),tk,.02)})}
+      E.season=season; const r=R(), x=()=>rr(-.8,.8);
+      if(season==="winter"){ if(r<.55)for(let i=0;i<pk([1,1,2,3]);i++)E.crackle(t+R()*.25); if(r>.994&&r<.996)E.tit(t,x()) }
+      if(season==="spring"){ E.birdTick(t,"spring",.9) }
+      if(season==="summer"){ E.birdTick(t,"summer",.6); for(const c of E.cr){c.n-=.25;if(c.n<=0){if(R()<.8)E.cricket(t+R()*.05,c.f,c.p);c.n=c.per*rr(.9,1.1)}}
+        if(R()<.028)E.bee(t+R()*.2) }
+      if(season==="autumn"){ if(r<.01)E.tit(t,x()) }
+    };
+    // ---- Ente: nasales, abfallendes "Quaaak" (Stockente) ----
+    E.quack=(t,pan)=>{let tt=t;const n=pk([2,3,3,4]),f0=rr(240,300);
+      for(let i=0;i<n;i++){const d=rr(.17,.24)*(i===0?1.15:1),len=Math.floor(d*sr),buf=ctx.createBuffer(1,len,sr),x=buf.getChannelData(0);let ph=0;
+        for(let j=0;j<len;j++){const u=j/len,f=f0*(1-.18*u)*(1-i*.04);ph+=f/sr;const p=ph%1;
+          x[j]=(p<.35?Math.sin(Math.PI*p/.35):0)*(1+.15*Math.sin(j/sr*6.283*31))*Math.pow(Math.sin(Math.PI*Math.min(1,u*1.3)),.5)}
+        const src=ctx.createBufferSource();src.buffer=buf;const g=ctx.createGain();g.gain.value=.5;
+        [[1050,5,1],[2300,7,.7],[3200,8,.3]].forEach(([f,q,a])=>{const bp=ctx.createBiquadFilter(),ga=ctx.createGain();bp.type="bandpass";bp.frequency.value=f;bp.Q.value=q;ga.gain.value=a;src.connect(bp);bp.connect(ga);ga.connect(g)});
+        g.connect(out(pan,.25));src.start(tt);tt+=d+rr(.08,.14)}};
+    // Entenküken: hohes "piep"
+    E.peep=(t,pan)=>{for(let i=0;i<pk([2,3,4]);i++){const f=rr(3600,4200);syl(t+i*rr(.16,.24),[f*.9,f*1.12,f],.08,.022,{pan,dist:.2,pitch:1},{h2:.04})}};
+    // Weihnachtsmann: tiefes, fröhliches "Ho ho ho!" (Formant-Stimme)
+    E.hoho=(t,pan)=>{const H=[[.0,128,108],[.43,120,102],[.86,114,84]];
+      for(const [o,fa,fb] of H){const d=o===.86?.5:.34,tt=t+o,len=Math.floor((d+.08)*sr),buf=ctx.createBuffer(1,len,sr),x=buf.getChannelData(0);let ph=0;
+        for(let j=0;j<len;j++){const u=Math.min(1,j/(d*sr)),f=fa+(fb-fa)*u+Math.sin(j/sr*6.283*5.5)*1.5;ph+=f/sr;const p=ph%1;
+          const glott=p<.4?Math.sin(Math.PI*p/.4)**2:0, breath=(R()*2-1)*(j<sr*.07?.55*(1-j/(sr*.07)):.04);
+          x[j]=(glott*.9+breath)*(j<sr*.05?.3+j/(sr*.05)*.7:1)*(u>=1?Math.max(0,1-(j-d*sr)/(sr*.08)):1)}
+        const src=ctx.createBufferSource();src.buffer=buf;const g=ctx.createGain();g.gain.value=.9;
+        [[480,7,1],[820,8,.65],[2450,10,.18],[3300,10,.08]].forEach(([f,q,a])=>{const bp=ctx.createBiquadFilter(),ga=ctx.createGain();bp.type="bandpass";bp.frequency.value=f;bp.Q.value=q;ga.gain.value=a;src.connect(bp);bp.connect(ga);ga.connect(g)});
+        g.connect(out(pan,.35));src.start(tt)}};
+    // ---- Weihnachtslieder als Spieluhr (alle gemeinfrei) ----
+    const NN={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+    const mid=s=>{const m=s.match(/^([A-G])(#?)(\d)$/);return 12*(+m[3]+1)+NN[m[1]]+(m[2]?1:0)};
+    const parse=str=>str.trim().split(/\s+/).map(tok=>{const [n,b]=tok.split(":");return [n==="r"?null:mid(n),+b]});
+    E.SONGS=[ // kurze Fassungen, je ca. 8–19 Sekunden
+      {name:"Stille Nacht",beat:.27,tr:12,notes:parse("G4:3 A4:1 G4:2 E4:6 G4:3 A4:1 G4:2 E4:6 D5:4 D5:2 F5:3 D5:1 B4:2 C5:6 E5:6 C5:3 G4:1 E4:2 G4:3 F4:1 D4:2 C4:9")},
+      {name:"Jingle Bells",beat:.3,tr:12,bells:1,notes:parse("E4:1 E4:1 E4:2 E4:1 E4:1 E4:2 E4:1 G4:1 C4:1.5 D4:.5 E4:4 F4:1 F4:1 F4:1 F4:1 F4:1 E4:1 E4:1 E4:.5 E4:.5 G4:1 G4:1 F4:1 D4:1 C4:4")},
+      {name:"Morgen kommt der Weihnachtsmann",beat:.4,tr:12,notes:parse("C4:1 C4:1 G4:1 G4:1 A4:1 A4:1 G4:2 F4:1 F4:1 E4:1 E4:1 D4:1 D4:1 C4:3")},
+      {name:"We Wish You a Merry Christmas",beat:.34,tr:12,notes:parse("G4:1 C5:1 C5:.5 D5:.5 C5:.5 B4:.5 A4:1 A4:1 A4:1 D5:1 D5:.5 E5:.5 D5:.5 C5:.5 B4:1 G4:1 G4:1 E5:1 E5:.5 F5:.5 E5:.5 D5:.5 C5:1 A4:1 G4:.5 G4:.5 A4:1 D5:1 B4:1 C5:3")}];
+    function box(t,m,dur,vol){const f=440*Math.pow(2,(m-69)/12),dec=Math.min(1.8,.5+dur*1.5);
+      [[1,1],[2,.22],[3,.08],[4.2,.05]].forEach(([k,a])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=f*k;
+        g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol*a,t+.004);g.gain.setTargetAtTime(0,t+.004,dec/(k*1.2));o.connect(g);g.connect(E.songOut);o.start(t);o.stop(t+dec*3)})}
+    E.songOut=ctx.createGain(); E.songOut.gain.value=1; E.songOut.connect(out(0,.5));
+    E.playSong=(t,i)=>{const S=E.SONGS[i%E.SONGS.length];let tt=t;
+      for(const [m,b] of S.notes){const d=b*S.beat;if(m!=null){box(tt,m+S.tr,d,.04);if(b>=2)box(tt,m+S.tr-12,d,.014)}
+        if(S.bells&&b>=1&&R()<.6){[5274,3951].forEach((f,k)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="triangle";o.frequency.value=f*rr(.997,1.003);env(g,tt,.002,.006/(k+1),.25);o.connect(g);g.connect(E.songOut);o.start(tt);o.stop(tt+.4)})}
+        tt+=d}
+      return {name:S.name,len:tt-t}};
+    // ---- Klänge für Feiertage und Events ----
+    function brass(t,midi,dur,vol,pan){const f=440*Math.pow(2,(midi-69)/12),o=ctx.createOscillator(),o2=ctx.createOscillator(),lp=ctx.createBiquadFilter(),g=ctx.createGain();
+      o.type="sawtooth";o2.type="sawtooth";o.frequency.value=f;o2.frequency.value=f*1.004;lp.type="lowpass";lp.Q.value=1.2;
+      lp.frequency.setValueAtTime(f*1.2,t);lp.frequency.linearRampToValueAtTime(f*6,t+.06);lp.frequency.setTargetAtTime(f*3,t+.08,.15);
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.03);g.gain.setValueAtTime(vol*.85,t+Math.max(.05,dur-.06));g.gain.linearRampToValueAtTime(0,t+dur+.05);
+      o.connect(lp);o2.connect(lp);lp.connect(g);g.connect(out(pan||0,.3));[o,o2].forEach(x=>{x.start(t);x.stop(t+dur+.1)})}
+    function cymbal(t,vol){const s=ctx.createBufferSource();s.buffer=NB.white;const hp=ctx.createBiquadFilter();hp.type="highpass";hp.frequency.value=5000;const g=ctx.createGain();
+      g.gain.setValueAtTime(vol,t);g.gain.setTargetAtTime(0,t,.45);s.connect(hp);hp.connect(g);g.connect(out(.2,.4));s.start(t,R()*3);s.stop(t+2.5)}
+    // Fasching: Tusch!
+    E.tusch=(t)=>{const C=[[60,64,67,72],[60,64,67,72],[60,64,67,72],[65,69,72,77],[60,64,67,72]],D=[.16,.16,.16,.16,1.3];let tt=t;
+      C.forEach((ch,i)=>{ch.forEach((m,k)=>brass(tt,m,D[i],.028,k%2?.3:-.3));tt+=D[i]+.04});cymbal(tt-1.34,.12)};
+    // Tröte
+    E.troete=(t,pan)=>{const o=ctx.createOscillator(),bp=ctx.createBiquadFilter(),g=ctx.createGain();o.type="sawtooth";
+      o.frequency.setValueAtTime(330,t);o.frequency.linearRampToValueAtTime(410,t+.12);o.frequency.setValueAtTime(410,t+.5);o.frequency.linearRampToValueAtTime(300,t+.7);
+      bp.type="bandpass";bp.frequency.value=1400;bp.Q.value=1.5;env(g,t,.03,.05,.6);o.connect(bp);bp.connect(g);g.connect(out(pan,.2));o.start(t);o.stop(t+.9)};
+    // Kirchenglocken (Glocke mit typischen Teiltönen)
+    function bell(t,f,vol,pan){[[.5,.5,7],[1,1,5],[1.19,.55,4],[1.5,.35,3],[2,.4,2.5],[2.5,.15,1.6],[3,.12,1.2]].forEach(([k,a,d])=>{const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type="sine";o.frequency.value=f*k*rr(.999,1.001);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol*a,t+.004);g.gain.setTargetAtTime(0,t+.004,d/3);o.connect(g);g.connect(out(pan,.75));o.start(t);o.stop(t+d*1.6)})}
+    E.churchBells=(t,n,soft)=>{const f=[262,220,196];for(let i=0;i<n;i++)bell(t+i*1.25,f[i%3]*(soft?.9:1),soft?.03:.05,[-.4,.4,0][i%3])};
+    // kleine Glöckchen (Sternsinger)
+    E.smallBells=(t)=>{for(let i=0;i<10;i++){const f=rr(2600,3600);bell(t+i*rr(.12,.22),f,.012,rr(-.6,.6))}};
+    // Kuckucksuhr: Ticken und "Kuckuck"
+    E.cuckooClock=(t)=>{for(let i=0;i<8;i++){const tt=t+i*.5,s=ctx.createBufferSource();s.buffer=NB.white;const bp=ctx.createBiquadFilter();bp.type="bandpass";bp.frequency.value=i%2?2400:3000;bp.Q.value=6;const g=ctx.createGain();
+        g.gain.setValueAtTime(.12,tt);g.gain.setTargetAtTime(0,tt,.006);s.connect(bp);bp.connect(g);g.connect(out(0,.1));s.start(tt,R()*3);s.stop(tt+.05)}
+      for(let i=0;i<3;i++){const tt=t+4.2+i*.9;tone1(tt,880,870,.18,.04,0,.3,"triangle");tone1(tt+.25,698,690,.24,.04,0,.3,"triangle")}};
+    // Turmuhr: Viertelstunden-Melodie (Westminster) und Stundenschläge der großen Glocke
+    function towerBell(t,f,vol,pan,long){[[.5,.6,9],[1,1,7],[1.19,.5,5],[1.5,.32,4],[2,.42,3.2],[2.52,.16,2],[3,.13,1.5],[4.07,.06,1]].forEach(([k,a,d])=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=f*k*rr(.9993,1.0007);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol*a,t+.006);
+      g.gain.setTargetAtTime(0,t+.006,(long?d:d*.6)/3);o.connect(g);g.connect(out(pan,.85));o.start(t);o.stop(t+d*1.8)})}
+    E.westminster=(t)=>{[415.3,370,329.6,246.9].forEach((f,i)=>towerBell(t+i*.75,f,.035,(i-1.5)*.15));return 3.6};
+    E.strike=(t,n)=>{for(let i=0;i<n;i++)towerBell(t+i*2.1,130.8,.07,0,true);return n*2.1};
+    // Zeitumstellung: Sommerzeit 2 Schläge → Zeiger vor → 3 Schläge; Winterzeit 3 → zurück → 2
+    E.dstClock=(t,summer)=>{let tt=t+E.westminster(t);tt+=E.strike(tt,summer?2:3)+.6;E.ratchet(tt,summer);tt+=2.4;tt+=E.strike(tt,summer?3:2);return tt-t};
+    // Uhrzeiger drehen: schnelles Ratschen, vor (höher werdend) oder zurück (tiefer werdend)
+    E.ratchet=(t,fwd)=>{let tt=t;for(let i=0;i<34;i++){const s=ctx.createBufferSource();s.buffer=NB.white;const bp=ctx.createBiquadFilter();bp.type="bandpass";
+        bp.frequency.value=fwd?1800+i*45:3300-i*45;bp.Q.value=8;const g=ctx.createGain();g.gain.setValueAtTime(.14,tt);g.gain.setTargetAtTime(0,tt,.004);
+        s.connect(bp);bp.connect(g);g.connect(out(0,.15));s.start(tt,R()*3);s.stop(tt+.03);tt+=fwd?.045:.06}
+      bell(tt+.15,fwd?1046:784,.03,0)};
+    // Blasmusik (Maibaum, Bayern): Umpf-ta-ta
+    E.oompah=(t)=>{const prog=[[53,[65,69,72]],[48,[64,67,70]],[48,[64,67,70]],[53,[65,69,72]]];let tt=t;const b=.32;
+      prog.forEach(([bass,ch])=>{for(let k=0;k<2;k++){brass(tt,bass-12,.2,.05,-.2);ch.forEach(m=>brass(tt+b,m,.13,.016,.3));ch.forEach(m=>brass(tt+2*b,m,.13,.016,.3));tt+=3*b}});
+      [77,76,77,79,81,79,77].forEach((m,i)=>brass(t+i*.48+.1,m,.4,.022,0))};
+    // Fanfare (Tag der Deutschen Einheit)
+    E.fanfare=(t)=>{[[67,.18],[72,.18],[76,.18],[79,.6],[76,.18],[79,1]].reduce((tt,[m,d])=>{brass(tt,m,d,.04,0);brass(tt,m-12,d,.02,0);return tt+d+.04},t);cymbal(t+1.6,.08)};
+    // Sektkorken und Anstoßen
+    E.pop=(t)=>{const s=ctx.createBufferSource();s.buffer=NB.white;const bp=ctx.createBiquadFilter();bp.type="bandpass";bp.frequency.value=900;bp.Q.value=2;const g=ctx.createGain();
+      g.gain.setValueAtTime(.35,t);g.gain.setTargetAtTime(0,t,.015);s.connect(bp);bp.connect(g);g.connect(out(-.2,.3));s.start(t,R()*3);s.stop(t+.1);tone1(t,180,90,.12,.08,-.2,.2)};
+    E.clink=(t)=>{[[3150,1],[4890,.5],[7020,.3]].forEach(([f,a])=>bell(t,f/1,.012*a,.2))};
+    // Spieluhr-Arpeggio (Muttertag)
+    E.arp=(t)=>{[72,76,79,84,79,76,72,77,81,84,81,77,72].forEach((m,i)=>box(t+i*.22,m,.3,.035))};
+    // ---- Weihnachtsmann & Nikolaus ----
+    // Schellen: viele kleine Metallkugeln; jede klingt mit hohen, unharmonischen Teiltönen und klingt schnell ab
+    function jingleHit(t,vol,pan){const n=5+Math.floor(R()*5);for(let i=0;i<n;i++){const tt=t+R()*.03,base=rr(2300,3300);
+      [[1,1,.11],[1.72,.6,.08],[2.41,.4,.06],[3.17,.22,.045]].forEach(([k,a,d])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=base*k;
+        g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(vol*a/n*rr(.5,1),tt+.0015);g.gain.exponentialRampToValueAtTime(.0001,tt+d*rr(.8,1.4));o.connect(g);g.connect(out(pan,.25));o.start(tt);o.stop(tt+d*1.6)})}}
+    // Schlittengeläut, das vorbeizieht (Schellen im Galopp-Rhythmus)
+    E.sleigh=(t,dur,p0,p1)=>{let tt=t;const step=.21;for(let i=0;tt<t+dur;i++,tt+=step*(i%2?.85:1.15)){const u=(tt-t)/dur,env=Math.sin(Math.PI*Math.min(1,u))**.7;
+      jingleHit(tt,(i%4===0?.42:.3)*env,p0+(p1-p0)*u)}};
+    // Zauber-Glitzern: schnelle Glockenspiel-Tonleiter nach oben
+    E.sparkle=(t,pan)=>{[72,76,79,84,88,91,96,100].forEach((m,i)=>{const f=440*Math.pow(2,(m-69)/12);[[1,1],[2.76,.25],[5.4,.08]].forEach(([k,a])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=f*k;
+      g.gain.setValueAtTime(0,t+i*.055);g.gain.linearRampToValueAtTime(.015*a,t+i*.055+.003);g.gain.exponentialRampToValueAtTime(.0001,t+i*.055+.9/k);o.connect(g);g.connect(out(pan,.6));o.start(t+i*.055);o.stop(t+i*.055+1)})})};
+    // Handglocke des Nikolaus: Klöppel schlägt hin und her
+    E.handbell=(t,n,pan)=>{for(let i=0;i<n;i++){const tt=t+i*.32+rr(-.02,.02),f=rr(1240,1270);
+      [[1,1,1.4],[2.32,.45,.8],[3.9,.2,.5],[5.3,.08,.3]].forEach(([k,a,d])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=f*k;
+        g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(.05*a*(i%2?.8:1),tt+.003);g.gain.setTargetAtTime(0,tt+.003,d/3);o.connect(g);g.connect(out(pan,.45));o.start(tt);o.stop(tt+d*1.8)})}};
+    // Klopfen mit dem Bischofsstab an die Tür: dumpfer Holzklang
+    E.knock=(t,n)=>{for(let i=0;i<n;i++){const tt=t+i*.42;[[180,1,.09],[410,.5,.05],[920,.25,.03]].forEach(([f,a,d])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";
+        o.frequency.setValueAtTime(f*1.25,tt);o.frequency.exponentialRampToValueAtTime(f,tt+.02);g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(.13*a,tt+.002);g.gain.exponentialRampToValueAtTime(.0001,tt+d*2);
+        o.connect(g);g.connect(out(-.15,.3));o.start(tt);o.stop(tt+.3)})}};
+    // Schritte im Schnee
+    E.steps=(t,n,pan)=>{for(let i=0;i<n;i++){const tt=t+i*.55,s=ctx.createBufferSource();s.buffer=NB.pink;const bp=ctx.createBiquadFilter();bp.type="bandpass";bp.frequency.value=rr(900,1300);bp.Q.value=.8;
+        const g=ctx.createGain();g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(.12,tt+.03);g.gain.exponentialRampToValueAtTime(.0001,tt+.22);s.connect(bp);bp.connect(g);g.connect(out(pan,.15));s.start(tt,R()*3);s.stop(tt+.3)}};
+    // Hilfen für kurze Melodien und sanfte Glöckchen (für Weihnachtsmann/Nikolaus-Varianten)
+    E.melody=(t,str,beat,tr,vol)=>{let tt=t;for(const [m,b] of parse(str)){if(m!=null)box(tt,m+(tr||0),b*beat,vol||.045);tt+=b*beat}return tt-t};
+    E.softBells=(t,dur,pan)=>{for(let tt=t,i=0;tt<t+dur;tt+=.3,i++){[5274,3951].forEach((f,k)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="triangle";o.frequency.value=f*rr(.997,1.003);
+      env(g,tt,.002,(i%2?.006:.009)/(k+1),.3);o.connect(g);g.connect(out(pan||0,.5));o.start(tt);o.stop(tt+.45)})}};
+    E.harp=(t,up)=>{const sc=[60,62,64,67,69,72,74,76,79,81,84];(up?sc:sc.slice().reverse()).forEach((m,i)=>box(t+i*.07,m,.6,.03))};
+    E.towerBell=(t,f,vol)=>towerBell(t,f,vol,0,true);
+    E.smallChurch=(t,n)=>{for(let i=0;i<n;i++)bell(t+i*1.1,392,.045,0)};
+    return E;
+  }
+  const SND={E:null,on:store.get("sp_sound",false),vol:store.get("sp_vol",.6),timer:null};
+  function sndInit(){ if(SND.E)return SND.E; const AC=window.AudioContext||window.webkitAudioContext; if(!AC)return null; SND.E=makeSoundEngine(new AC()); return SND.E }
+  function sndCritter(kind,x,c){ const E=SND.E; if(!SND.on||!E||E.ctx.state!=="running")return; const t=E.ctx.currentTime+.03, pan=Math.max(-.9,Math.min(.9,(x/W)*2-1));
+    if(kind==="quack"){E.quack(t,pan); if(Math.random()<.5)E.peep(t+.9,pan)}
+    if(kind==="sleigh")E.melody(t,"E4:1 E4:1 E4:2 E4:1 E4:1 E4:2 E4:1 G4:1 C4:1.5 D4:.5 E4:4",.3,12);      // Spieluhr: Jingle Bells
+    if(kind==="nikolaus")E.melody(t,"C4:1 C4:1 G4:1 G4:1 A4:1 A4:1 G4:2 F4:1 F4:1 E4:1 E4:1 D4:1 D4:1 C4:3",.4,12); // Spieluhr: Morgen kommt der Weihnachtsmann
+    }
+  // Feiertage und Events: Klang nur am echten Tag oder wenn du den Tag antippst
+  function eventKey(n){const o=fromDn(n),h=holiday(n),sp=special(n);
+    if(o.m===11&&o.d===31)return "silvester"; if(o.m===0&&o.d===1)return "neujahr";
+    if(o.m===11&&o.d===6)return "nikolaus"; if(o.m===11&&o.d>=20)return "xmas";
+    if(["Faschingsbeginn","Weiberfastnacht","Rosenmontag","Faschingsdienstag"].includes(sp))return "fasching";
+    if(sp==="Ostersonntag"||h==="Ostermontag")return "ostern";
+    if(sp==="Muttertag")return "muttertag";
+    if(h==="Tag der Arbeit")return "maibaum"; if(h==="Tag der Deutschen Einheit")return "einheit";
+    if(h==="Heilige Drei Könige")return "sternsinger"; if(h==="Allerheiligen")return "stille";
+    if(h==="Christi Himmelfahrt"||h==="Pfingstmontag"||h==="Fronleichnam"||h==="Mariä Himmelfahrt")return "glocken";
+    if(dst(n))return "uhr";
+    return null}
+  const XM={next:0,i:Math.floor(Math.random()*4)};
+  function playEventSound(k,n){ if(!SND.on||!k)return; if(!SND.E||SND.E.ctx.state!=="running"){const p=sndStart();if(p)p.then(()=>{if(SND.E&&SND.E.ctx.state==="running")playEventSound(k,n)});return}
+    const E=SND.E; const t=E.ctx.currentTime+.08,o=fromDn(n);
+    if(k==="xmas"){ if(o.d>=24&&o.d<=26){E.churchBells(t,3);const r=E.playSong(t+3.4,XM.i++);toast("🔔 ♪ "+r.name);XM.next=E.ctx.currentTime+3.4+r.len+rnd(60,120)}
+      else{const r=E.playSong(t,XM.i++);toast("♪ "+r.name);XM.next=E.ctx.currentTime+r.len+rnd(60,120)} }
+    if(k==="nikolaus")E.melody(t,"C4:1 C4:1 G4:1 G4:1 A4:1 A4:1 G4:2 F4:1 F4:1 E4:1 E4:1 D4:1 D4:1 C4:3",.4,12);
+    if(k==="fasching"){E.tusch(t);E.troete(t+2.4,-.4);E.troete(t+3.1,.5)}
+    if(k==="ostern"&&dst(n)){E.dstClock(t,dst(n)==="Sommerzeit");E.fink(t+17,{pan:.5,dist:.3,pitch:1});E.meise(t+19,{pan:-.5,dist:.3,pitch:1});toast("🕑 Turmuhr: Zeitumstellung")}
+    else if(k==="ostern"){E.churchBells(t,4);E.fink(t+1,{pan:.5,dist:.3,pitch:1});E.meise&&E.meise(t+3,{pan:-.5,dist:.3,pitch:1})}
+    if(k==="glocken")E.churchBells(t,4);
+    if(k==="stille")E.churchBells(t,2,true);
+    if(k==="uhr"){E.dstClock(t,dst(n)==="Sommerzeit");toast("🕑 Turmuhr: Zeitumstellung")}
+    else if(dst(n)&&k!=="ostern"){E.dstClock(t+6,dst(n)==="Sommerzeit")}
+    if(k==="muttertag"){E.arp(t);E.rotkehlchen(t+1.5,{pan:.4,dist:.3,pitch:1})}
+    if(k==="maibaum"){E.oompah(t);E.clink(t+3.6)}
+    if(k==="einheit")E.fanfare(t)}
+  function eventFx(n){ // Bild und Ton, wenn du einen Tag antippst
+    const k=eventKey(n); if(!k)return;
+    if(animOn&&!reduceMotion){
+      if(k==="silvester"||k==="neujahr")critters.push({kind:"fireworks",dir:1,x:0,vx:0,t:0,dur:rnd(300,420),rockets:[],sparks:[]});
+      if(k==="fasching")critters.push({kind:"confetti",dir:1,x:0,vx:0,t:0,bits:[]})}
+    playEventSound(k,n)}
+  // heute ein Event? Einmal abspielen, sobald der Sound läuft. Weihnachtslieder vom 20. bis 31.12. regelmäßig.
+  let todayPlayed=false;
+  function songTick(){ const E=SND.E; if(!SND.on||!E||E.ctx.state!=="running")return; const now=E.ctx.currentTime;
+    const k=eventKey(TODAY);
+    if(!todayPlayed){todayPlayed=true;XM.next=now+rnd(60,120);if(k)setTimeout(()=>eventFx(TODAY),1200);return}
+    const o=fromDn(TODAY); if(o.m===11&&o.d>=20&&now>XM.next){const r=E.playSong(now+.1,XM.i++);toast("♪ "+r.name);XM.next=now+r.len+rnd(60,120)} }
+  function sndThunder(far){ const E=SND.E; if(!SND.on||!E||E.ctx.state!=="running")return; E.thunder(E.ctx.currentTime+.4+far*2.2,far) }
+  function sndBoom(){ if(SND.on&&SND.E&&SND.E.ctx.state==="running")SND.E.boom(SND.E.ctx.currentTime+.02) }
+  function sndTick(){ const E=SND.E; if(!E||E.ctx.state!=="running")return; songTick();
+    E.tick(E.ctx.currentTime+.05,season,curMonth,Math.min(1,Math.abs(gust)/3),critters.some(c=>c.kind==="ducks")) }
+  function sndStart(){ const E=sndInit(); if(!E){toast("Dein Browser unterstützt keinen Sound.");return}
+    return E.ctx.resume().then(()=>{E.master.gain.setTargetAtTime(SND.vol*2.2,E.ctx.currentTime,.25);if(!SND.timer)SND.timer=setInterval(sndTick,250)}).catch(()=>{});
+  }
+  function sndStop(){ if(!SND.E)return; SND.E.master.gain.setTargetAtTime(0,SND.E.ctx.currentTime,.3); setTimeout(()=>{if(!SND.on){SND.E.ctx.suspend();clearInterval(SND.timer);SND.timer=null}},900) }
+  function setSound(on){SND.on=on;store.set("sp_sound",on);on?sndStart():sndStop();renderSndBtn()}
+  function renderSndBtn(){const b=document.getElementById("sndBtn");if(!b)return;b.setAttribute("aria-pressed",SND.on?"true":"false");b.setAttribute("aria-label",SND.on?"Sound aus":"Sound an");
+    b.innerHTML=SND.on?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>'
+                      :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>'}
+  const SND_NAME={winter:"Winterwind und Kaminfeuer",spring:"Vogelkonzert",summer:"Grillen, Bienen, Frösche und Vögel",autumn:"Herbstwind"};
+  document.getElementById("sndBtn").onclick=e=>{e.stopPropagation();setSound(!SND.on);toast(SND.on?"Sound an: "+SND_NAME[season]:"Sound aus")};
+  renderSndBtn();
+  document.getElementById("dstBar").onclick=e=>{const g=+e.currentTarget.dataset.go;if(g){jumpTo(g);const E=SND.E;if(SND.on&&E&&E.ctx.state==="running"){const t=E.ctx.currentTime+.1;E.dstClock(t,dst(g)==="Sommerzeit")}}};
+  // Sound war an: beim ersten Antippen wieder starten (Browser erlauben Ton erst nach einer Berührung)
+  if(SND.on){const EVS=["pointerup","touchend","click","keydown"];
+    const kick=()=>{if(!SND.on)return done();const p=sndStart();if(p)p.then(()=>{if(SND.E&&SND.E.ctx.state==="running")done()})};
+    const done=()=>EVS.forEach(e=>removeEventListener(e,kick,true));
+    EVS.forEach(e=>addEventListener(e,kick,{capture:true,passive:true}));
+    setTimeout(()=>{if(SND.on&&!(SND.E&&SND.E.ctx.state==="running"))toast("🔊 Einmal auf den Bildschirm tippen, dann startet der Sound")},1500)}
+  document.addEventListener("visibilitychange",()=>{if(!SND.E)return;if(document.hidden)SND.E.ctx.suspend();else if(SND.on)SND.E.ctx.resume()});
+
+  // ---------- Eigene Schichtmodelle ----------
+  // models=[{id,name,from:"YYYY-MM-DD",to:"YYYY-MM-DD",blocks:[["S",6],["X",1],...]}]; das zuletzt angelegte gewinnt bei Überschneidung
+  const MCOL={F:"var(--frueh)",S:"var(--spaet)",N:"var(--nacht)",X:"var(--frei)"}, MINK={F:"var(--frueh-ink)",S:"var(--spaet-ink)",N:"var(--nacht-ink)",X:"var(--fg)"};
+  const MNAME={F:"Früh",S:"Spät",N:"Nacht",X:"Frei"};
+  function modelsSheet(){
+    const list=models.map((m,i)=>{const len=m.blocks.reduce((s,b)=>s+b[1],0);
+      return '<button class="btn" data-mi="'+i+'"><span><b>'+esc(m.name)+'</b><br><small>'+m.from.split("-").reverse().join(".")+' – '+m.to.split("-").reverse().join(".")+' · Zyklus '+len+' Tage</small></span><span class="mchips">'+m.blocks.map(b=>'<i style="background:'+MCOL[b[0]]+';flex:'+b[1]+'"></i>').join("")+'</span></button>'}).join("");
+    openSheet('<h3>Schichtmodelle</h3><p>Überall, wo kein eigenes Modell gilt, rechnet die App mit dem <b>17,5-Modell</b>. Für einen Zeitraum kannst du ein anderes Modell festlegen.</p>'+
+      (list||'<p class="smeta">Noch kein eigenes Schichtmodell.</p>')+
+      '<button class="btn primary" data-a="mnew">+ Neues Schichtmodell</button><button class="btn" data-a="close">Schließen</button>');
+    sheet.onclick=ev=>{const mi=ev.target.closest("[data-mi]"),a=ev.target.closest("[data-a]")?.dataset.a;
+      if(mi)return modelEditor(+mi.dataset.mi); if(a==="mnew")return modelEditor(-1); if(a==="close")closeSheet()};
+  }
+  function modelEditor(idx){
+    const o=fromDn(TODAY);
+    const st=idx>=0?JSON.parse(JSON.stringify(models[idx])):{id:Date.now().toString(36),name:"Mein Schichtmodell "+(models.length+1),from:iso(TODAY),to:o.y+"-12-31",blocks:[["S",6],["X",1],["F",6],["X",2]]};
+    let sure=false;
+    const read=()=>{const g=id=>document.getElementById(id);if(!g("mName"))return;st.name=g("mName").value.trim()||"Schichtmodell";st.from=g("mFrom").value||st.from;st.to=g("mTo").value||st.to};
+    function render(){
+      const pat=[];st.blocks.forEach(([t,c])=>{for(let i=0;i<c;i++)pat.push(t)});const len=pat.length;
+      const f=st.from?parseIso(st.from):TODAY, lead=(fromDn(f).w+6)%7;
+      let prev='<span class="h">Mo</span><span class="h">Di</span><span class="h">Mi</span><span class="h">Do</span><span class="h">Fr</span><span class="h">Sa</span><span class="h">So</span>';
+      for(let i=0;i<lead;i++)prev+='<span></span>';
+      for(let i=0;i<35-lead;i++){const t=len?pat[i%len]:"X",d=fromDn(f+i);prev+='<span class="mp" style="background:'+MCOL[t]+';color:'+MINK[t]+'"><b>'+d.d+'.</b>'+(t==="X"?"":t)+'</span>'}
+      sheet.innerHTML='<div class="grab"></div><h3>'+(idx>=0?'Schichtmodell ändern':'Neues Schichtmodell')+'</h3>'+
+        '<label class="f" for="mName">Name<input type="text" id="mName" class="inp" maxlength="40" value="'+esc(st.name)+'"></label>'+
+        '<div class="row2"><label class="f" for="mFrom">Gilt von<input type="date" id="mFrom" class="inp" value="'+st.from+'"></label><label class="f" for="mTo">bis<input type="date" id="mTo" class="inp" value="'+st.to+'"></label></div>'+
+        '<h4>Ablauf (wiederholt sich ab „Gilt von“)</h4>'+
+        st.blocks.map(([t,c],i)=>'<div class="mrow"><div class="mseg">'+["F","S","N","X"].map(k=>'<button type="button" class="mt'+(k===t?' on':'')+'" style="--c:'+MCOL[k]+';--ci:'+MINK[k]+'" data-bt="'+i+':'+k+'">'+MNAME[k]+'</button>').join("")+'</div>'+
+          '<div class="mstep"><button type="button" data-bc="'+i+':-1" aria-label="Weniger">−</button><b>'+c+'</b><button type="button" data-bc="'+i+':1" aria-label="Mehr">+</button></div>'+
+          '<button type="button" class="mdel" data-bd="'+i+'" aria-label="Block entfernen">✕</button></div>').join("")+
+        '<button class="btn" data-a="badd">+ Block hinzufügen</button>'+
+        '<p class="smeta">Zyklus: <b>'+len+' Tage</b> · '+["F","S","N"].map(k=>MNAME[k]+' '+pat.filter(x=>x===k).length).join(" · ")+' · Frei '+pat.filter(x=>x==="X").length+'</p>'+
+        '<h4>Vorschau der ersten Wochen</h4><div class="pk mprev">'+prev+'</div>'+
+        '<div class="err" id="mErr"></div>'+
+        '<button class="btn primary" data-a="msave">Speichern</button>'+
+        (idx>=0?'<button class="btn danger" data-a="mdel">'+(sure?'Wirklich löschen? Nochmal tippen':'Schichtmodell löschen')+'</button>':'')+
+        '<button class="btn" data-a="mback">Zurück</button>';
+    }
+    sheet.hidden=false;scrim.hidden=false;render();
+    sheet.onclick=ev=>{const T=ev.target;read();
+      const bt=T.closest("[data-bt]"),bc=T.closest("[data-bc]"),bd=T.closest("[data-bd]"),a=T.closest("[data-a]")?.dataset.a;
+      if(bt){const [i,k]=bt.dataset.bt.split(":");st.blocks[+i][0]=k;return render()}
+      if(bc){const [i,d]=bc.dataset.bc.split(":").map(Number);st.blocks[i][1]=Math.max(1,Math.min(60,st.blocks[i][1]+d));return render()}
+      if(bd){if(st.blocks.length>1)st.blocks.splice(+bd.dataset.bd,1);return render()}
+      if(a==="badd"){const last=st.blocks[st.blocks.length-1];st.blocks.push([last&&last[0]==="X"?"F":"X",last&&last[0]==="X"?6:2]);return render()}
+      if(a==="mback")return modelsSheet();
+      if(a==="mdel"){if(!sure){sure=true;return render()}models.splice(idx,1);saveModels();repaintAll();toast("Schichtmodell gelöscht");return modelsSheet()}
+      if(a==="msave"){const er=document.getElementById("mErr");
+        if(!st.from||!st.to||parseIso(st.to)<parseIso(st.from)){er.textContent="Bitte ein gültiges Von- und Bis-Datum wählen. „Bis“ darf nicht vor „Von“ liegen.";return}
+        if(!st.blocks.some(b=>b[0]!=="X")){er.textContent="Bitte mindestens einen Block mit Früh, Spät oder Nacht anlegen.";return}
+        const clash=models.filter((m,i)=>i!==idx&&!(parseIso(m.to)<parseIso(st.from)||parseIso(m.from)>parseIso(st.to)));
+        if(idx>=0)models[idx]=st; else models.push(st); saveModels(); repaintAll();
+        toast(clash.length?"Gespeichert. Überschneidet sich mit „"+clash[0].name+"“, das neue gilt dort.":"Schichtmodell gespeichert");
+        return modelsSheet()}
+    };
+    sheet.oninput=read;
+  }
+
+  // ---------- Anleitung: alle Funktionen mit Bildern ----------
+  const HELP=[
+    ["kalender","Der Kalender","kalender",
+     "Jeder Tag zeigt Wochentag, Datum und deine Schicht: <b>F</b> Früh (gelb), <b>S</b> Spät (orange), <b>N</b> Nacht (blau), grau = frei. Samstag und Sonntag liegen auf einem farbigen Band. Wische nach oben und unten, der Kalender lädt endlos weiter. Der Knopf <b>Heute</b> unten rechts bringt dich zurück zum aktuellen Tag."],
+    ["kopf","Oben: Heute und Zähler","kopf",
+     "Die Heute-Karte zeigt deine heutige Schicht und wie viele Schichten im Block noch kommen. Darunter die Zähler für das Jahr, durch das du gerade scrollst: <b>U</b> und <b>TZ</b> übriger Urlaub, <b>AG</b> Ausgleichstage, <b>ÜS</b> Überstunden-Saldo, <b>K</b> Krankheitstage, <b>SU</b> Sonderurlaub, <b>FT</b> Feiertage, die auf einen Schichttag fallen. Daneben der Lautsprecher-Knopf und das Menü ☰."],
+    ["tag","Tag antippen","tag",
+     "Tippe auf einen Tag, um <b>Urlaub, TZ-Urlaub, Ausgleich, Krank oder Sonderurlaub</b> einzutragen. Danach wählst du „Nur dieser eine Tag“ oder „Mehrere Tage“. Bei einem eingetragenen Tag kannst du die Art ändern oder den Eintrag löschen. Freie Tage und Feiertage kosten keinen Urlaub."],
+    ["zeitraum","Zeitraum wählen","zeitraum",
+     "Bei mehreren Tagen öffnet sich ein kleiner Kalender. Der angetippte Tag ist der Anfang, tippe auf den letzten Tag. Darunter steht genau, wie viele Tage abgezogen werden und wie viel danach übrig ist. Erst „eintragen“ speichert."],
+    ["notiz","Notizen","notiz",
+     "Mit <b>📝 Nur Notiz hinzufügen</b> schreibst du zu jedem Tag eine Notiz, auch ohne Urlaub. Beim Eintragen von Urlaub & Co. fragt die App ebenfalls nach einer Notiz. Tage mit Notiz haben unten links eine dunkle Ecke."],
+    ["kalendereintrag","In den Handy-Kalender","kalendereintrag",
+     "Nach dem Speichern einer Notiz kannst du sie mit <b>📅 In Google Kalender eintragen</b> übernehmen. Der Google Kalender öffnet sich mit dem fertigen Termin, du tippst nur noch auf Speichern."],
+    ["ueberstunden","Überstunden","ueberstunden",
+     "Tag antippen → <b>⏱ Überstunden eintragen</b>. Gib Von, Bis und Pause ein, die Stunden werden automatisch berechnet, auch über Mitternacht. Tage mit Überstunden haben oben einen türkisen Balken. Den Saldo siehst du oben bei <b>ÜS</b>."],
+    ["feiertage","Feiertage und besondere Tage","feiertage",
+     "Alle Feiertage in Bayern sowie Heiligabend und Silvester sind <b>rot und frei</b>, mit eigenem Symbol. Unter jedem Monat stehen die Feiertage und besonderen Tage wie Nikolaus oder Muttertag. 🕑 markiert die Zeitumstellung, 14 Tage vorher erscheint oben ein Hinweis."],
+    ["menue","Das Menü ☰","menue",
+     "Über ☰ oben rechts erreichst du alle Seiten: Statistik, Meine Einträge, Notizen, Teamleiter, Jahresübersicht, Schichtmodelle, Einstellungen, Sicherung und diese Anleitung."],
+    ["statistik","Statistik","statistik",
+     "Alle Zähler eines Jahres auf einen Blick, dazu deine Überstunden pro Monat als Balken. Mit ‹ › wechselst du das Jahr."],
+    ["statistik2","Jahreskalender und Speichern","statistik2",
+     "Weiter unten: der kompakte Jahreskalender, alle Einträge nach Art und die Speicher-Knöpfe für <b>PDF</b>, <b>Excel-Tabelle</b> und <b>Sicherung</b>."],
+    ["eintraege","Meine Einträge","eintraege",
+     "Hier steht alles, was du eingetragen hast. Oben filterst du nach Art. Antippen springt zum Tag, <b>✎</b> ändert, <b>🗑</b> löscht (zweimal tippen)."],
+    ["notizen","Notizen-Übersicht","notizen",
+     "Alle Notizen mit Datum, getrennt in anstehend und vergangen. Antippen springt zum Tag."],
+    ["jahr","Jahresübersicht und Drucken","jahr",
+     "Das ganze Jahr auf einer A4-Seite, nur mit Schichten und Feiertagen. Mit <b>📄 Als PDF speichern und drucken</b> speicherst du die Seite. Das PDF öffnest du auf dem Handy und druckst es über „Drucken“ oder „Teilen → Drucken“."],
+    ["modelle","Eigene Schichtmodelle","modelle",
+     "Für einen Zeitraum kannst du ein anderes Schichtmodell festlegen: Name, Gilt von, bis, dann den Ablauf aus Blöcken bauen (Früh, Spät, Nacht oder Frei, jeweils mit Anzahl Tage). Die Vorschau zeigt die ersten Wochen. Außerhalb gilt das 17,5-Modell."],
+    ["teamleiter","Teamleiter","teamleiter",
+     "Speichere die Nummern deiner Teamleiter. <b>Anrufen</b> öffnet die Telefon-App, <b>Nummer kopieren</b> legt sie in die Zwischenablage."],
+    ["einstellungen","Einstellungen","einstellungen",
+     "Animation und Sound an- und ausschalten, Lautstärke, Urlaubsanspruch, Stunden pro Ausgleichstag und Überstunden-Übertrag, Schichtmodelle und der Start deines 17,5-Rhythmus."],
+    ["farben","Farben ändern","farben",
+     "Tippe auf ein Farbfeld, um die Farbe für Früh, Spät, Nacht, Urlaub, TZ, Ausgleich, Krank, Sonderurlaub, Überstunden, Feiertage oder das Wochenend-Band zu ändern. „Farben zurücksetzen“ stellt alles auf Standard."],
+    ["sicherung","Sicherung","sicherung",
+     "Deine Einträge liegen nur auf diesem Handy. Speichere ab und zu eine <b>Sicherung</b>. Auf einem neuen Handy spielst du sie mit „Sicherung laden“ wieder ein."],
+    ["sound","Animation und Sound",null,
+     "Der Hintergrund wechselt mit der Jahreszeit: Schnee, Blüten, Sonne, Laub und im Herbst ab und zu ein Gewitter. Figuren wie Enten, Osterhase, Weihnachtsmann oder Laternen passen zum Monat. Antippen lässt kleine Wirbel aufsteigen. Mit dem <b>Lautsprecher-Knopf</b> schaltest du Naturgeräusche ein. An Feiertagen gibt es eigene Klänge, wenn du den Tag antippst oder der Tag heute ist. Vom 20. bis 31.12. laufen Weihnachtslieder, an Silvester startet ein Feuerwerk, wenn der 31.12. in der Bildschirmmitte steht."],
+    ["impressum","Impressum",null,"Unter ☰ Menü → Impressum steht, wer die App erdacht und gebaut hat, und wie mit deinen Daten umgegangen wird."],
+    ["kachel","Als Kachel aufs Handy und teilen",null,
+     "Öffne den Schichtplan im Browser (Android: ⋮ → „Zum Startbildschirm hinzufügen“, iPhone: Teilen → „Zum Home-Bildschirm“). Deine Kollegen bekommen den Link per WhatsApp. Jeder speichert seine eigenen Einträge, und unter Einstellungen kann jeder seinen Rhythmus einstellen."]];
+  const hv=document.getElementById("helpView");
+  function openHelp(){
+    hv.innerHTML='<div class="yvbar"><strong class="st" style="text-align:left">Anleitung</strong><button type="button" class="iconbtn" data-h="x">Schließen</button></div>'+
+      '<div class="sbody"><p class="smeta">Alle Funktionen der App, mit Beispielbildern. Tippe auf ein Thema, um direkt hinzuspringen.</p>'+
+      '<div class="chips">'+HELP.map(([id,t])=>'<button type="button" class="chipf" data-hj="'+id+'">'+t+'</button>').join("")+'</div>'+
+      HELP.map(([id,t,img,txt],i)=>'<section class="hsec" id="h_'+id+'"><h3 class="sh"><span class="hn">'+(i+1)+'</span>'+t+'</h3><p class="htxt">'+txt+'</p>'+
+        (img?'<img class="himg" src="help/'+img+'.jpg" alt="Beispielbild: '+t+'" loading="lazy" width="280">':'')+'</section>').join("")+
+      '<p class="smeta">Die Bilder zeigen Beispieldaten.</p></div>';
+    openOverlay(hv);
+    hv.onclick=ev=>{const c=ev.target.closest("[data-h]"),j=ev.target.closest("[data-hj]");
+      if(c){closeOverlay(hv);return}
+      if(j){const el=document.getElementById("h_"+j.dataset.hj);if(el)hv.scrollTo({top:el.offsetTop-10,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})}};
+  }
+
+  // ---------- Impressum ----------
+  function openImpressum(){
+    openSheet('<h3>Impressum</h3>'+
+      '<div class="impr"><p class="impapp">📅 <b>Schichtplan 17,5</b><br><span>Schichtkalender für das 17,5-Schichtmodell in Bayern</span></p>'+
+      '<h4>Idee und Konzept</h4><p><b>Hans-Jürgen Schlichting</b></p>'+
+      '<h4>Umsetzung</h4><p>Programmiert, gestaltet und vertont von <b>Claude</b>, dem KI-Assistenten von Anthropic, nach der Idee und den Vorgaben von Hans-Jürgen Schlichting.</p>'+
+      '<h4>Hinweise</h4><p>Schichten, Feiertage (Bayern), Zeitumstellung und Ostertermine werden automatisch berechnet. Alle Angaben ohne Gewähr. Maßgeblich ist immer der offizielle Schichtplan deines Arbeitgebers.</p>'+
+      '<h4>Datenschutz</h4><p>Deine Einträge, Notizen, Überstunden und Teamleiter-Nummern werden <b>nur auf deinem Gerät</b> gespeichert und nicht übertragen. Schriftarten werden von Google Fonts geladen, die PDF-Erstellung von cdnjs. „In Google Kalender eintragen“ öffnet Google nur, wenn du es antippst.</p>'+
+      '<h4>Bilder, Klänge, Musik</h4><p>Animationen und Klänge werden in der App selbst erzeugt. Die Weihnachtslieder sind gemeinfrei. Symbole sind die Emojis deines Geräts.</p>'+
+      '<p class="smeta">© '+fromDn(TODAY).y+' Hans-Jürgen Schlichting</p></div>'+
+      '<button class="btn" data-a="close">Schließen</button>');
+    sheet.onclick=ev=>{if(ev.target.closest("[data-a]")?.dataset.a==="close")closeSheet()};
+  }
+
+  // ---------- Einstellungen ----------
+  document.getElementById("setBtn").onclick=()=>{
+    const cyc=PATTERN.map(p=>'<i class="'+p+'"></i>').join("");
+    openSheet('<h3>Schichtplan 17,5</h3>'+
+      '<button class="mtile helptile" data-a="help"><span>📖</span>Anleitung<small>Alle Funktionen mit Bildern erklärt</small></button>'+
+      '<button class="mtile helptile" data-a="impressum"><span>ℹ️</span>Impressum<small>Idee: Hans-Jürgen Schlichting · Umsetzung: Claude</small></button>'+
+      '<button class="btn" data-a="year">Jahresübersicht '+viewYear+' (A4) <small>ganzes Jahr auf einer Seite</small></button>'+
+      '<label class="chk" for="animChk"><input type="checkbox" id="animChk"'+(animOn?' checked':'')+'> Jahreszeiten-Animation anzeigen</label>'+
+      '<label class="chk" for="sndChk"><input type="checkbox" id="sndChk"'+(SND.on?' checked':'')+'> Jahreszeiten-Sound</label>'+
+      '<label class="f" for="sndVol">Lautstärke<input type="range" id="sndVol" min="0" max="1" step="0.05" value="'+SND.vol+'"></label>'+
+      '<h4>Farben</h4><div class="cols">'+COLKEYS.map(([k,l])=>'<label class="colrow" for="c_'+k+'"><input type="color" id="c_'+k+'" data-ck="'+k+'" value="'+curCol(k)+'"><span>'+l+'</span></label>').join("")+'</div>'+
+      '<button class="btn" data-a="resetcol">Farben zurücksetzen</button>'+
+      '<h4>Daten sichern</h4><div class="row2"><button class="btn half" data-a="bak">Sicherung speichern</button><button class="btn half" data-a="res">Sicherung laden</button></div>'+
+      '<p>Deine Einträge liegen nur auf diesem Handy. Speichere ab und zu eine Sicherung, damit nichts verloren geht.</p>'+
+      '<h4>Legende</h4>'+document.getElementById("legendTpl").innerHTML+
+      '<h4>Urlaubsanspruch pro Jahr</h4><div class="row2">'+
+      '<label class="f" for="qU">Urlaub (U)<input type="number" id="qU" min="0" max="60" inputmode="numeric" value="'+quota.U+'"></label>'+
+      '<label class="f" for="qTZ">TZ-Urlaub<input type="number" id="qTZ" min="0" max="60" inputmode="numeric" value="'+quota.TZ+'"></label></div>'+
+      '<h4>Überstunden</h4><div class="row2">'+
+      '<label class="f" for="agH">Stunden pro Ausgleichstag<input type="number" id="agH" min="0" max="24" step="0.25" inputmode="decimal" value="'+otCfg.agHours+'"></label>'+
+      '<label class="f" for="otCarry">Übertrag (Stunden)<input type="number" id="otCarry" min="-999" max="9999" step="0.25" inputmode="decimal" value="'+otCfg.carry+'"></label></div>'+
+      '<p>Saldo = Übertrag + eingetragene Überstunden − Ausgleichstage × Stunden.</p>'+
+      '<h4>Schichtmodelle</h4><button class="btn" data-a="models">Schichtmodelle verwalten <small>'+(models.length?models.length+' eigene':'nur 17,5-Modell')+'</small></button>'+
+      '<h4>Schichtrhythmus (17,5-Modell)</h4>'+
+      '<p>28-Tage-Zyklus: 6× Spät (Mo–Sa), So frei, 6× Früh (Mo–Sa), 6× Nacht (So–Fr), dann 9 Tage frei.</p>'+
+      '<div class="cycle" aria-hidden="true">'+cyc+'</div>'+
+      '<label class="f" for="anc">Ein Montag, an dem dein Spät-Block beginnt<input type="date" id="anc" value="'+iso(anchor)+'"></label>'+
+      '<div class="err" id="ancErr"></div>'+
+      '<button class="btn primary" data-a="save">Speichern</button>'+
+      '<button class="btn" data-a="close">Schließen</button>');
+    document.getElementById("animChk").onchange=e=>setAnim(e.target.checked);
+    document.getElementById("sndChk").onchange=e=>setSound(e.target.checked);
+    document.getElementById("sndVol").oninput=e=>{SND.vol=+e.target.value;store.set("sp_vol",SND.vol);if(SND.E&&SND.on)SND.E.master.gain.setTargetAtTime(SND.vol*2.2,SND.E.ctx.currentTime,.1)};
+    sheet.querySelectorAll("[data-ck]").forEach(inp=>inp.oninput=()=>{colors[inp.dataset.ck]=inp.value;store.set("sp_colors",colors);applyColors();renderToday();renderBudget()});
+    sheet.onclick=ev=>{
+      const a=ev.target.closest("[data-a]")?.dataset.a; if(!a)return;
+      if(a==="close")return closeSheet();
+      if(a==="year"){closeSheet();return openYear(viewYear)}
+      if(a==="models")return modelsSheet();
+      if(a==="help"){closeSheet();return openHelp()}
+      if(a==="impressum")return openImpressum();
+      if(a==="bak"){closeSheet();return saveBackup()}
+      if(a==="res"){return restoreSheet()}
+      if(a==="resetcol"){colors={};store.set("sp_colors",colors);applyColors();renderToday();renderBudget();
+        sheet.querySelectorAll("[data-ck]").forEach(i=>i.value=curCol(i.dataset.ck));return}
+      const v=document.getElementById("anc").value; if(!v)return;
+      const n=parseIso(v);
+      if(fromDn(n).w!==1){document.getElementById("ancErr").textContent="Bitte einen Montag wählen. Der Spät-Block startet immer montags.";return}
+      const qU=parseInt(document.getElementById("qU").value,10), qT=parseInt(document.getElementById("qTZ").value,10);
+      if(!(qU>=0)||!(qT>=0)){document.getElementById("ancErr").textContent="Bitte beim Urlaubsanspruch eine Zahl ab 0 eintragen.";return}
+      quota={U:qU,TZ:qT}; store.set("sp_quota",quota);
+      const agH=parseFloat(String(document.getElementById("agH").value).replace(",",".")), car=parseFloat(String(document.getElementById("otCarry").value).replace(",","."));
+      otCfg={agHours:isFinite(agH)&&agH>=0?agH:8,carry:isFinite(car)?car:0}; store.set("sp_otcfg",otCfg);
+      anchor=n; store.set("sp_anchor2",v); repaintAll(); closeSheet();
+    };
+  };
+})();
+
+</script>
+
+</body></html>
