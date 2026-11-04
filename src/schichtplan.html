@@ -316,6 +316,12 @@ body.pv .budget{display:none}
 .pvitem div{flex:1;min-width:0}.pvitem b{display:block}.pvitem small{color:var(--muted)}
 .pvitem button{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:9px 10px;font:600 14px var(--f-body);cursor:pointer}
 .pvnote{font-size:13.5px;color:var(--muted);margin:0}
+.day .rt{position:absolute;right:2px;top:3px;max-width:calc(55% - 4px);overflow:hidden;white-space:nowrap;font:800 9.5px/1.3 var(--f-body);letter-spacing:.02em;padding:0 2px;border-radius:3px;background:rgba(255,255,255,.88);color:#1d1f24;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
+.day[data-ic] .rt{top:18px}
+.day.ot .rt{top:6px}.day.ot[data-ic] .rt{top:18px}
+.rtab{display:inline-block;min-width:2.2em;text-align:center;font:800 13px/1.6 var(--f-body);border-radius:6px;background:var(--bg);border:1px solid var(--line);padding:0 5px;margin-right:6px}
+.useg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.basebox{border:1px dashed var(--line);border-radius:14px;padding:10px;display:grid;gap:8px}
 .yd.X:not(.hf){background:#4a4d53;color:#fff;font-size:9.5px}
 
 .notebtn{justify-content:center;border-style:dashed}
@@ -413,7 +419,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   const WD = ["So","Mo","Di","Mi","Do","Fr","Sa"];
   const WDL = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
   let PV=null; // gerade angezeigter Partner-Plan (nur lesen)
-  const PVKEYS=["sp_vac2","sp_models","sp_notes","sp_ot","sp_quota","sp_anchor2"];
+  const PVKEYS=["sp_vac2","sp_models","sp_notes","sp_ot","sp_quota","sp_anchor2","sp_base","sp_routines"];
   const store = {
     get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
     set(k,v){if(PV&&PVKEYS.includes(k))return;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
@@ -450,7 +456,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   let mCache=null;
   function modelFor(n){ if(!mCache)mCache=models.map(m=>{const pat=[];m.blocks.forEach(([t,c])=>{for(let i=0;i<c;i++)pat.push(t)});return {m,a:parseIso(m.from),b:parseIso(m.to),pat}});
     for(let i=mCache.length-1;i>=0;i--){const c=mCache[i];if(n>=c.a&&n<=c.b&&c.pat.length)return c}return null}
-  const rawShift = n=>{const c=modelFor(n);return c?c.pat[(n-c.a)%c.pat.length]:PATTERN[((n-anchor)%28+28)%28]};
+  let base=store.get("sp_base","175"); // "175" = 17,5-Modell als Grundlage, "none" = leerer Kalender (nur eigene Modelle)
+  const rawShift = n=>{const c=modelFor(n);return c?c.pat[(n-c.a)%c.pat.length]:base==="none"?"X":PATTERN[((n-anchor)%28+28)%28]};
+  // ---------- Routinen (z. B. Hausordnung jeden 2. Samstag) ----------
+  let routines=store.get("sp_routines",[]); const saveRoutines=()=>store.set("sp_routines",routines);
+  const RUNIT={d:["Tag","Tage"],w:["Woche","Wochen"],m:["Monat","Monate"]};
+  function rOn(r,n){const a=parseIso(r.start);if(n<a||(r.end&&n>parseIso(r.end)))return false;const k=Math.max(1,r.n|0);
+    if(r.unit==="d")return (n-a)%k===0; if(r.unit==="w")return (n-a)%(7*k)===0;
+    const A=fromDn(a),B=fromDn(n);return B.d===A.d&&((B.y-A.y)*12+B.m-A.m)%k===0}
+  const routinesOn=n=>routines.filter(r=>rOn(r,n));
   // An allen Feiertagen (inkl. Heiligabend und Silvester) wird nicht gearbeitet
   const shift = n=>{const s=rawShift(n);return s!=="X"&&holiday(n)?"X":s};
   const fmt = n=>{const o=fromDn(n);return WDL[o.w]+", "+o.d+". "+MONTHS[o.m]+" "+o.y};
@@ -515,7 +529,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     for(let d=0;d<days;d++){
       const n=start+d, el=document.createElement("button");
       el.type="button"; el.dataset.d=n;
-      el.innerHTML='<span class="w">'+WD[fromDn(n).w]+'</span><span class="n">'+(d+1)+'</span><span class="s"></span><span class="nm" hidden>✎</span>';
+      el.innerHTML='<span class="w">'+WD[fromDn(n).w]+'</span><span class="n">'+(d+1)+'</span><span class="s"></span><span class="nm" hidden>✎</span><span class="rt" hidden></span>';
       g.appendChild(el); paint(el);
     }
     sec.appendChild(g);
@@ -530,8 +544,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if(t && s!=="X") el.dataset.orig=s; else delete el.dataset.orig;
     const ic=t==="K"?"🌡️":icon(n); if(ic) el.dataset.ic=ic; else delete el.dataset.ic;
     el.querySelector(".nm").hidden=!noteAt(n);
+    { const rs=routinesOn(n), rt=el.querySelector(".rt"); rt.hidden=!rs.length; rt.textContent=rs.length?rs[0].ab+(rs.length>1?"+":""):""; }
     el.classList.toggle("ot",otOn(n).length>0);
-    el.setAttribute("aria-label",fmt(n)+(ft?" ("+ft+")":special(n)?" ("+special(n)+")":"")+": "+label(n));
+    el.setAttribute("aria-label",fmt(n)+(ft?" ("+ft+")":special(n)?" ("+special(n)+")":"")+": "+label(n)+routinesOn(n).map(r=>", "+r.name).join(""));
   }
   function statMonth(sec){
     const c={F:0,S:0,N:0,U:0,TZ:0,AG:0,K:0,SU:0}, hs=[];
@@ -889,7 +904,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     let html='<h3>'+fmt(n)+'</h3>'+(ft?'<p><b style="color:var(--feiertag)">'+icon(n)+' Feiertag: '+ft+'</b></p>':special(n)?'<p><b style="color:var(--fg)">'+ICON[special(n)]+' '+special(n)+'</b> (kein gesetzlicher Feiertag)</p>':'')+(dst(n)?'<div class="nbox"><b>🕑 '+dst(n)+' beginnt</b><p>'+DST_TXT[dst(n)]+' '+dstNight(n)+'</p></div>':'')+
       (ft?'<p>An '+ft+' wird nicht gearbeitet.'+(rawShift(n)!=="X"?' Laut Rhythmus wäre '+NAMES[rawShift(n)]+'.':'')+'</p>':'')+
       (modelFor(n)?'<p>Schichtmodell: <b>'+esc(modelFor(n).m.name)+'</b></p>':'')+
-      '<p>Plan: <b>'+NAMES[s]+'</b>'+(t?' · eingetragen als <b>'+(t==="K"?"🌡️ ":"")+TYPE[t].name+'</b>':'')+'</p>';
+      '<p>Plan: <b>'+NAMES[s]+'</b>'+(t?' · eingetragen als <b>'+(t==="K"?"🌡️ ":"")+TYPE[t].name+'</b>':'')+'</p>'+
+      routinesOn(n).map(r=>'<p><span class="rtab">'+esc(r.ab)+'</span><b>'+esc(r.name)+'</b> (Routine)</p>').join("");
     if(!noteAt(n)) html+='<button class="btn notebtn" data-a="note">📝 Nur Notiz hinzufügen</button>';
     if(!t){
       if(ft&&s!=="X") html+='<p>An diesem Feiertag wird <b>nichts abgezogen und nichts gezählt</b>.</p>';
@@ -1000,7 +1016,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     yv.innerHTML='<div class="yvbar"><button type="button" class="iconbtn sq" data-y="-1" aria-label="Vorheriges Jahr">‹</button><strong>'+y+'</strong><button type="button" class="iconbtn sq" data-y="1" aria-label="Nächstes Jahr">›</button><button type="button" class="iconbtn" data-y="x">Schließen</button></div>'+
       '<div class="yvact"><button type="button" class="btn primary" data-y="pdf">📄 Als PDF speichern und drucken</button></div>'+
       '<p class="yvhint">Das PDF öffnest du nach dem Speichern auf dem Handy und druckst es über „Drucken“ oder „Teilen → Drucken“.</p>'+
-      '<div class="a4wrap"><div class="a4"><div class="a4head"><span>Schichtplan '+y+(PV?' · '+esc(PV.n):'')+'</span><small>17,5-Modell · Bayern</small></div>'+
+      '<div class="a4wrap"><div class="a4"><div class="a4head"><span>Schichtplan '+y+(PV?' · '+esc(PV.n):'')+'</span><small>'+(base==="none"?'Bayern':'17,5-Modell · Bayern')+'</small></div>'+
       '<div class="ygrid">'+months+'</div>'+
       '<div class="a4foot"><div class="lg"><span class="yd F">F</span>Früh <span class="yd S">S</span>Spät <span class="yd N">N</span>Nacht <span class="yd X">&nbsp;</span>Frei <span class="yd X hf">&nbsp;</span>Feiertag (frei) <span class="weleg"></span>Wochenende</div>'+
       '<div class="sum">Früh '+cnt.F+' · Spät '+cnt.S+' · Nacht '+cnt.N+' · Schichten gesamt '+(cnt.F+cnt.S+cnt.N)+' · Feiertage auf Schichttagen '+ftInShift(y)+'</div>'+
@@ -1041,7 +1057,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       const ta=document.getElementById("cpTxt");
       navigator.clipboard?.writeText(ta.value).then(()=>toast("Kopiert"),()=>{ta.select();toast("Text markiert, jetzt kopieren")}) ?? (ta.select(),toast("Text markiert, jetzt kopieren"));};
   }
-  function backupData(){return {app:"schichtplan-17-5",version:1,saved:todayIso(),anchor:iso(anchor),quota,vac,colors,anim:animOn,notes,contacts,ot,otCfg,models,partners:store.get("sp_partners",[])}}
+  function backupData(){return {app:"schichtplan-17-5",version:1,saved:todayIso(),anchor:iso(anchor),quota,vac,colors,anim:animOn,notes,contacts,ot,otCfg,models,partners:store.get("sp_partners",[]),routines,base}}
   function saveBackup(){const j=JSON.stringify(backupData()); saveFile("Schichtplan-Sicherung-"+todayIso()+".json",j,j)}
   function parseBackup(txt){
     let d; try{d=JSON.parse(txt)}catch(e){return null}
@@ -1076,6 +1092,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         if(Array.isArray(d.models)){models=d.models;saveModels()}
         if(d.otCfg){otCfg=Object.assign({agHours:8,carry:0},d.otCfg);store.set("sp_otcfg",otCfg)}
         if(Array.isArray(d.contacts)){contacts=d.contacts.filter(c=>c&&c.name&&c.tel);saveContacts()}
+        if(Array.isArray(d.routines)){routines=d.routines.filter(x=>x&&x.name&&x.start);saveRoutines()}
+        if(d.base==="none"||d.base==="175"){base=d.base;store.set("sp_base",base)}
         if(Array.isArray(d.partners)){try{partners=d.partners.filter(p=>p&&p.n&&p.a);savePartners()}catch(e){}}
         repaintAll(); closeSheet(); toast("Sicherung geladen");}
     };
@@ -1115,7 +1133,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const C={F:curCol("frueh"),S:curCol("spaet"),N:curCol("nacht"),U:curCol("urlaub"),TZ:curCol("tz"),AG:curCol("ag"),K:curCol("krank"),SU:curCol("su"),X:"#4a4d53",FT:curCol("feiertag"),WE:curCol("we")};
     const fill=c=>doc.setFillColor(...hex2rgb(c)), txt=c=>doc.setTextColor(...hex2rgb(c)), stroke=c=>doc.setDrawColor(...hex2rgb(c));
     doc.setFont("helvetica","bold");doc.setFontSize(22);txt("#1d1f24");doc.text("SCHICHTPLAN "+y+(PV?" · "+PV.n.toUpperCase():""),12,18);
-    doc.setFont("helvetica","normal");doc.setFontSize(9);txt("#6b6f78");doc.text("17,5-Modell · Bayern",198,18,{align:"right"});
+    doc.setFont("helvetica","normal");doc.setFontSize(9);txt("#6b6f78");doc.text(base==="none"?"Bayern":"17,5-Modell · Bayern",198,18,{align:"right"});
     stroke("#1d1f24");doc.setLineWidth(.6);doc.line(12,21,198,21);
     const mw=58.6, gap=5.1, cw=mw/7, ch=6.3, top=27, mh=50;
     for(let m=0;m<12;m++){
@@ -1412,6 +1430,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<button class="mtile" data-m="year"><span>🗓️</span>Jahresübersicht<small>ganzes Jahr, A4</small></button>'+
       '<button class="mtile" data-m="partner"><span>👥</span>Partner<small>Plan teilen per Link oder QR</small></button>'+
       '<button class="mtile" data-m="models"><span>🔁</span>Schichtmodelle<small>'+(models.length?models.length+' eigene':'eigenes anlegen')+'</small></button>'+
+      '<button class="mtile" data-m="routines"><span>🧹</span>Routinen<small>'+(routines.length?routines.length+' Routine'+(routines.length===1?'':'n'):'z. B. Hausordnung')+'</small></button>'+
       '<button class="mtile" data-m="settings"><span>⚙️</span>Einstellungen<small>Farben, Urlaub, Rhythmus</small></button>'+
       '<button class="mtile" data-m="help"><span>📖</span>Anleitung<small>alle Funktionen mit Bildern</small></button>'+
       '<button class="mtile" data-m="impressum"><span>ℹ️</span>Impressum<small>Idee, Umsetzung, Datenschutz</small></button>'+
@@ -1427,6 +1446,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(m==="year")openYear(viewYear);
       if(m==="partner")partnerSheet();
       if(m==="models")modelsSheet();
+      if(m==="routines")routinesSheet();
       if(m==="help")openHelp();
       if(m==="impressum")openImpressum();
       if(m==="settings")document.getElementById("setBtn").click();
@@ -1822,7 +1842,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function modelsSheet(){
     const list=models.map((m,i)=>{const len=m.blocks.reduce((s,b)=>s+b[1],0);
       return '<button class="btn" data-mi="'+i+'"><span><b>'+esc(m.name)+'</b><br><small>'+m.from.split("-").reverse().join(".")+' – '+m.to.split("-").reverse().join(".")+' · Zyklus '+len+' Tage</small></span><span class="mchips">'+m.blocks.map(b=>'<i style="background:'+MCOL[b[0]]+';flex:'+b[1]+'"></i>').join("")+'</span></button>'}).join("");
-    openSheet('<h3>Schichtmodelle</h3><p>Überall, wo kein eigenes Modell gilt, rechnet die App mit dem <b>17,5-Modell</b>. Für einen Zeitraum kannst du ein anderes Modell festlegen.</p>'+
+    openSheet('<h3>Schichtmodelle</h3><p>'+(base==="none"?'Das 17,5-Modell ist ausgeschaltet. Überall, wo kein eigenes Modell gilt, ist der Kalender <b>frei</b>. Lege hier dein eigenes Modell an.':'Überall, wo kein eigenes Modell gilt, rechnet die App mit dem <b>17,5-Modell</b>. Für einen Zeitraum kannst du ein anderes Modell festlegen.')+'</p>'+
       (list||'<p class="smeta">Noch kein eigenes Schichtmodell.</p>')+
       '<button class="btn primary" data-a="mnew">+ Neues Schichtmodell</button><button class="btn" data-a="close">Schließen</button>');
     sheet.onclick=ev=>{const mi=ev.target.closest("[data-mi]"),a=ev.target.closest("[data-a]")?.dataset.a;
@@ -1893,7 +1913,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["feiertage","Feiertage und besondere Tage","feiertage",
      "Alle Feiertage in Bayern sowie Heiligabend und Silvester sind <b>rot und frei</b>, mit eigenem Symbol. Unter jedem Monat stehen die Feiertage und besonderen Tage wie Nikolaus oder Muttertag. 🕑 markiert die Zeitumstellung, 14 Tage vorher erscheint oben ein Hinweis."],
     ["menue","Das Menü ☰","menue",
-     "Über ☰ oben rechts erreichst du alle Seiten: Statistik, Meine Einträge, Notizen, Teamleiter, Jahresübersicht, Partner, Schichtmodelle, Einstellungen, Sicherung und diese Anleitung."],
+     "Über ☰ oben rechts erreichst du alle Seiten: Statistik, Meine Einträge, Notizen, Teamleiter, Jahresübersicht, Partner, Schichtmodelle, Routinen, Einstellungen, Sicherung und diese Anleitung."],
     ["statistik","Statistik","statistik",
      "Alle Zähler eines Jahres auf einen Blick, dazu deine Überstunden pro Monat als Balken. Mit ‹ › wechselst du das Jahr."],
     ["statistik2","Jahreskalender und Speichern","statistik2",
@@ -1906,8 +1926,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
      "Das ganze Jahr auf einer A4-Seite, nur mit Schichten und Feiertagen. Mit <b>📄 Als PDF speichern und drucken</b> speicherst du die Seite. Das PDF öffnest du auf dem Handy und druckst es über „Drucken“ oder „Teilen → Drucken“."],
     ["modelle","Eigene Schichtmodelle","modelle",
      "Für einen Zeitraum kannst du ein anderes Schichtmodell festlegen: Name, Gilt von, bis, dann den Ablauf aus Blöcken bauen (Früh, Spät, Nacht oder Frei, jeweils mit Anzahl Tage). Die Vorschau zeigt die ersten Wochen. Außerhalb gilt das 17,5-Modell."],
+    ["routinen","Routinen","routinen",
+     "Für wiederkehrende Aufgaben wie <b>Hausordnung jeden 2. Samstag</b>: ☰ → <b>🧹 Routinen</b> → „Neue Routine“. Name eintragen, eine eigene <b>Abkürzung</b> (1–3 Zeichen, z. B. HO) wählen, den ersten Termin festlegen und einstellen, wie oft sie sich wiederholt: alle 1, 2, 3 … Tage, Wochen oder Monate. Darunter siehst du gleich die nächsten Termine. Im Kalender steht das Kürzel klein oben rechts im Tag, die Schichtfarben bleiben unverändert. Antippen des Tages zeigt den vollen Namen."],
+    ["routinen2","Routinen im Kalender","routinen2",
+     "So sieht es im Kalender aus: <b>HO</b> für Hausordnung alle 2 Wochen am Samstag, <b>M</b> für eine wöchentliche Routine. Mehrere Routinen am selben Tag zeigen ein <b>+</b>. Routinen werden beim Teilen mit dem Partner <b>nicht</b> mitgeschickt."],
     ["teamleiter","Teamleiter","teamleiter",
      "Speichere die Nummern deiner Teamleiter. <b>Anrufen</b> öffnet die Telefon-App, <b>Nummer kopieren</b> legt sie in die Zwischenablage."],
+    ["leer","Ohne 17,5-Modell (leerer Kalender)","leer",
+     "Arbeitest du nicht im 17,5-Modell? Unter Einstellungen ⚙️ → Schichtrhythmus tippst du auf <b>„17,5-Modell entfernen (leerer Kalender)“</b> und bestätigst mit einem zweiten Tippen. Dann ist der Kalender leer und du legst dein eigenes Modell unter <b>Schichtmodelle</b> an. Deine Einträge bleiben erhalten. Mit „17,5-Modell wieder einschalten“ machst du es rückgängig. Das gilt nur für dein Handy, bei anderen ändert sich nichts."],
     ["einstellungen","Einstellungen","einstellungen",
      "Animation und Sound an- und ausschalten, Lautstärke, Urlaubsanspruch, Stunden pro Ausgleichstag und Überstunden-Übertrag, Schichtmodelle und der Start deines 17,5-Rhythmus."],
     ["farben","Farben ändern","farben",
@@ -1975,8 +2001,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<label class="f" for="agH">Stunden pro Ausgleichstag<input type="number" id="agH" min="0" max="24" step="0.25" inputmode="decimal" value="'+otCfg.agHours+'"></label>'+
       '<label class="f" for="otCarry">Übertrag (Stunden)<input type="number" id="otCarry" min="-999" max="9999" step="0.25" inputmode="decimal" value="'+otCfg.carry+'"></label></div>'+
       '<p>Saldo = Übertrag + eingetragene Überstunden − Ausgleichstage × Stunden.</p>'+
-      '<h4>Schichtmodelle</h4><button class="btn" data-a="models">Schichtmodelle verwalten <small>'+(models.length?models.length+' eigene':'nur 17,5-Modell')+'</small></button>'+
+      '<h4>Schichtmodelle</h4><button class="btn" data-a="models">Schichtmodelle verwalten <small>'+(models.length?models.length+' eigene':base==="none"?'noch keins':'nur 17,5-Modell')+'</small></button>'+
+      '<h4>Routinen</h4><button class="btn" data-a="routines">Routinen verwalten <small>'+(routines.length?routines.length+' Routine'+(routines.length===1?'':'n'):'z. B. Hausordnung')+'</small></button>'+
       '<h4>Schichtrhythmus (17,5-Modell)</h4>'+
+      (base==="none"?'<div class="basebox"><p style="margin:0"><b>Das 17,5-Modell ist ausgeschaltet.</b> Dein Kalender ist leer. Eigene Schichten legst du über „Schichtmodelle verwalten“ an.</p><button class="btn primary" data-a="baseon">17,5-Modell wieder einschalten</button></div>':
+      '<div class="basebox"><p class="pvnote">Du arbeitest nicht im 17,5-Modell? Dann kannst du es hier ausschalten und bekommst einen leeren Kalender. Deine Einträge (Urlaub, Notizen, Überstunden) bleiben erhalten. Du kannst es jederzeit wieder einschalten.</p><button class="btn danger" data-a="baseoff">17,5-Modell entfernen (leerer Kalender)</button></div>')+
       '<p>28-Tage-Zyklus: 6× Spät (Mo–Sa), So frei, 6× Früh (Mo–Sa), 6× Nacht (So–Fr), dann 9 Tage frei.</p>'+
       '<div class="cycle" aria-hidden="true">'+cyc+'</div>'+
       '<label class="f" for="anc">Ein Montag, an dem dein Spät-Block beginnt<input type="date" id="anc" value="'+iso(anchor)+'"></label>'+
@@ -1992,6 +2021,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(a==="close")return closeSheet();
       if(a==="year"){closeSheet();return openYear(viewYear)}
       if(a==="models")return modelsSheet();
+      if(a==="routines")return routinesSheet();
+      if(a==="baseoff"){const b=ev.target.closest("[data-a]");if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Wirklich entfernen? Nochmal tippen";return}
+        base="none";store.set("sp_base",base);mCache=null;repaintAll();closeSheet();toast("17,5-Modell entfernt. Dein Kalender ist jetzt leer.");return}
+      if(a==="baseon"){base="175";store.set("sp_base",base);mCache=null;repaintAll();closeSheet();toast("17,5-Modell ist wieder eingeschaltet");return}
       if(a==="help"){closeSheet();return openHelp()}
       if(a==="impressum")return openImpressum();
       if(a==="bak"){closeSheet();return saveBackup()}
@@ -2010,6 +2043,60 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     };
   };
 
+
+  function rText(r){const k=Math.max(1,r.n|0),u=RUNIT[r.unit]||RUNIT.w;const wd=WDL[fromDn(parseIso(r.start)).w];
+    return (k===1?(r.unit==="d"?"jeden Tag":r.unit==="w"?"jeden "+wd:"jeden Monat am "+fromDn(parseIso(r.start)).d+"."):"alle "+k+" "+u[1]+(r.unit==="w"?" am "+wd:r.unit==="m"?" am "+fromDn(parseIso(r.start)).d+".":""))+(r.end?" bis "+r.end.split("-").reverse().join("."):"")}
+  function nextDates(r,from,cnt){const out=[];for(let n=Math.max(from,parseIso(r.start)),i=0;out.length<cnt&&i<3700;n++,i++)if(rOn(r,n))out.push(n);return out}
+  function routinesSheet(){
+    const list=routines.map((r,i)=>{const nx=nextDates(r,TODAY,1)[0];
+      return '<button class="btn" data-ri="'+i+'"><span><span class="rtab">'+esc(r.ab)+'</span><b>'+esc(r.name)+'</b><br><small>'+rText(r)+(nx!=null?' · nächster Termin '+fmtS(nx):' · keine weiteren Termine')+'</small></span><span>✎</span></button>'}).join("");
+    openSheet('<h3>Routinen</h3><p>Wiederkehrende Aufgaben wie <b>Hausordnung jeden 2. Samstag</b>. Sie erscheinen im Kalender als kleines Kürzel oben links im Tag. Die Schichtfarben bleiben unverändert.</p>'+
+      (list||'<p class="smeta">Noch keine Routine angelegt.</p>')+
+      '<button class="btn primary" data-a="rnew">+ Neue Routine</button><button class="btn" data-a="close">Schließen</button>');
+    sheet.onclick=ev=>{const ri=ev.target.closest("[data-ri]"),a=ev.target.closest("[data-a]")?.dataset.a;
+      if(ri)return routineEditor(+ri.dataset.ri); if(a==="rnew")return routineEditor(-1); if(a==="close")closeSheet()};
+  }
+  function routineEditor(idx){
+    const sat=TODAY+((6-fromDn(TODAY).w)+7)%7;
+    const st=idx>=0?Object.assign({},routines[idx]):{id:Date.now().toString(36),name:"",ab:"",start:iso(sat),n:2,unit:"w",end:""};
+    let sure=false, abTouched=idx>=0;
+    const auto=nm=>{const w=nm.trim().split(/\s+/).filter(Boolean);return (w.length>1?w.map(x=>x[0]).join(""):nm.trim()).slice(0,w.length>1?3:2).toUpperCase()};
+    const read=()=>{const g=id=>document.getElementById(id);if(!g("rName"))return;st.name=g("rName").value;st.ab=g("rAb").value.trim().slice(0,3);st.start=g("rStart").value||st.start;st.end=g("rEnd").value||""};
+    function render(){
+      const nx=st.start?nextDates(st,TODAY,6):[];
+      sheet.innerHTML='<div class="grab"></div><h3>'+(idx>=0?'Routine ändern':'Neue Routine')+'</h3>'+
+        '<label class="f" for="rName">Name<input type="text" id="rName" class="inp" maxlength="40" placeholder="z. B. Hausordnung" value="'+esc(st.name)+'"></label>'+
+        '<label class="f" for="rAb">Abkürzung im Kalender (1–3 Zeichen)<input type="text" id="rAb" class="inp" maxlength="3" placeholder="z. B. HO" value="'+esc(st.ab)+'" style="text-transform:uppercase"></label>'+
+        '<label class="f" for="rStart">Erster Termin<input type="date" id="rStart" class="inp" value="'+st.start+'"></label>'+
+        '<h4>Wiederholen</h4><div class="mrow" style="align-items:center"><span style="font-weight:600">alle</span><div class="mstep"><button type="button" data-rn="-1" aria-label="Weniger">−</button><b>'+st.n+'</b><button type="button" data-rn="1" aria-label="Mehr">+</button></div>'+
+        '<div class="useg" style="flex:1">'+["d","w","m"].map(u=>'<button type="button" class="mt'+(st.unit===u?' on':'')+'" style="--c:var(--fg);--ci:var(--bg)" data-ru="'+u+'">'+RUNIT[u][st.n===1?0:1]+'</button>').join("")+'</div></div>'+
+        '<p class="smeta">Ergibt: <b>'+(st.start?rText(st):'–')+'</b></p>'+
+        '<label class="f" for="rEnd">Endet am (leer lassen = ohne Ende)<input type="date" id="rEnd" class="inp" value="'+(st.end||"")+'"></label>'+
+        '<h4>Nächste Termine</h4><p class="smeta">'+(nx.length?nx.map(n=>fmtS(n)).join("<br>"):'Keine Termine ab heute.')+'</p>'+
+        '<div class="err" id="rErr"></div>'+
+        '<button class="btn primary" data-a="rsave">Speichern</button>'+
+        (idx>=0?'<button class="btn danger" data-a="rdel">'+(sure?'Wirklich löschen? Nochmal tippen':'Routine löschen')+'</button>':'')+
+        '<button class="btn" data-a="rback">Zurück</button>';
+      const nm=document.getElementById("rName"),ab=document.getElementById("rAb");
+      nm.oninput=()=>{if(!abTouched)ab.value=auto(nm.value)};
+      ab.oninput=()=>{abTouched=true};
+      ["rStart","rEnd"].forEach(id=>document.getElementById(id).onchange=()=>{read();render()});
+    }
+    sheet.hidden=false;scrim.hidden=false;render();
+    sheet.onclick=ev=>{const T=ev.target;read();
+      const rn=T.closest("[data-rn]"),ru=T.closest("[data-ru]"),a=T.closest("[data-a]")?.dataset.a;
+      if(rn){st.n=Math.max(1,Math.min(52,st.n+ +rn.dataset.rn));return render()}
+      if(ru){st.unit=ru.dataset.ru;return render()}
+      if(a==="rback")return routinesSheet();
+      if(a==="rdel"){if(!sure){sure=true;return render()}routines.splice(idx,1);saveRoutines();repaintAll();toast("Routine gelöscht");return routinesSheet()}
+      if(a==="rsave"){const er=document.getElementById("rErr");
+        st.name=st.name.trim(); if(!st.name){er.textContent="Bitte einen Namen eintragen, z. B. Hausordnung.";return}
+        if(!st.ab)st.ab=auto(st.name); st.ab=st.ab.toUpperCase();
+        if(!st.start){er.textContent="Bitte den ersten Termin wählen.";return}
+        if(st.end&&parseIso(st.end)<parseIso(st.start)){er.textContent="Das Ende darf nicht vor dem ersten Termin liegen.";return}
+        if(idx>=0)routines[idx]=st; else routines.push(st); saveRoutines(); repaintAll(); toast("Routine „"+st.name+"“ gespeichert"); return routinesSheet()}
+    };
+  }
   // ---------- Partner: Plan per Link/QR teilen (ohne Server, Daten stecken im Link) ----------
   const APPURL="https://onkelstuka-droid.github.io/Schichtplan-/";
   const SHARE_T=["U","TZ","AG","SU"]; // Krank, Notizen, Überstunden werden nicht geteilt
@@ -2025,8 +2112,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     return out.join(",")}
   function unpackVac(s){const v={};(s||"").split(",").forEach(x=>{const m=/^(U|TZ|AG|SU)(\d+)(?:\.(\d+))?$/.exec(x);if(!m)return;for(let i=0;i<(+m[3]||1);i++)v[+m[2]+i]=m[1]});return v}
   async function makeLink(name){
-    const src=own||{anchor,vac,models,quota};
-    const d={v:1,n:name,a:iso(src.anchor),m:src.models.map(m=>({name:m.name,from:m.from,to:m.to,blocks:m.blocks})),e:packVac(src.vac),q:src.quota,t:Date.now()};
+    const src=own||{anchor,vac,models,quota,base};
+    const d={v:1,n:name,b:src.base==="none"?0:1,a:iso(src.anchor),m:src.models.map(m=>({name:m.name,from:m.from,to:m.to,blocks:m.blocks})),e:packVac(src.vac),q:src.quota,t:Date.now()};
     const raw=new TextEncoder().encode(JSON.stringify(d));
     let code; try{code="1"+b64u.enc(await zip(raw,true))}catch(e){code="0"+b64u.enc(raw)}
     return APPURL+"#p="+code}
@@ -2035,18 +2122,18 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     try{let u=b64u.dec(m[2]); if(m[1]==="1")u=await zip(u,false);
       const d=JSON.parse(new TextDecoder().decode(u));
       if(!d||d.v!==1||!d.n||!/^\d{4}-\d\d-\d\d$/.test(d.a))return null;
-      return {n:String(d.n).slice(0,40),a:d.a,m:Array.isArray(d.m)?d.m:[],e:d.e||"",q:Object.assign({U:30,TZ:8},d.q||{}),t:+d.t||Date.now()}}catch(e){return null}}
+      return {n:String(d.n).slice(0,40),a:d.a,m:Array.isArray(d.m)?d.m:[],e:d.e||"",q:Object.assign({U:30,TZ:8},d.q||{}),b:d.b===0?"none":"175",t:+d.t||Date.now()}}catch(e){return null}}
   const stand=t=>{const d=new Date(t);return d.getDate()+"."+(d.getMonth()+1)+"."+d.getFullYear()+", "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+" Uhr"};
 
   function showPartner(p){
-    if(!PV)own={anchor,vac,models,notes,ot,quota};
-    PV=p; anchor=parseIso(p.a); vac=unpackVac(p.e); models=p.m; notes={}; ot=[]; quota=p.q; mCache=null;
+    if(!PV)own={anchor,vac,models,notes,ot,quota,base,routines};
+    PV=p; base=p.b||"175"; routines=[]; anchor=parseIso(p.a); vac=unpackVac(p.e); models=p.m; notes={}; ot=[]; quota=p.q; mCache=null;
     document.body.classList.add("pv"); document.getElementById("pvBar").hidden=false;
     document.getElementById("pvName").textContent="👀 Plan von "+p.n;
     closeSheet(); repaintAll(); scrollToToday(false); toast("Du siehst jetzt den Plan von "+p.n);
   }
   function showOwn(){ if(!PV)return;
-    PV=null; ({anchor,vac,models,notes,ot,quota}=own); own=null; mCache=null;
+    PV=null; ({anchor,vac,models,notes,ot,quota,base,routines}=own); own=null; mCache=null;
     document.body.classList.remove("pv"); document.getElementById("pvBar").hidden=true;
     closeSheet(); if(!yv.hidden){yv.hidden=true;document.body.style.overflow=""} repaintAll(); scrollToToday(false);
   }

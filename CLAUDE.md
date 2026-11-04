@@ -8,14 +8,14 @@ Umsetzung: Claude. Immer auf Deutsch antworten, einfach erklären, Schritte für
 ## Aufbau
 - `src/schichtplan.html` – **die gesamte App in einer Datei** (HTML, CSS, JS). Nur hier ändern.
 - `build.py` – baut daraus `index.html` (mit Head, Manifest-Link, Download-Ersatz für `window.claude`, Service-Worker-Registrierung), `sw.js` (Offline-Cache, Version = Hash der Quelle), `manifest.webmanifest`, `404.html`.
-- `help/*.jpg` – Bildschirmfotos für die Anleitung in der App (22 Stück, Beispieldaten; Partner-Bilder: partner, partner2, partner3).
+- `help/*.jpg` – Bildschirmfotos für die Anleitung in der App (25 Stück, Beispieldaten; u. a. partner, partner2, partner3, routinen, routinen2, leer).
 - `icons/` – App-Symbole (192/512, maskable, apple-touch).
 - Veröffentlichen: `python3 build.py`, committen, `git push origin main`. GitHub Pages aktualisiert in 1–2 Min. Nutzer bekommen das Update beim nächsten Öffnen.
 - Das Einschalten von Pages über die API ist im Sandbox-Proxy gesperrt; Pages ist bereits eingeschaltet.
 - Eine ältere Version läuft noch als Claude-Artifact (claude.ai/artifact/XitXTSjShxG3JBC1FLzfe6). Weiterentwicklung nur noch hier.
 
 ## Daten (nur localStorage auf dem Gerät)
-`sp_anchor2` (Montag, an dem ein Spät-Block beginnt; Standard 2026-12-21 → Nachtschicht ab So 03.01.2027), `sp_vac2` ({Tagnummer: U|TZ|AG|K|SU}), `sp_quota` ({U:30,TZ:8}), `sp_notes` ({Starttag:{t,to}}), `sp_ot` (Überstunden [{id,d,from,to,pause,min,note}]), `sp_otcfg` ({agHours:8,carry}), `sp_contacts` (Teamleiter), `sp_models` (eigene Schichtmodelle), `sp_colors`, `sp_anim`, `sp_sound`, `sp_vol`, `sp_myname` (eigener Name fürs Teilen), `sp_partners` (empfangene Partner-Pläne [{n,a,m,e,q,t}]). Tagnummer = Tage seit 1.1.1970 (UTC).
+`sp_anchor2` (Montag, an dem ein Spät-Block beginnt; Standard 2026-12-21 → Nachtschicht ab So 03.01.2027), `sp_vac2` ({Tagnummer: U|TZ|AG|K|SU}), `sp_quota` ({U:30,TZ:8}), `sp_notes` ({Starttag:{t,to}}), `sp_ot` (Überstunden [{id,d,from,to,pause,min,note}]), `sp_otcfg` ({agHours:8,carry}), `sp_contacts` (Teamleiter), `sp_models` (eigene Schichtmodelle), `sp_colors`, `sp_anim`, `sp_sound`, `sp_vol`, `sp_myname` (eigener Name fürs Teilen), `sp_partners` (empfangene Partner-Pläne [{n,a,m,e,q,b,t}]), `sp_base` ("175" Standard | "none" = 17,5-Modell ausgeschaltet, leerer Kalender), `sp_routines` ([{id,name,ab,start,n,unit:d|w|m,end}]). Tagnummer = Tage seit 1.1.1970 (UTC).
 Sicherung (JSON) enthält alles; Laden über Menü → Sicherung.
 
 ## Fachliche Regeln
@@ -30,9 +30,17 @@ Sicherung (JSON) enthält alles; Laden über Menü → Sicherung.
 ## Funktionen (alle vorhanden)
 Endlos-Kalender (ganze Seite scrollt, Kopf sticky), Wochentage in Kacheln, Wochenend-Band (Standardfarbe Orange #ff8000, einstellbar), Feiertagssymbole (Emoji), Tag antippen → Urlaub/TZ/Ausgleich/Krank (dunkelrot, 🌡️)/Sonderurlaub (hellrosa), ein Tag oder Zeitraum mit Mini-Kalender, „Nur Notiz hinzufügen“ + danach Angebot Google-Kalender-Link, Überstunden mit Von/Bis/Pause, Statistik-Seite, Meine Einträge (ändern/löschen/springen), Notizen-Seite, Teamleiter-Nummern, Jahresübersicht (nur Schichten + Feiertage) mit „Als PDF speichern und drucken“ (jsPDF von cdnjs), Excel/CSV-Export, Sicherung, Farben einstellbar, Schichtmodell-Editor, Anleitung mit Bildern, Impressum, Hinweis 14 Tage vor Zeitumstellung.
 
+## 17,5-Modell ausschalten
+- Einstellungen → Schichtrhythmus → „17,5-Modell entfernen (leerer Kalender)“ (zweimal tippen). Setzt nur `sp_base="none"` auf diesem Gerät; ohne den Schlüssel gilt weiter das 17,5-Modell (bestehende Nutzer unverändert). `rawShift()` liefert dann „X“, außer ein eigenes Schichtmodell gilt. Einträge bleiben erhalten. Rückgängig über „17,5-Modell wieder einschalten“.
+
+## Routinen (Menü → Routinen, auch in Einstellungen)
+- Wiederkehrende Aufgaben (z. B. Hausordnung alle 2 Wochen am Samstag): Name, eigene Abkürzung (1–3 Zeichen), erster Termin, alle n Tage/Wochen/Monate (Monat = gleicher Tag im Monat), optional Ende. Vorschau der nächsten 6 Termine.
+- Anzeige: kleines weißes Kürzel oben rechts in der Tageskachel (`.rt`), bei Feiertagssymbol darunter; mehrere Routinen → erstes Kürzel + „+“. Schichtfarben werden nicht verändert. Tag antippen zeigt den Namen.
+- Nicht in Jahresübersicht/PDF, nicht im Partner-Link. In der Sicherung enthalten.
+
 ## Partner-Funktion (Menü → Partner)
 - Teilen ohne Server: Daten stecken im Link `…/#p=1<base64url(deflate-raw(JSON))>` (Fallback `0` = unkomprimiert). Per WhatsApp (wa.me), Teilen-Menü, Link kopieren oder QR-Code (qrcode-generator 1.4.4, MIT, direkt in der Datei eingebaut, funktioniert offline).
-- Geteilt werden nur Rhythmus (Anker), eigene Schichtmodelle, Urlaubskonto und Einträge U/TZ/AG/SU ab ca. 400 Tagen zurück. **Nicht geteilt:** Krank, Notizen, Überstunden.
+- Geteilt werden nur Rhythmus (Anker, plus `b:0`, wenn das 17,5-Modell aus ist), eigene Schichtmodelle, Urlaubskonto und Einträge U/TZ/AG/SU ab ca. 400 Tagen zurück. **Nicht geteilt:** Krank, Notizen, Überstunden.
 - Empfänger: Link öffnen → „Speichern und ansehen“. Partner-Plan ist eine eigene, schreibgeschützte Ansicht (blaue Leiste „Plan von …“ + „Zurück zu meinem Plan“). Während der Ansicht werden die eigenen Variablen getauscht und `store.set` für eigene Daten gesperrt (`PV`, `PVKEYS`).
 - Neuer Link mit gleichem Namen ersetzt den alten Stand. Kein automatischer Live-Abgleich (Wunsch des Nutzers: ohne Server).
 - iPhone: Safari und Home-Bildschirm-App haben getrennte Speicher → Hinweis, Link in der App unter Partner → „Link übernehmen“ einzufügen.
