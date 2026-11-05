@@ -320,6 +320,11 @@ body.pv .budget{display:none}
 .pvnote{font-size:13.5px;color:var(--muted);margin:0}
 .day.ic2::before,.day.ic2[data-ic].ot::before{font-size:10px;letter-spacing:-1px;right:1px}
 .bdbar{box-shadow:inset 3px 0 0 #e0479e}
+.bdcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
+.bdcard.soon{border-color:#e0479e;box-shadow:inset 4px 0 0 #e0479e}
+.bdtop{display:flex;align-items:center;gap:10px}.bdtop .bdi{font-size:26px}.bdtop b{font-size:17px;display:block}.bdtop small{color:var(--muted);font-size:13.5px}
+.bdbtns{display:grid;grid-template-columns:1fr 1fr;gap:6px}.bdbtns .btn{justify-content:center;padding:9px 6px;font-size:14px}
+.bdmon{margin:16px 0 6px;font:700 15px var(--f-body);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:flex;justify-content:space-between}
 .bdrow{display:flex;align-items:center;gap:10px}.bdrow .bdi{font-size:24px}.bdrow small{color:var(--muted)}
 .backfab{z-index:12;background:var(--nacht);color:var(--nacht-ink)}
 .day .rt{position:absolute;right:2px;top:3px;max-width:calc(55% - 4px);overflow:hidden;white-space:nowrap;font:800 9.5px/1.3 var(--f-body);letter-spacing:.02em;padding:0 2px;border-radius:3px;background:rgba(255,255,255,.88);color:#1d1f24;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
@@ -409,6 +414,7 @@ a.btn{text-decoration:none;justify-content:center}
 <div class="yearview" id="helpView" hidden></div>
 <div class="yearview" id="entriesView" hidden></div>
 <div class="yearview" id="contactsView" hidden></div>
+<div class="yearview" id="bdaysView" hidden></div>
 <div class="toast" id="toast" hidden role="status"></div>
 <div class="scrim" id="scrim" hidden></div>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"></div>
@@ -1968,7 +1974,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["modelle","Schichtplan und eigene Schichtmodelle","modelle",
      "Unter ☰ → <b>🔁 Schichtplan</b> kannst du für einen Zeitraum ein anderes Schichtmodell festlegen. Tippe auf „+ Neues Schichtmodell“. Für einen Zeitraum kannst du ein anderes Schichtmodell festlegen: Name, Gilt von, bis, dann den Ablauf aus Blöcken bauen (Früh, Spät, Nacht oder Frei, jeweils mit Anzahl Tage). Die Vorschau zeigt die ersten Wochen. Außerhalb gilt das 17,5-Modell, außer du hast es auf derselben Seite unten ausgeschaltet."],
     ["geburtstage","Geburtstage","geburtstage",
-     "Unter ☰ → <b>🎂 Geburtstage</b> trägst du Name und Geburtstag ein. Kennst du das Jahr nicht, setze den Haken „Geburtsjahr nicht bekannt“. Schneller geht es auch über den Kalender: Tag antippen → <b>🎂 Geburtstag an diesem Tag eintragen</b>. Die Liste ist nach dem nächsten Geburtstag sortiert. Bei „Hinweis vorher“ stellst du ein, wie viele Tage vorher erinnert wird (Standard 7). Mit <b>📅 Jedes Jahr in Google Kalender eintragen</b> bekommst du zusätzlich eine Erinnerung vom Handy."],
+     "Unter ☰ → <b>🎂 Geburtstage</b> trägst du Name und Geburtstag ein. Kennst du das Jahr nicht, setze den Haken „Geburtsjahr nicht bekannt“. Schneller geht es auch über den Kalender: Tag antippen → <b>🎂 Geburtstag an diesem Tag eintragen</b>. Auf der Seite <b>Geburtstage</b> siehst du oben die nächsten drei und darunter <b>alle Geburtstage nach Monaten</b>. Bei jedem Eintrag gibt es <b>✎ Bearbeiten</b> und <b>🗑 Löschen</b> (zweimal tippen), oben <b>+ Geburtstag hinzufügen</b>. Bald anstehende Geburtstage sind rosa umrandet. Bei „Hinweis vorher“ stellst du ein, wie viele Tage vorher erinnert wird (Standard 7). Unter ✎ Bearbeiten findest du <b>📅 Jedes Jahr in Google Kalender eintragen</b>, damit bekommst du zusätzlich eine Erinnerung vom Handy."],
     ["geburtstage2","Geburtstage im Kalender","geburtstage2",
      "Im Kalender steht am Geburtstag ein kleines <b>🎂</b> rechts im Tag. Oben unter der Heute-Karte erscheint rechtzeitig eine Leiste, z. B. „🎂 In 3 Tagen (Samstag, 7. November): Monika wird 54“, am Tag selbst „🎉 Heute hat Geburtstag“. Antippen der Leiste springt zum Tag. Geburtstage werden beim Teilen mit dem Partner nicht mitgeschickt."],
     ["routinen","Routinen","routinen",
@@ -2144,17 +2150,32 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   const bdDate=b=>{const [m,d]=b.d.split("-").map(Number);return d+". "+MON[m-1]};
   function bdGcal(b){const n=bdNext(b,TODAY),f=x=>iso(x).replace(/-/g,"");
     return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("🎂 Geburtstag "+b.name)+"&dates="+f(n)+"/"+f(n+1)+"&recur="+encodeURIComponent("RRULE:FREQ=YEARLY")+"&details="+encodeURIComponent("(aus Schichtplan 17,5)")}
-  function bdaysSheet(){
-    const list=bdays.map((b,i)=>({b,i,n:bdNext(b,TODAY)})).sort((x,y)=>x.n-y.n).map(({b,i,n})=>{const k=n-TODAY,a=bdAge(b,n);
-      return '<button class="btn" data-bi="'+i+'"><span class="bdrow"><span class="bdi">'+(k===0?'🎉':'🎂')+'</span><span><b>'+esc(b.name)+'</b><br><small>'+bdDate(b)+(a!=null?' · wird '+a:'')+' · '+(k===0?'<b>heute</b>':k===1?'morgen':'in '+k+' Tagen')+'</small></span></span><span>✎</span></button>'}).join("");
-    openSheet('<h3>Geburtstage</h3><p>Geburtstage erscheinen im Kalender mit 🎂. Oben unter der Heute-Karte erscheint rechtzeitig ein Hinweis auf den nächsten Geburtstag.</p>'+
-      (list||'<p class="smeta">Noch kein Geburtstag eingetragen.</p>')+
-      '<button class="btn primary" data-a="bnew">+ Geburtstag eintragen</button>'+
-      '<h4>Hinweis vorher</h4><div class="mrow" style="align-items:center"><div class="mstep"><button type="button" data-bl="-1" aria-label="Weniger">−</button><b>'+bdLead+'</b><button type="button" data-bl="1" aria-label="Mehr">+</button></div><span>'+(bdLead===0?'nur am Geburtstag selbst':'Tag'+(bdLead===1?'':'e')+' vor dem Geburtstag')+'</span></div>'+
-      '<button class="btn" data-a="close">Schließen</button>');
-    sheet.onclick=ev=>{const bi=ev.target.closest("[data-bi]"),bl=ev.target.closest("[data-bl]"),a=ev.target.closest("[data-a]")?.dataset.a;
-      if(bi)return bdEditor(+bi.dataset.bi); if(a==="bnew")return bdEditor(-1); if(a==="close")return closeSheet();
-      if(bl){bdLead=Math.max(0,Math.min(30,bdLead+ +bl.dataset.bl));store.set("sp_bdlead",bdLead);renderToday();return bdaysSheet()}};
+  const bv=document.getElementById("bdaysView");
+  function bdaysSheet(){ renderBdays(); if(bv.hidden)openOverlay(bv); closeSheet() }
+  function renderBdays(){
+    const items=bdays.map((b,i)=>({b,i,n:bdNext(b,TODAY)}));
+    const card=({b,i,n})=>{const k=n-TODAY,a=bdAge(b,n),soon=k<=bdLead;
+      return '<li class="bdcard'+(soon?' soon':'')+'"><div class="bdtop"><span class="bdi">'+(k===0?'🎉':'🎂')+'</span><span><b>'+esc(b.name)+'</b><small>'+bdDate(b)+(b.y?' '+b.y:'')+(a!=null?' · wird '+a:'')+' · '+(k===0?'<b style="display:inline;font-size:inherit">heute</b>':k===1?'morgen':'in '+k+' Tagen')+'</small></span></div>'+
+        '<div class="bdbtns"><button type="button" class="btn" data-be="'+i+'">✎ Bearbeiten</button><button type="button" class="btn danger" data-bx="'+i+'">🗑 Löschen</button></div></li>'};
+    const next=items.slice().sort((x,y)=>x.n-y.n).slice(0,3);
+    let byMon="";
+    for(let m=1;m<=12;m++){const l=items.filter(x=>+x.b.d.slice(0,2)===m).sort((x,y)=>+x.b.d.slice(3)- +y.b.d.slice(3)||x.b.name.localeCompare(y.b.name,"de"));
+      if(l.length)byMon+='<div class="bdmon"><span>'+MON[m-1]+'</span><span>'+l.length+'</span></div><ul class="clist">'+l.map(card).join("")+'</ul>'}
+    bv.innerHTML='<div class="yvbar"><strong class="st" style="text-align:left">🎂 Geburtstage</strong><button type="button" class="iconbtn" data-bv="x">Schließen</button></div>'+
+      '<div class="sbody">'+
+      '<button type="button" class="btn primary" data-bv="new">+ Geburtstag hinzufügen</button>'+
+      (items.length?'<h3 class="sh">Als Nächstes</h3><ul class="clist">'+next.map(card).join("")+'</ul>'+
+        '<h3 class="sh">Alle Geburtstage ('+items.length+')</h3>'+byMon
+        :'<p class="smeta">Noch kein Geburtstag eingetragen. Tippe auf „+ Geburtstag hinzufügen“ oder im Kalender auf einen Tag.</p>')+
+      '<h3 class="sh">Hinweis vorher</h3><div class="mrow" style="align-items:center"><div class="mstep"><button type="button" data-bl="-1" aria-label="Weniger">−</button><b>'+bdLead+'</b><button type="button" data-bl="1" aria-label="Mehr">+</button></div><span>'+(bdLead===0?'nur am Geburtstag selbst':'Tag'+(bdLead===1?'':'e')+' vorher erscheint oben im Kalender ein Hinweis')+'</span></div>'+
+      '<p class="smeta">Rosa umrandet = Geburtstag kommt bald. Im Kalender steht am Geburtstag ein 🎂.</p></div>';
+    bv.onclick=ev=>{const t=ev.target,x=t.closest("[data-bv]")?.dataset.bv,be=t.closest("[data-be]"),bx=t.closest("[data-bx]"),bl=t.closest("[data-bl]");
+      if(x==="x")return closeOverlay(bv);
+      if(x==="new")return bdEditor(-1);
+      if(be)return bdEditor(+be.dataset.be);
+      if(bx){if(bx.dataset.sure!=="1"){bv.querySelectorAll("[data-bx]").forEach(o=>{o.dataset.sure="";o.textContent="🗑 Löschen"});bx.dataset.sure="1";bx.textContent="Sicher? Nochmal tippen";return}
+        const nm=bdays[+bx.dataset.bx].name;bdays.splice(+bx.dataset.bx,1);saveBdays();repaintAll();renderBdays();toast("Geburtstag von "+nm+" gelöscht");return}
+      if(bl){bdLead=Math.max(0,Math.min(30,bdLead+ +bl.dataset.bl));store.set("sp_bdlead",bdLead);renderToday();renderBdays()}};
   }
   function bdEditor(idx,day){
     const b=idx>=0?Object.assign({},bdays[idx]):{id:Date.now().toString(36),name:"",d:"",y:null};
@@ -2168,24 +2189,24 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         '<button class="btn primary" data-a="bsave">Speichern</button>'+
         (idx>=0?'<a class="btn" href="'+bdGcal(b)+'" target="_blank" rel="noopener">📅 Jedes Jahr in Google Kalender eintragen</a>':'')+
         (idx>=0?'<button class="btn danger" data-a="bdel">'+(sure?'Wirklich löschen? Nochmal tippen':'Geburtstag löschen')+'</button>':'')+
-        '<button class="btn" data-a="bback">'+(day!=null&&idx<0?'Abbrechen':'Zurück')+'</button>';
+        '<button class="btn" data-a="bback">Abbrechen</button>';
     }
     sheet.hidden=false;scrim.hidden=false;render();
     sheet.onclick=ev=>{const a=ev.target.closest("[data-a]")?.dataset.a;if(!a)return;
       b.name=document.getElementById("bName").value; val=document.getElementById("bDate").value; noYear=document.getElementById("bNoY").checked;
-      if(a==="bback")return day!=null&&idx<0?closeSheet():bdaysSheet();
-      if(a==="bdel"){if(!sure){sure=true;return render()}bdays.splice(idx,1);saveBdays();repaintAll();toast("Geburtstag gelöscht");return bdaysSheet()}
+      if(a==="bback")return closeSheet();
+      if(a==="bdel"){if(!sure){sure=true;return render()}bdays.splice(idx,1);saveBdays();repaintAll();toast("Geburtstag gelöscht");closeSheet();if(!bv.hidden)renderBdays();return}
       if(a==="bsave"){const er=document.getElementById("bErr");b.name=b.name.trim();
         if(!b.name){er.textContent="Bitte einen Namen eintragen.";return}
         if(!/^\d{4}-\d\d-\d\d$/.test(val)){er.textContent="Bitte den Geburtstag wählen.";return}
         const [Y,M,D]=val.split("-"); b.d=M+"-"+D; b.y=noYear?null:+Y;
         if(b.y&&b.y>fromDn(TODAY).y){er.textContent="Das Geburtsjahr liegt in der Zukunft.";return}
-        if(idx>=0)bdays[idx]=b; else bdays.push(b); saveBdays(); repaintAll(); toast("🎂 Geburtstag von "+b.name+" gespeichert"); return bdaysSheet()}
+        if(idx>=0)bdays[idx]=b; else bdays.push(b); saveBdays(); repaintAll(); toast("🎂 Geburtstag von "+b.name+" gespeichert"); closeSheet(); if(!bv.hidden)renderBdays(); return}
     };
   }
   document.getElementById("bdBar").onclick=e=>{const g=+e.currentTarget.dataset.go;if(g)jumpTo(g)};
   // ---------- Schwebender Knopf: von jeder Seite zurück zum Kalender ----------
-  { const OV=["yearView","statsView","notesView","helpView","entriesView","contactsView"].map(id=>document.getElementById(id)), bf=document.getElementById("backFab");
+  { const OV=["yearView","statsView","notesView","helpView","entriesView","contactsView","bdaysView"].map(id=>document.getElementById(id)), bf=document.getElementById("backFab");
     const upd=()=>{bf.hidden=!OV.some(o=>!o.hidden)};
     const mo=new MutationObserver(upd); OV.forEach(o=>mo.observe(o,{attributes:true,attributeFilter:["hidden"]}));
     bf.onclick=()=>{OV.forEach(o=>o.hidden=true);closeSheet();document.body.style.overflow="";upd()}; }
