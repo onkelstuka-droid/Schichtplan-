@@ -1,8 +1,9 @@
-# Schichtplan 17,5 – Projektübergabe für Claude
+# Schichtplaner – Projektübergabe für Claude
 
 App-Link: https://onkelstuka-droid.github.io/Schichtplan-/
 Repository: github.com/onkelstuka-droid/Schichtplan- (Branch `main`, GitHub Pages aus `/ (root)`)
 Idee und Konzept: **Hans-Jürgen Schlichting** (Nutzer, spricht Deutsch, Android-Handy Pixel, kein Programmierer).
+App-Name: **Schichtplaner** (früher „Schichtplan 17,5“; Wunsch des Nutzers). Sicherungs-Kennung `schichtplan-17-5` bleibt aus Kompatibilitätsgründen.
 Umsetzung: Claude. Immer auf Deutsch antworten, einfach erklären, Schritte für das Handy beschreiben.
 
 ## Aufbau

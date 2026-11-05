@@ -1,7 +1,7 @@
 {
- "name": "Schichtplan 17,5",
- "short_name": "Schichtplan",
- "description": "Schichtkalender für das 17,5-Schichtmodell in Bayern. Idee: Hans-Jürgen Schlichting.",
+ "name": "Schichtplaner",
+ "short_name": "Schichtplaner",
+ "description": "Persönlicher Schichtkalender für Schichtarbeit. Idee: Hans-Jürgen Schlichting.",
  "lang": "de",
  "start_url": "./",
  "scope": "./",

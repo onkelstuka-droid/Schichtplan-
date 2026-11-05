@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1d1f24">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Schichtplan"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Schichtplaner"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>
@@ -14,7 +14,7 @@ window.claude={use:function(n){return Promise.resolve(n==="downloads"?{save:func
 if("serviceWorker" in navigator)addEventListener("load",function(){navigator.serviceWorker.register("sw.js")});
 </script>
 </head><body>
-<title>Schichtplan 17,5</title>
+<title>Schichtplaner</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
@@ -1095,7 +1095,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if(dl){ try{ await dl.save({filename,data}); toast("Gespeichert: "+filename); return }
       catch(e){ if(e&&e.code==="declined") return; } }
     // Fallback: Text zum Kopieren anzeigen
-    if(fallbackText==null){toast("Speichern ist in dieser Ansicht nicht möglich. Öffne den Schichtplan in der Claude-App oder auf claude.ai.");return}
+    if(fallbackText==null){toast("Speichern ist in dieser Ansicht nicht möglich. Öffne den Schichtplaner in der Claude-App oder auf claude.ai.");return}
     openSheet('<h3>Zum Kopieren</h3><p>Direktes Speichern geht in dieser Ansicht nicht. Kopiere den Text und sichere ihn z. B. in einer Notiz oder schick ihn dir per WhatsApp.</p>'+
       '<textarea id="cpTxt" readonly rows="6">'+fallbackText.replace(/</g,"&lt;")+'</textarea>'+
       '<button class="btn primary" data-a="copy">Text kopieren</button><button class="btn" data-a="close">Schließen</button>');
@@ -1105,7 +1105,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       navigator.clipboard?.writeText(ta.value).then(()=>toast("Kopiert"),()=>{ta.select();toast("Text markiert, jetzt kopieren")}) ?? (ta.select(),toast("Text markiert, jetzt kopieren"));};
   }
   function backupData(){return {app:"schichtplan-17-5",version:1,saved:todayIso(),anchor:iso(anchor),quota,vac,colors,anim:animOn,notes,contacts,ot,otCfg,models,partners:store.get("sp_partners",[]),routines,base,bdays,bdLead}}
-  function saveBackup(){const j=JSON.stringify(backupData()); saveFile("Schichtplan-Sicherung-"+todayIso()+".json",j,j)}
+  function saveBackup(){const j=JSON.stringify(backupData()); saveFile("Schichtplaner-Sicherung-"+todayIso()+".json",j,j)}
   function parseBackup(txt){
     let d; try{d=JSON.parse(txt)}catch(e){return null}
     if(!d||d.app!=="schichtplan-17-5"||typeof d.vac!=="object")return null;
@@ -1119,7 +1119,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<div class="err" id="bkErr"></div><div id="bkConfirm"></div>'+
       '<button class="btn" data-a="check">Text prüfen</button><button class="btn" data-a="close">Abbrechen</button>');
     const show=txt=>{const d=parseBackup(txt), box=document.getElementById("bkConfirm"), er=document.getElementById("bkErr");
-      if(!d){er.textContent="Das ist keine gültige Schichtplan-Sicherung. Bitte die .json-Datei aus „Sicherung speichern“ verwenden.";box.innerHTML="";return}
+      if(!d){er.textContent="Das ist keine gültige Schichtplaner-Sicherung. Bitte die .json-Datei aus „Sicherung speichern“ verwenden.";box.innerHTML="";return}
       er.textContent=""; const cnt={}; for(const k in d.vac)cnt[d.vac[k]]=(cnt[d.vac[k]]||0)+1;
       box.innerHTML='<p>Sicherung vom <b>'+(d.saved||"?")+'</b>: '+(Object.keys(cnt).map(k=>cnt[k]+' '+k).join(", ")||"keine Einträge")+(d.notes?', '+Object.keys(d.notes).length+' Notizen':'')+(d.contacts?', '+d.contacts.length+' Telefonnummern':'')+(d.ot?', '+d.ot.length+' Überstunden-Einträge':'')+'.<br>Deine jetzigen Einträge werden dabei ersetzt.</p>'+
         '<button class="btn primary" data-a="apply">Sicherung jetzt laden</button>';
@@ -1393,7 +1393,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   // In den Handy-Kalender übernehmen (Google Kalender öffnet sich mit fertig ausgefülltem Termin)
   function gcalUrl(a,b,txt){const f=n=>iso(n).replace(/-/g,""),end=(b||a)+1,first=txt.split("\n")[0].slice(0,60);
-    return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(first)+"&dates="+f(a)+"/"+f(end)+"&details="+encodeURIComponent(txt+"\n\n(aus Schichtplan 17,5)")}
+    return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(first)+"&dates="+f(a)+"/"+f(end)+"&details="+encodeURIComponent(txt+"\n\n(aus dem Schichtplaner)")}
   function calAsk(a,b,txt){
     openSheet('<h3>Notiz gespeichert</h3><p>Möchtest du sie auch in deinen Handy-Kalender eintragen?</p>'+
       '<div class="nbox"><b>'+(b?dShort(a)+' – '+dShort(b):fmt(a))+'</b><p>'+esc(txt)+'</p></div>'+
@@ -2017,7 +2017,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
      "Der Hintergrund wechselt mit der Jahreszeit: Schnee, Blüten, Sonne, Laub und im Herbst ab und zu ein Gewitter. Figuren wie Enten, Osterhase, Weihnachtsmann oder Laternen passen zum Monat. Antippen lässt kleine Wirbel aufsteigen. Mit dem <b>Lautsprecher-Knopf</b> schaltest du Naturgeräusche ein. An Feiertagen gibt es eigene Klänge, wenn du den Tag antippst oder der Tag heute ist. Vom 20. bis 31.12. laufen Weihnachtslieder, an Silvester startet ein Feuerwerk, wenn der 31.12. in der Bildschirmmitte steht."],
     ["impressum","Impressum",null,"Unter ☰ Menü → Impressum steht, wer die App erdacht und gebaut hat, und wie mit deinen Daten umgegangen wird."],
     ["kachel","Als Kachel aufs Handy und teilen",null,
-     "Öffne den Schichtplan im Browser (Android: ⋮ → „Zum Startbildschirm hinzufügen“, iPhone: Teilen → „Zum Home-Bildschirm“). Deine Kollegen bekommen den Link per WhatsApp. Jeder speichert seine eigenen Einträge, und unter Einstellungen kann jeder seinen Rhythmus einstellen."]];
+     "Öffne den Schichtplaner im Browser (Android: ⋮ → „Zum Startbildschirm hinzufügen“, iPhone: Teilen → „Zum Home-Bildschirm“). Deine Kollegen bekommen den Link per WhatsApp. Jeder speichert seine eigenen Einträge, und unter Einstellungen kann jeder seinen Rhythmus einstellen."]];
   const hv=document.getElementById("helpView");
   function openHelp(){
     hv.innerHTML='<div class="yvbar"><strong class="st" style="text-align:left">Anleitung</strong><button type="button" class="iconbtn" data-h="x">Schließen</button></div>'+
@@ -2035,7 +2035,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // ---------- Impressum ----------
   function openImpressum(){
     openSheet('<h3>Impressum</h3>'+
-      '<div class="impr"><p class="impapp">📅 <b>Schichtplan</b><br><span>Persönlicher Schichtkalender für Schichtarbeit: Schichten, Urlaub, Überstunden, Notizen, Routinen und Geburtstage auf einen Blick</span></p>'+
+      '<div class="impr"><p class="impapp">📅 <b>Schichtplaner</b><br><span>Persönlicher Schichtkalender für Schichtarbeit: Schichten, Urlaub, Überstunden, Notizen, Routinen und Geburtstage auf einen Blick</span></p>'+
       '<h4>Idee und Konzept</h4><p><b>Hans-Jürgen Schlichting</b></p>'+
       '<h4>Umsetzung</h4><p>Programmiert, gestaltet und vertont von <b>Claude</b>, dem KI-Assistenten von Anthropic, nach der Idee und den Vorgaben von Hans-Jürgen Schlichting.</p>'+
       '<h4>Hinweise</h4><p>Die App ist ein privates, kostenloses Hilfsmittel und ersetzt keine offiziellen Unterlagen. Schichten werden nach dem eingestellten Schichtmodell berechnet, Feiertage (Bayern), Zeitumstellung und Ostertermine automatisch. Alle Angaben ohne Gewähr. Maßgeblich sind immer der offizielle Schichtplan und die Regelungen deines Arbeitgebers.</p>'+
@@ -2050,7 +2050,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // ---------- Einstellungen ----------
   document.getElementById("setBtn").onclick=()=>{
     const cyc=PATTERN.map(p=>'<i class="'+p+'"></i>').join("");
-    openSheet('<h3>Schichtplan 17,5</h3>'+
+    openSheet('<h3>Schichtplaner</h3>'+
       '<button class="mtile helptile" data-a="help"><span>📖</span>Anleitung<small>Alle Funktionen mit Bildern erklärt</small></button>'+
       '<button class="mtile helptile" data-a="impressum"><span>ℹ️</span>Impressum<small>Idee: Hans-Jürgen Schlichting · Umsetzung: Claude</small></button>'+
       '<button class="btn" data-a="year">Jahresübersicht '+viewYear+' (A4) <small>ganzes Jahr auf einer Seite</small></button>'+
@@ -2166,7 +2166,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   const MON=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
   const bdDate=b=>{const [m,d]=b.d.split("-").map(Number);return d+". "+MON[m-1]};
   function bdGcal(b){const n=bdNext(b,TODAY),f=x=>iso(x).replace(/-/g,"");
-    return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("🎂 Geburtstag "+b.name)+"&dates="+f(n)+"/"+f(n+1)+"&recur="+encodeURIComponent("RRULE:FREQ=YEARLY")+"&details="+encodeURIComponent("(aus Schichtplan 17,5)")}
+    return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("🎂 Geburtstag "+b.name)+"&dates="+f(n)+"/"+f(n+1)+"&recur="+encodeURIComponent("RRULE:FREQ=YEARLY")+"&details="+encodeURIComponent("(aus dem Schichtplaner)")}
   const bv=document.getElementById("bdaysView");
   function bdaysSheet(){ renderBdays(); if(bv.hidden)openOverlay(bv); closeSheet() }
   function renderBdays(){
@@ -2295,7 +2295,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<input class="pvinp" id="pvPaste" placeholder="Empfangenen Link hier einfügen"><button class="btn" data-a="paste">Link übernehmen</button>'+
       '<button class="btn" data-a="close">Schließen</button>');
     const name=()=>{const v=(document.getElementById("pvMy").value||"").trim();if(!v){document.getElementById("pvErr").textContent="Bitte zuerst deinen Namen eintragen.";document.getElementById("pvMy").focus();return null}store.set("sp_myname",v);return v};
-    const text=(n,l)=>"📅 Mein Schichtplan von "+n+"\nZum Öffnen antippen. Der Plan wird in deiner Schichtplan-App gespeichert:\n"+l;
+    const text=(n,l)=>"📅 Mein Schichtplan von "+n+"\nZum Öffnen antippen. Der Plan wird in deiner Schichtplaner-App gespeichert:\n"+l;
     sheet.onclick=async e=>{
       const pv=e.target.closest("[data-pv]"),pd=e.target.closest("[data-pd]"),a=e.target.closest("[data-a]")?.dataset.a;
       if(pv)return showPartner(partners[+pv.dataset.pv]);

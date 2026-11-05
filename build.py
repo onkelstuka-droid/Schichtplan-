@@ -9,7 +9,7 @@ head='''<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1d1f24">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Schichtplan"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Schichtplaner"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>
@@ -23,7 +23,7 @@ if("serviceWorker" in navigator)addEventListener("load",function(){navigator.ser
 </head><body>
 '''
 open('index.html','w',encoding='utf-8').write(head+src+'\n</body></html>\n')
-man={"name":"Schichtplan 17,5","short_name":"Schichtplan","description":"Schichtkalender für das 17,5-Schichtmodell in Bayern. Idee: Hans-Jürgen Schlichting.",
+man={"name":"Schichtplaner","short_name":"Schichtplaner","description":"Persönlicher Schichtkalender für Schichtarbeit. Idee: Hans-Jürgen Schlichting.",
  "lang":"de","start_url":"./","scope":"./","display":"standalone","orientation":"portrait","background_color":"#f3f2ef","theme_color":"#1d1f24",
  "icons":[{"src":"icons/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icons/icon-512.png","sizes":"512x512","type":"image/png"},
           {"src":"icons/icon-maskable-192.png","sizes":"192x192","type":"image/png","purpose":"maskable"},{"src":"icons/icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}
