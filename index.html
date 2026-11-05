@@ -1061,7 +1061,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     let cnt={F:0,S:0,N:0}; for(let n=dn(y,0,1);n<dn(y+1,0,1);n++){const s=shift(n);if(s!=="X")cnt[s]++}
     const hl=[...holidays(y)].map(([n,name])=>'<li><span class="ic">'+ICON[name]+'</span><b>'+fromDn(n).d+'.'+(fromDn(n).m+1)+'.</b> '+name+'</li>').join("");
     yv.innerHTML='<div class="yvbar"><button type="button" class="iconbtn sq" data-y="-1" aria-label="Vorheriges Jahr">‹</button><strong>'+y+'</strong><button type="button" class="iconbtn sq" data-y="1" aria-label="Nächstes Jahr">›</button><button type="button" class="iconbtn" data-y="x">Schließen</button></div>'+
-      '<div class="yvact"><button type="button" class="btn primary" data-y="pdf">📄 Als PDF speichern und drucken</button></div>'+
+      '<div class="yvact"><button type="button" class="btn primary" data-y="pdf">📄 Als PDF speichern und drucken</button><button type="button" class="btn" data-y="pdfbw" style="margin-top:8px">🖨️ Schwarz-Weiß-PDF <small>&nbsp;für Drucker ohne Farbe, spart Tinte</small></button></div>'+
       '<p class="yvhint">Das PDF öffnest du nach dem Speichern auf dem Handy und druckst es über „Drucken“ oder „Teilen → Drucken“.</p>'+
       '<div class="a4wrap"><div class="a4"><div class="a4head"><span>Schichtplan '+y+(PV?' · '+esc(PV.n):'')+'</span><small>'+(base==="none"?'Bayern':'17,5-Modell · Bayern')+'</small></div>'+
       '<div class="ygrid">'+months+'</div>'+
@@ -1069,7 +1069,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<div class="sum">Früh '+cnt.F+' · Spät '+cnt.S+' · Nacht '+cnt.N+' · Schichten gesamt '+(cnt.F+cnt.S+cnt.N)+' · Feiertage auf Schichttagen '+ftInShift(y)+'</div>'+
       '<ul class="yhol">'+hl+'</ul></div></div></div>';
     fitA4();
-    yv.onclick=ev=>{const b=ev.target.closest("[data-y]");if(!b)return;if(b.dataset.y==="x"){yv.hidden=true;document.body.style.overflow="";return}if(b.dataset.y==="pdf"){savePdf(y);return}renderYear(y+ +b.dataset.y)};
+    yv.onclick=ev=>{const b=ev.target.closest("[data-y]");if(!b)return;if(b.dataset.y==="x"){yv.hidden=true;document.body.style.overflow="";return}if(b.dataset.y==="pdf"){savePdf(y);return}if(b.dataset.y==="pdfbw"){savePdf(y,true);return}renderYear(y+ +b.dataset.y)};
   }
   function fitA4(){const w=yv.querySelector(".a4wrap");if(!w)return;const k=Math.min(1,w.clientWidth/794);w.style.height=(1123*k)+"px";w.firstChild.style.transform="scale("+k+")"}
   addEventListener("resize",()=>{if(!yv.hidden)fitA4()});
@@ -1174,12 +1174,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   const emCache={};
   function emojiPng(ch){if(!ch)return null;if(emCache[ch])return emCache[ch];try{const c=document.createElement("canvas");c.width=c.height=64;const x=c.getContext("2d");
     x.font='52px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';x.textAlign="center";x.textBaseline="middle";x.fillText(ch,32,36);return emCache[ch]=c.toDataURL("image/png")}catch(e){return null}}
-  async function savePdf(y){
+  async function savePdf(y,bw){
     if(!dl){toast("PDF-Speichern geht nur in der Claude-App oder auf claude.ai.");return}
     toast("PDF wird erstellt …");
     let lib; try{lib=await loadJsPDF()}catch(e){toast("PDF-Erstellung konnte nicht geladen werden. Bitte Internet prüfen.");return}
     const doc=new lib.jsPDF({unit:"mm",format:"a4"});
     const C={F:curCol("frueh"),S:curCol("spaet"),N:curCol("nacht"),U:curCol("urlaub"),TZ:curCol("tz"),AG:curCol("ag"),K:curCol("krank"),SU:curCol("su"),X:"#4a4d53",FT:curCol("feiertag"),WE:curCol("we")};
+    if(bw)Object.assign(C,{F:"#ffffff",S:"#bdbdbd",N:"#2b2b2b",X:"#ffffff",FT:"#ffffff",WE:"#ededed"}); // Schwarz-Weiß: Graustufen statt Farben
+    const BWINK={F:"#000000",S:"#000000",N:"#ffffff",X:"#7a7a7a"};
     const fill=c=>doc.setFillColor(...hex2rgb(c)), txt=c=>doc.setTextColor(...hex2rgb(c)), stroke=c=>doc.setDrawColor(...hex2rgb(c));
     doc.setFont("helvetica","bold");doc.setFontSize(22);txt("#1d1f24");doc.text("SCHICHTPLAN "+y+(PV?" · "+PV.n.toUpperCase():""),12,18);
     doc.setFont("helvetica","normal");doc.setFontSize(9);txt("#6b6f78");doc.text(base==="none"?"Bayern":"17,5-Modell · Bayern",198,18,{align:"right"});
@@ -1192,28 +1194,32 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       ["M","D","M","D","F","S","S"].forEach((d,i)=>{if(i>4)txt("#4a3a2a");doc.text(d,x0+i*cw+cw/2,y0+3.6,{align:"center"})});
       const first=dn(y,m,1),days=new Date(Date.UTC(y,m+1,0)).getUTCDate(),lead=(fromDn(first).w+6)%7,rows=Math.ceil((lead+days)/7);
       // Wochenend-Band hinter Samstag und Sonntag
-      doc.setGState(new doc.GState({opacity:.42}));fill(C.WE);doc.roundedRect(x0+5*cw-.3,y0+1.2,2*cw+.6,4+rows*ch+.4,1.6,1.6,"F");doc.setGState(new doc.GState({opacity:1}));
+      doc.setGState(new doc.GState({opacity:bw?1:.42}));fill(C.WE);doc.roundedRect(x0+5*cw-.3,y0+1.2,2*cw+.6,4+rows*ch+.4,1.6,1.6,"F");doc.setGState(new doc.GState({opacity:1}));
+      if(bw){doc.setFont("helvetica","bold");doc.setFontSize(6);txt("#000000");["S","S"].forEach((d,i)=>doc.text(d,x0+(5+i)*cw+cw/2,y0+3.6,{align:"center"}))}
       for(let d=0;d<days;d++){const n=first+d,p=lead+d,cx=x0+(p%7)*cw,cy=y0+5+Math.floor(p/7)*ch,s=shift(n),t=null,h=holiday(n),key=s;
-        fill(h?C.FT:C[key]);doc.roundedRect(cx+.3,cy+.3,cw-.6,ch-.6,.8,.8,"F");
-        if(h&&key!=="X"){stroke(C[key]);doc.setLineWidth(.9);doc.roundedRect(cx+.75,cy+.75,cw-1.5,ch-1.5,.5,.5,"S")}
-        const ink=h?"#ffffff":(key==="X"?"#ffffff":inkFor(C[key]));txt(ink);
+        if(bw){fill(h?C.FT:C[key]);stroke(h?"#000000":"#8a8a8a");doc.setLineWidth(h?.7:.2);doc.roundedRect(cx+.3,cy+.3,cw-.6,ch-.6,.8,.8,"FD")}
+        else{fill(h?C.FT:C[key]);doc.roundedRect(cx+.3,cy+.3,cw-.6,ch-.6,.8,.8,"F");
+        if(h&&key!=="X"){stroke(C[key]);doc.setLineWidth(.9);doc.roundedRect(cx+.75,cy+.75,cw-1.5,ch-1.5,.5,.5,"S")}}
+        const ink=bw?(h?"#000000":BWINK[key]):h?"#ffffff":(key==="X"?"#ffffff":inkFor(C[key]));txt(ink);
         doc.setFont("helvetica","normal");doc.setFontSize(5.2);doc.text(String(d+1),cx+cw/2,cy+2.5,{align:"center"});
-        if(h){const im=emojiPng(ICON[h]);if(im)doc.addImage(im,"PNG",cx+cw/2-1.5,cy+2.9,3,3)}
-        const lab=t?t:(h?"":(s==="X"?"Frei":s)); if(lab){doc.setFont("helvetica","bold");doc.setFontSize(lab==="Frei"?5.4:6.4);doc.text(lab,cx+cw/2,cy+5.2,{align:"center"})}
+        if(h&&!bw){const im=emojiPng(ICON[h]);if(im)doc.addImage(im,"PNG",cx+cw/2-1.5,cy+2.9,3,3)}
+        const lab=t?t:(h?(bw?"FT":""):(s==="X"?(bw?"frei":"Frei"):s)); if(lab){doc.setFont("helvetica",bw&&lab==="frei"?"normal":"bold");doc.setFontSize(lab==="Frei"||lab==="frei"?5.4:6.4);doc.text(lab,cx+cw/2,cy+5.2,{align:"center"})}
       }
     }
     // Fuß: Legende, Summen, Feiertage
     let fy=230; stroke("#d8d6d0");doc.setLineWidth(.3);doc.line(12,fy-4,198,fy-4);
     let lx=12; [["F","Früh"],["S","Spät"],["N","Nacht"],["X","Frei"],["FT","Feiertag (frei)"],["WE","Wochenende"]].forEach(([k,l])=>{
-      if(k==="WE")doc.setGState(new doc.GState({opacity:.42}));fill(C[k]);doc.roundedRect(lx,fy-3,5,4,.6,.6,"F");doc.setGState(new doc.GState({opacity:1}));doc.setFont("helvetica","normal");doc.setFontSize(7.5);txt("#1d1f24");doc.text(l,lx+6.2,fy);lx+=6.2+doc.getTextWidth(l)+4});
+      if(k==="WE"&&!bw)doc.setGState(new doc.GState({opacity:.42}));fill(C[k]);
+      if(bw){stroke(k==="FT"?"#000000":"#8a8a8a");doc.setLineWidth(k==="FT"?.7:.2);doc.roundedRect(lx,fy-3,5,4,.6,.6,"FD");const L={F:"F",S:"S",N:"N",FT:"FT"}[k];if(L){doc.setFont("helvetica","bold");doc.setFontSize(L==="FT"?4.6:5.5);txt(k==="N"?"#ffffff":"#000000");doc.text(L,lx+2.5,fy-.2,{align:"center"})}}
+      else doc.roundedRect(lx,fy-3,5,4,.6,.6,"F");doc.setGState(new doc.GState({opacity:1}));doc.setFont("helvetica","normal");doc.setFontSize(7.5);txt("#1d1f24");doc.text(l,lx+6.2,fy);lx+=6.2+doc.getTextWidth(l)+4});
     let cnt={F:0,S:0,N:0};for(let n=dn(y,0,1);n<dn(y+1,0,1);n++){const s=shift(n);if(s!=="X")cnt[s]++}
     fy+=7;doc.setFont("helvetica","bold");doc.setFontSize(8);
     doc.text("Früh "+cnt.F+" · Spät "+cnt.S+" · Nacht "+cnt.N+" · Schichten gesamt "+(cnt.F+cnt.S+cnt.N)+" · Feiertage auf Schichttagen "+ftInShift(y),12,fy);
     fy+=6;doc.setFontSize(7.2);const hl=[...holidays(y)];
     hl.forEach(([n,name],i)=>{const col=Math.floor(i/5),row=i%5,yy=fy+row*4;let x=12+col*62;const o=fromDn(n);
-      {const im=emojiPng(ICON[name]);if(im)doc.addImage(im,"PNG",x,yy-2.8,3.4,3.4)}x+=4.5;doc.setFont("helvetica","bold");txt(C.FT);doc.text(o.d+"."+(o.m+1)+".",x,yy);
+      if(!bw){const im=emojiPng(ICON[name]);if(im)doc.addImage(im,"PNG",x,yy-2.8,3.4,3.4)}x+=bw?0:4.5;doc.setFont("helvetica","bold");txt(bw?"#000000":C.FT);doc.text(o.d+"."+(o.m+1)+".",x,yy);
       doc.setFont("helvetica","normal");txt("#1d1f24");doc.text(name,x+9,yy)});
-    try{ await dl.save({filename:"Schichtplan-"+y+(PV?"-"+PV.n.replace(/[^\wäöüÄÖÜß-]+/g,"_"):"")+".pdf",data:doc.output("arraybuffer")}); toast("PDF gespeichert") }
+    try{ await dl.save({filename:"Schichtplan-"+y+(PV?"-"+PV.n.replace(/[^\wäöüÄÖÜß-]+/g,"_"):"")+(bw?"-sw":"")+".pdf",data:doc.output("arraybuffer")}); toast("PDF gespeichert") }
     catch(e){ if(!e||e.code!=="declined") toast("Speichern hat nicht geklappt. Bitte später noch einmal versuchen.") }
   }
 
@@ -1253,7 +1259,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<p class="smeta">Farbig gefüllt = deine Einträge. Grau mit Farbstrich = normale Schicht (gelb Früh, orange Spät, blau Nacht). Roter Rahmen = Feiertag.</p>'+
       '<h3 class="sh">Alle Einträge</h3>'+(groups||'<p class="smeta">In '+y+' ist noch nichts eingetragen. Tippe im Kalender auf einen Tag, um Urlaub, Ausgleich, Krank oder Sonderurlaub einzutragen.</p>')+
       '<h3 class="sh">Speichern</h3><div class="sbtns">'+
-      '<button type="button" class="btn" data-s="pdf">Jahresplan '+y+' als PDF <small>A4, zum Drucken</small></button>'+
+      '<button type="button" class="btn" data-s="pdf">Jahresplan '+y+' als PDF <small>A4, in Farbe</small></button>'+
+      '<button type="button" class="btn" data-s="pdfbw">Jahresplan '+y+' schwarz-weiß <small>A4, spart Tinte</small></button>'+
       '<button type="button" class="btn" data-s="csv">Einträge '+y+' als Tabelle <small>CSV für Excel</small></button>'+
       '<button type="button" class="btn" data-s="bak">Sicherung speichern <small>alle Einträge, alle Jahre</small></button>'+
       '<button type="button" class="btn" data-s="res">Sicherung laden <small>z. B. auf neuem Handy</small></button></div></div>';
@@ -1262,6 +1269,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(b){ if(b.dataset.y==="x"){closeStats();return} renderStats(y+ +b.dataset.y); sv.scrollTop=0; return }
       if(g){ closeStats(); const n=+g.dataset.go; jumpTo(n); return }
       if(s==="pdf") savePdf(y);
+      if(s==="pdfbw") savePdf(y,true);
       if(s==="csv") {const c=csvFor(y); saveFile("Schichtplan-Eintraege-"+y+".csv",c,c)}
       if(s==="bak") saveBackup();
       if(s==="res") restoreSheet();
@@ -1986,7 +1994,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["notizen","Notizen-Übersicht","notizen",
      "Alle Notizen mit Datum, getrennt in anstehend und vergangen. Antippen springt zum Tag."],
     ["jahr","Jahresübersicht und Drucken","jahr",
-     "Das ganze Jahr auf einer A4-Seite, nur mit Schichten und Feiertagen. Mit <b>📄 Als PDF speichern und drucken</b> speicherst du die Seite. Das PDF öffnest du auf dem Handy und druckst es über „Drucken“ oder „Teilen → Drucken“."],
+     "Das ganze Jahr auf einer A4-Seite, nur mit Schichten und Feiertagen. Mit <b>📄 Als PDF speichern und drucken</b> speicherst du die Seite in Farbe. Hast du einen Drucker ohne Farbe oder willst Tinte sparen, nimm <b>🖨️ Schwarz-Weiß-PDF</b>: Früh ist weiß, Spät hellgrau, Nacht dunkel mit weißer Schrift, Feiertage haben einen dicken schwarzen Rahmen mit „FT“. Das PDF öffnest du auf dem Handy und druckst es über „Drucken“ oder „Teilen → Drucken“."],
     ["modelle","Schichtplan und eigene Schichtmodelle","modelle",
      "Unter ☰ → <b>🔁 Schichtplan</b> kannst du für einen Zeitraum ein anderes Schichtmodell festlegen. Tippe auf „+ Neues Schichtmodell“. Für einen Zeitraum kannst du ein anderes Schichtmodell festlegen: Name, Gilt von, bis, dann den Ablauf aus Blöcken bauen (Früh, Spät, Nacht oder Frei, jeweils mit Anzahl Tage). Die Vorschau zeigt die ersten Wochen. Außerhalb gilt das 17,5-Modell, außer du hast es auf derselben Seite unten ausgeschaltet."],
     ["geburtstage","Geburtstage","geburtstage",
