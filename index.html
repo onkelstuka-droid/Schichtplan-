@@ -334,6 +334,9 @@ body.pv .budget{display:none}
 .pvitem div{flex:1;min-width:0}.pvitem b{display:block}.pvitem small{color:var(--muted)}
 .pvitem button{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:9px 10px;font:600 14px var(--f-body);cursor:pointer}
 .pvnote{font-size:13.5px;color:var(--muted);margin:0}
+.day.ic2::before,.day.ic2[data-ic].ot::before{font-size:10px;letter-spacing:-1px;right:1px}
+.bdbar{box-shadow:inset 3px 0 0 #e0479e}
+.bdrow{display:flex;align-items:center;gap:10px}.bdrow .bdi{font-size:24px}.bdrow small{color:var(--muted)}
 .backfab{z-index:12;background:var(--nacht);color:var(--nacht-ink)}
 .day .rt{position:absolute;right:2px;top:3px;max-width:calc(55% - 4px);overflow:hidden;white-space:nowrap;font:800 9.5px/1.3 var(--f-body);letter-spacing:.02em;padding:0 2px;border-radius:3px;background:rgba(255,255,255,.88);color:#1d1f24;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
 .day[data-ic] .rt{top:18px}
@@ -385,6 +388,7 @@ a.btn{text-decoration:none;justify-content:center}
     </div>
     <div class="pvbar" id="pvBar" hidden><span id="pvName"></span><button type="button" id="pvBack">Zurück zu meinem Plan</button></div>
     <button type="button" class="dstbar" id="dstBar" hidden></button>
+    <button type="button" class="dstbar bdbar" id="bdBar" hidden></button>
     <div class="budget" id="budget"></div>
     <div class="dow"><div><span class="lf">Montag</span><span class="sf">Mo</span></div><div><span class="lf">Dienstag</span><span class="sf">Di</span></div><div><span class="lf">Mittwoch</span><span class="sf">Mi</span></div><div><span class="lf">Donnerst.</span><span class="sf">Do</span></div><div><span class="lf">Freitag</span><span class="sf">Fr</span></div><div><span class="lf">Samstag</span><span class="sf">Sa</span></div><div><span class="lf">Sonntag</span><span class="sf">So</span></div></div>
   </header>
@@ -439,7 +443,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   const WD = ["So","Mo","Di","Mi","Do","Fr","Sa"];
   const WDL = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
   let PV=null; // gerade angezeigter Partner-Plan (nur lesen)
-  const PVKEYS=["sp_vac2","sp_models","sp_notes","sp_ot","sp_quota","sp_anchor2","sp_base","sp_routines"];
+  const PVKEYS=["sp_vac2","sp_models","sp_notes","sp_ot","sp_quota","sp_anchor2","sp_base","sp_routines","sp_bdays"];
   const store = {
     get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
     set(k,v){if(PV&&PVKEYS.includes(k))return;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
@@ -485,6 +489,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if(r.unit==="d")return (n-a)%k===0; if(r.unit==="w")return (n-a)%(7*k)===0;
     const A=fromDn(a),B=fromDn(n);return B.d===A.d&&((B.y-A.y)*12+B.m-A.m)%k===0}
   const routinesOn=n=>routines.filter(r=>rOn(r,n));
+  // ---------- Geburtstage ----------
+  let bdays=store.get("sp_bdays",[]); const saveBdays=()=>store.set("sp_bdays",bdays);
+  let bdLead=store.get("sp_bdlead",7);
+  const leap=y=>(y%4===0&&y%100!==0)||y%400===0;
+  function bdIn(b,y){const [m,d]=b.d.split("-").map(Number);return (m===2&&d===29&&!leap(y))?dn(y,1,28):dn(y,m-1,d)} // 29.2. in Nicht-Schaltjahren am 28.2.
+  const bdOn=n=>bdays.filter(b=>bdIn(b,fromDn(n).y)===n);
+  function bdNext(b,from){const y=fromDn(from).y;let n=bdIn(b,y);if(n<from)n=bdIn(b,y+1);return n}
+  const bdAge=(b,n)=>b.y?fromDn(n).y-b.y:null;
   // An allen Feiertagen (inkl. Heiligabend und Silvester) wird nicht gearbeitet
   const shift = n=>{const s=rawShift(n);return s!=="X"&&holiday(n)?"X":s};
   const fmt = n=>{const o=fromDn(n);return WDL[o.w]+", "+o.d+". "+MONTHS[o.m]+" "+o.y};
@@ -562,11 +574,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     el.className="day "+(t||s)+(ft?" ft":"")+(n===TODAY?" today":"")+(n<TODAY?" past":"")+(pickStart===n?" pick":"");
     el.querySelector(".s").textContent = t?TYPE[t].short:SHORT[s];
     if(t && s!=="X") el.dataset.orig=s; else delete el.dataset.orig;
-    const ic=t==="K"?"🌡️":icon(n); if(ic) el.dataset.ic=ic; else delete el.dataset.ic;
+    const ic=((t==="K"?"🌡️":icon(n))||"")+(bdOn(n).length?"🎂":""); if(ic) el.dataset.ic=ic; else delete el.dataset.ic; el.classList.toggle("ic2",!!(t==="K"||icon(n))&&bdOn(n).length>0);
     el.querySelector(".nm").hidden=!noteAt(n);
     { const rs=routinesOn(n), rt=el.querySelector(".rt"); rt.hidden=!rs.length; rt.textContent=rs.length?rs[0].ab+(rs.length>1?"+":""):""; }
     el.classList.toggle("ot",otOn(n).length>0);
-    el.setAttribute("aria-label",fmt(n)+(ft?" ("+ft+")":special(n)?" ("+special(n)+")":"")+": "+label(n)+routinesOn(n).map(r=>", "+r.name).join(""));
+    el.setAttribute("aria-label",fmt(n)+(ft?" ("+ft+")":special(n)?" ("+special(n)+")":"")+": "+label(n)+routinesOn(n).map(r=>", "+r.name).join("")+bdOn(n).map(b=>", Geburtstag "+b.name).join(""));
   }
   function statMonth(sec){
     const c={F:0,S:0,N:0,U:0,TZ:0,AG:0,K:0,SU:0}, hs=[];
@@ -640,6 +652,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const dn2=[dstDay(fromDn(TODAY).y,2),dstDay(fromDn(TODAY).y,9),dstDay(fromDn(TODAY).y+1,2)].find(d=>d>=TODAY&&d-TODAY<=14), bar=document.getElementById("dstBar");
     if(dn2!=null){const sp=dst(dn2),k=dn2-TODAY;bar.hidden=false;bar.innerHTML='🕑 <b>'+(k===0?'Heute Nacht':k===1?'Morgen':'In '+k+' Tagen')+'</b> ('+fmtS(dn2)+'): '+(sp==="Sommerzeit"?'Uhr 2→3 vorstellen':'Uhr 3→2 zurückstellen')+(shift(dn2-1)==="N"?' · Nachtschicht '+(sp==="Sommerzeit"?'1 h kürzer':'1 h länger'):'');bar.dataset.go=dn2}
     else bar.hidden=true;
+    { const bb=document.getElementById("bdBar"), up=bdays.map(b=>({b,n:bdNext(b,TODAY)})).filter(x=>x.n-TODAY<=bdLead).sort((x,y)=>x.n-y.n);
+      if(!up.length){bb.hidden=true}else{const n0=up[0].n,same=up.filter(x=>x.n===n0),k=n0-TODAY,more=up.length-same.length;
+        const eh=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+        const who=same.map(x=>eh(x.b.name)+(bdAge(x.b,n0)!=null?(k===0?' ('+bdAge(x.b,n0)+')':' wird '+bdAge(x.b,n0)):'')).join(", ");
+        bb.hidden=false;bb.dataset.go=n0;
+        bb.innerHTML=(k===0?'🎉 <b>Heute</b> hat Geburtstag: '+who:'🎂 <b>'+(k===1?'Morgen':'In '+k+' Tagen')+'</b> ('+fmtS(n0)+'): '+who)+(more?' · <span style="opacity:.7">+'+more+' weitere</span>':'');}}
   }
   function ftInShift(y){let c=0;holidays(y).forEach((_,n)=>{if(rawShift(n)!=="X")c++});return c}
   function renderBudget(){
@@ -925,8 +943,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       (ft?'<p>An '+ft+' wird nicht gearbeitet.'+(rawShift(n)!=="X"?' Laut Rhythmus wäre '+NAMES[rawShift(n)]+'.':'')+'</p>':'')+
       (modelFor(n)?'<p>Schichtmodell: <b>'+esc(modelFor(n).m.name)+'</b></p>':'')+
       '<p>Plan: <b>'+NAMES[s]+'</b>'+(t?' · eingetragen als <b>'+(t==="K"?"🌡️ ":"")+TYPE[t].name+'</b>':'')+'</p>'+
-      routinesOn(n).map(r=>'<p><span class="rtab">'+esc(r.ab)+'</span><b>'+esc(r.name)+'</b> (Routine)</p>').join("");
+      routinesOn(n).map(r=>'<p><span class="rtab">'+esc(r.ab)+'</span><b>'+esc(r.name)+'</b> (Routine)</p>').join("")+
+      bdOn(n).map(b=>'<p>🎂 <b>'+esc(b.name)+'</b> hat Geburtstag'+(bdAge(b,n)!=null?' und wird <b>'+bdAge(b,n)+'</b>':'')+'</p>').join("");
     if(!noteAt(n)) html+='<button class="btn notebtn" data-a="note">📝 Nur Notiz hinzufügen</button>';
+    html+='<button class="btn notebtn" data-a="bday">🎂 Geburtstag an diesem Tag eintragen</button>';
     if(!t){
       if(ft&&s!=="X") html+='<p>An diesem Feiertag wird <b>nichts abgezogen und nichts gezählt</b>.</p>';
       html+='<h4>Was möchtest du eintragen?</h4><div class="row2">'+KINDS.map(k=>tyBtn(k,'data-a="type"',TYPE[k].name,sub(k,y))).join("")+'</div>';
@@ -949,6 +969,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       const btn=ev.target.closest("[data-a]"); if(!btn)return;
       const a=btn.dataset.a, ty=btn.dataset.t;
       if(a==="note") return noteSheet(n);
+      if(a==="bday") return bdEditor(-1,n);
       if(a==="otnew") return otSheet(n);
       if(a==="otedit") return otSheet(n,btn.dataset.id);
       if(a==="type"){ if(s==="X") return openPicker(n,ty); return askLength(n,ty); }
@@ -1077,7 +1098,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       const ta=document.getElementById("cpTxt");
       navigator.clipboard?.writeText(ta.value).then(()=>toast("Kopiert"),()=>{ta.select();toast("Text markiert, jetzt kopieren")}) ?? (ta.select(),toast("Text markiert, jetzt kopieren"));};
   }
-  function backupData(){return {app:"schichtplan-17-5",version:1,saved:todayIso(),anchor:iso(anchor),quota,vac,colors,anim:animOn,notes,contacts,ot,otCfg,models,partners:store.get("sp_partners",[]),routines,base}}
+  function backupData(){return {app:"schichtplan-17-5",version:1,saved:todayIso(),anchor:iso(anchor),quota,vac,colors,anim:animOn,notes,contacts,ot,otCfg,models,partners:store.get("sp_partners",[]),routines,base,bdays,bdLead}}
   function saveBackup(){const j=JSON.stringify(backupData()); saveFile("Schichtplan-Sicherung-"+todayIso()+".json",j,j)}
   function parseBackup(txt){
     let d; try{d=JSON.parse(txt)}catch(e){return null}
@@ -1112,6 +1133,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         if(Array.isArray(d.models)){models=d.models;saveModels()}
         if(d.otCfg){otCfg=Object.assign({agHours:8,carry:0},d.otCfg);store.set("sp_otcfg",otCfg)}
         if(Array.isArray(d.contacts)){contacts=d.contacts.filter(c=>c&&c.name&&c.tel);saveContacts()}
+        if(Array.isArray(d.bdays)){bdays=d.bdays.filter(x=>x&&x.name&&/^\d\d-\d\d$/.test(x.d));saveBdays()}
+        if(d.bdLead>=0){bdLead=+d.bdLead;store.set("sp_bdlead",bdLead)}
         if(Array.isArray(d.routines)){routines=d.routines.filter(x=>x&&x.name&&x.start);saveRoutines()}
         if(d.base==="none"||d.base==="175"){base=d.base;store.set("sp_base",base)}
         if(Array.isArray(d.partners)){try{partners=d.partners.filter(p=>p&&p.n&&p.a);savePartners()}catch(e){}}
@@ -1456,6 +1479,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<button class="mtile" data-m="year"><span>🗓️</span>Jahresübersicht<small>ganzes Jahr, A4</small></button>'+
       '<button class="mtile" data-m="partner"><span>👥</span>Partner<small>Plan teilen per Link oder QR</small></button>'+
       '<button class="mtile" data-m="models"><span>🔁</span>Schichtplan<small>'+(base==="none"?'17,5 aus · ':'17,5-Modell · ')+(models.length?models.length+' eigene':'eigenes anlegen')+'</small></button>'+
+      '<button class="mtile" data-m="bdays"><span>🎂</span>Geburtstage<small>'+(bdays.length?bdays.length+' eingetragen':'eintragen, Hinweis vorher')+'</small></button>'+
       '<button class="mtile" data-m="routines"><span>🧹</span>Routinen<small>'+(routines.length?routines.length+' Routine'+(routines.length===1?'':'n'):'z. B. Hausordnung')+'</small></button>'+
       '<button class="mtile" data-m="settings"><span>⚙️</span>Einstellungen<small>Farben, Urlaub, Rhythmus</small></button>'+
       '<button class="mtile" data-m="help"><span>📖</span>Anleitung<small>alle Funktionen mit Bildern</small></button>'+
@@ -1473,6 +1497,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(m==="partner")partnerSheet();
       if(m==="models")modelsSheet();
       if(m==="routines")routinesSheet();
+      if(m==="bdays")bdaysSheet();
       if(m==="help")openHelp();
       if(m==="impressum")openImpressum();
       if(m==="settings")document.getElementById("setBtn").click();
@@ -1945,7 +1970,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["feiertage","Feiertage und besondere Tage","feiertage",
      "Alle Feiertage in Bayern sowie Heiligabend und Silvester sind <b>rot und frei</b>, mit eigenem Symbol. Unter jedem Monat stehen die Feiertage und besonderen Tage wie Nikolaus oder Muttertag. 🕑 markiert die Zeitumstellung, 14 Tage vorher erscheint oben ein Hinweis."],
     ["menue","Das Menü ☰","menue",
-     "Über ☰ oben rechts erreichst du alle Seiten: Statistik, Meine Einträge, Notizen, Telefonbuch, Jahresübersicht, Partner, Schichtplan, Routinen, Einstellungen, Sicherung und diese Anleitung. Auf jeder dieser Seiten schwebt unten rechts der blaue Knopf <b>‹ Kalender</b>. Damit kommst du von überall sofort zurück zum Kalender, ohne nach oben scrollen zu müssen."],
+     "Über ☰ oben rechts erreichst du alle Seiten: Statistik, Meine Einträge, Notizen, Telefonbuch, Jahresübersicht, Partner, Schichtplan, Geburtstage, Routinen, Einstellungen, Sicherung und diese Anleitung. Auf jeder dieser Seiten schwebt unten rechts der blaue Knopf <b>‹ Kalender</b>. Damit kommst du von überall sofort zurück zum Kalender, ohne nach oben scrollen zu müssen."],
     ["statistik","Statistik","statistik",
      "Alle Zähler eines Jahres auf einen Blick, dazu deine Überstunden pro Monat als Balken. Mit ‹ › wechselst du das Jahr."],
     ["statistik2","Jahreskalender und Speichern","statistik2",
@@ -1958,6 +1983,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
      "Das ganze Jahr auf einer A4-Seite, nur mit Schichten und Feiertagen. Mit <b>📄 Als PDF speichern und drucken</b> speicherst du die Seite. Das PDF öffnest du auf dem Handy und druckst es über „Drucken“ oder „Teilen → Drucken“."],
     ["modelle","Schichtplan und eigene Schichtmodelle","modelle",
      "Unter ☰ → <b>🔁 Schichtplan</b> kannst du für einen Zeitraum ein anderes Schichtmodell festlegen. Tippe auf „+ Neues Schichtmodell“. Für einen Zeitraum kannst du ein anderes Schichtmodell festlegen: Name, Gilt von, bis, dann den Ablauf aus Blöcken bauen (Früh, Spät, Nacht oder Frei, jeweils mit Anzahl Tage). Die Vorschau zeigt die ersten Wochen. Außerhalb gilt das 17,5-Modell, außer du hast es auf derselben Seite unten ausgeschaltet."],
+    ["geburtstage","Geburtstage","geburtstage",
+     "Unter ☰ → <b>🎂 Geburtstage</b> trägst du Name und Geburtstag ein. Kennst du das Jahr nicht, setze den Haken „Geburtsjahr nicht bekannt“. Schneller geht es auch über den Kalender: Tag antippen → <b>🎂 Geburtstag an diesem Tag eintragen</b>. Die Liste ist nach dem nächsten Geburtstag sortiert. Bei „Hinweis vorher“ stellst du ein, wie viele Tage vorher erinnert wird (Standard 7). Mit <b>📅 Jedes Jahr in Google Kalender eintragen</b> bekommst du zusätzlich eine Erinnerung vom Handy."],
+    ["geburtstage2","Geburtstage im Kalender","geburtstage2",
+     "Im Kalender steht am Geburtstag ein kleines <b>🎂</b> rechts im Tag. Oben unter der Heute-Karte erscheint rechtzeitig eine Leiste, z. B. „🎂 In 3 Tagen (Samstag, 7. November): Monika wird 54“, am Tag selbst „🎉 Heute hat Geburtstag“. Antippen der Leiste springt zum Tag. Geburtstage werden beim Teilen mit dem Partner nicht mitgeschickt."],
     ["routinen","Routinen","routinen",
      "Für wiederkehrende Aufgaben wie <b>Hausordnung jeden 2. Samstag</b>: ☰ → <b>🧹 Routinen</b> → „Neue Routine“. Name eintragen, eine eigene <b>Abkürzung</b> (1–3 Zeichen, z. B. HO) wählen, den ersten Termin festlegen und einstellen, wie oft sie sich wiederholt: alle 1, 2, 3 … Tage, Wochen oder Monate. Darunter siehst du gleich die nächsten Termine. Im Kalender steht das Kürzel klein oben rechts im Tag, die Schichtfarben bleiben unverändert. Antippen des Tages zeigt den vollen Namen."],
     ["routinen2","Routinen im Kalender","routinen2",
@@ -2125,6 +2154,52 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         if(idx>=0)routines[idx]=st; else routines.push(st); saveRoutines(); repaintAll(); toast("Routine „"+st.name+"“ gespeichert"); return routinesSheet()}
     };
   }
+
+  // ---------- Geburtstage: Liste und Bearbeiten ----------
+  const MON=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+  const bdDate=b=>{const [m,d]=b.d.split("-").map(Number);return d+". "+MON[m-1]};
+  function bdGcal(b){const n=bdNext(b,TODAY),f=x=>iso(x).replace(/-/g,"");
+    return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("🎂 Geburtstag "+b.name)+"&dates="+f(n)+"/"+f(n+1)+"&recur="+encodeURIComponent("RRULE:FREQ=YEARLY")+"&details="+encodeURIComponent("(aus Schichtplan 17,5)")}
+  function bdaysSheet(){
+    const list=bdays.map((b,i)=>({b,i,n:bdNext(b,TODAY)})).sort((x,y)=>x.n-y.n).map(({b,i,n})=>{const k=n-TODAY,a=bdAge(b,n);
+      return '<button class="btn" data-bi="'+i+'"><span class="bdrow"><span class="bdi">'+(k===0?'🎉':'🎂')+'</span><span><b>'+esc(b.name)+'</b><br><small>'+bdDate(b)+(a!=null?' · wird '+a:'')+' · '+(k===0?'<b>heute</b>':k===1?'morgen':'in '+k+' Tagen')+'</small></span></span><span>✎</span></button>'}).join("");
+    openSheet('<h3>Geburtstage</h3><p>Geburtstage erscheinen im Kalender mit 🎂. Oben unter der Heute-Karte erscheint rechtzeitig ein Hinweis auf den nächsten Geburtstag.</p>'+
+      (list||'<p class="smeta">Noch kein Geburtstag eingetragen.</p>')+
+      '<button class="btn primary" data-a="bnew">+ Geburtstag eintragen</button>'+
+      '<h4>Hinweis vorher</h4><div class="mrow" style="align-items:center"><div class="mstep"><button type="button" data-bl="-1" aria-label="Weniger">−</button><b>'+bdLead+'</b><button type="button" data-bl="1" aria-label="Mehr">+</button></div><span>'+(bdLead===0?'nur am Geburtstag selbst':'Tag'+(bdLead===1?'':'e')+' vor dem Geburtstag')+'</span></div>'+
+      '<button class="btn" data-a="close">Schließen</button>');
+    sheet.onclick=ev=>{const bi=ev.target.closest("[data-bi]"),bl=ev.target.closest("[data-bl]"),a=ev.target.closest("[data-a]")?.dataset.a;
+      if(bi)return bdEditor(+bi.dataset.bi); if(a==="bnew")return bdEditor(-1); if(a==="close")return closeSheet();
+      if(bl){bdLead=Math.max(0,Math.min(30,bdLead+ +bl.dataset.bl));store.set("sp_bdlead",bdLead);renderToday();return bdaysSheet()}};
+  }
+  function bdEditor(idx,day){
+    const b=idx>=0?Object.assign({},bdays[idx]):{id:Date.now().toString(36),name:"",d:"",y:null};
+    let val=b.d?(b.y||2000)+"-"+b.d:(day!=null?iso(day):""), noYear=idx>=0?!b.y:false, sure=false;
+    function render(){
+      sheet.innerHTML='<div class="grab"></div><h3>'+(idx>=0?'Geburtstag ändern':'Geburtstag eintragen')+'</h3>'+
+        '<label class="f" for="bName">Name<input type="text" id="bName" class="inp" maxlength="40" placeholder="z. B. Monika" value="'+esc(b.name)+'"></label>'+
+        '<label class="f" for="bDate">Geburtstag<input type="date" id="bDate" class="inp" value="'+val+'"></label>'+
+        '<label class="chk" for="bNoY"><input type="checkbox" id="bNoY"'+(noYear?' checked':'')+'> Geburtsjahr nicht bekannt (Alter nicht anzeigen)</label>'+
+        '<div class="err" id="bErr"></div>'+
+        '<button class="btn primary" data-a="bsave">Speichern</button>'+
+        (idx>=0?'<a class="btn" href="'+bdGcal(b)+'" target="_blank" rel="noopener">📅 Jedes Jahr in Google Kalender eintragen</a>':'')+
+        (idx>=0?'<button class="btn danger" data-a="bdel">'+(sure?'Wirklich löschen? Nochmal tippen':'Geburtstag löschen')+'</button>':'')+
+        '<button class="btn" data-a="bback">'+(day!=null&&idx<0?'Abbrechen':'Zurück')+'</button>';
+    }
+    sheet.hidden=false;scrim.hidden=false;render();
+    sheet.onclick=ev=>{const a=ev.target.closest("[data-a]")?.dataset.a;if(!a)return;
+      b.name=document.getElementById("bName").value; val=document.getElementById("bDate").value; noYear=document.getElementById("bNoY").checked;
+      if(a==="bback")return day!=null&&idx<0?closeSheet():bdaysSheet();
+      if(a==="bdel"){if(!sure){sure=true;return render()}bdays.splice(idx,1);saveBdays();repaintAll();toast("Geburtstag gelöscht");return bdaysSheet()}
+      if(a==="bsave"){const er=document.getElementById("bErr");b.name=b.name.trim();
+        if(!b.name){er.textContent="Bitte einen Namen eintragen.";return}
+        if(!/^\d{4}-\d\d-\d\d$/.test(val)){er.textContent="Bitte den Geburtstag wählen.";return}
+        const [Y,M,D]=val.split("-"); b.d=M+"-"+D; b.y=noYear?null:+Y;
+        if(b.y&&b.y>fromDn(TODAY).y){er.textContent="Das Geburtsjahr liegt in der Zukunft.";return}
+        if(idx>=0)bdays[idx]=b; else bdays.push(b); saveBdays(); repaintAll(); toast("🎂 Geburtstag von "+b.name+" gespeichert"); return bdaysSheet()}
+    };
+  }
+  document.getElementById("bdBar").onclick=e=>{const g=+e.currentTarget.dataset.go;if(g)jumpTo(g)};
   // ---------- Schwebender Knopf: von jeder Seite zurück zum Kalender ----------
   { const OV=["yearView","statsView","notesView","helpView","entriesView","contactsView"].map(id=>document.getElementById(id)), bf=document.getElementById("backFab");
     const upd=()=>{bf.hidden=!OV.some(o=>!o.hidden)};
@@ -2159,14 +2234,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   const stand=t=>{const d=new Date(t);return d.getDate()+"."+(d.getMonth()+1)+"."+d.getFullYear()+", "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+" Uhr"};
 
   function showPartner(p){
-    if(!PV)own={anchor,vac,models,notes,ot,quota,base,routines};
-    PV=p; base=p.b||"175"; routines=[]; anchor=parseIso(p.a); vac=unpackVac(p.e); models=p.m; notes={}; ot=[]; quota=p.q; mCache=null;
+    if(!PV)own={anchor,vac,models,notes,ot,quota,base,routines,bdays};
+    PV=p; base=p.b||"175"; routines=[]; bdays=[]; anchor=parseIso(p.a); vac=unpackVac(p.e); models=p.m; notes={}; ot=[]; quota=p.q; mCache=null;
     document.body.classList.add("pv"); document.getElementById("pvBar").hidden=false;
     document.getElementById("pvName").textContent="👀 Plan von "+p.n;
     closeSheet(); repaintAll(); scrollToToday(false); toast("Du siehst jetzt den Plan von "+p.n);
   }
   function showOwn(){ if(!PV)return;
-    PV=null; ({anchor,vac,models,notes,ot,quota,base,routines}=own); own=null; mCache=null;
+    PV=null; ({anchor,vac,models,notes,ot,quota,base,routines,bdays}=own); own=null; mCache=null;
     document.body.classList.remove("pv"); document.getElementById("pvBar").hidden=true;
     closeSheet(); if(!yv.hidden){yv.hidden=true;document.body.style.overflow=""} repaintAll(); scrollToToday(false);
   }

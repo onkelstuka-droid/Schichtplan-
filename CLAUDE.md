@@ -8,14 +8,14 @@ Umsetzung: Claude. Immer auf Deutsch antworten, einfach erklären, Schritte für
 ## Aufbau
 - `src/schichtplan.html` – **die gesamte App in einer Datei** (HTML, CSS, JS). Nur hier ändern.
 - `build.py` – baut daraus `index.html` (mit Head, Manifest-Link, Download-Ersatz für `window.claude`, Service-Worker-Registrierung), `sw.js` (Offline-Cache, Version = Hash der Quelle), `manifest.webmanifest`, `404.html`.
-- `help/*.jpg` – Bildschirmfotos für die Anleitung in der App (25 Stück, Beispieldaten; u. a. partner, partner2, partner3, routinen, routinen2, leer).
+- `help/*.jpg` – Bildschirmfotos für die Anleitung in der App (27 Stück, Beispieldaten; u. a. partner, partner2, partner3, routinen, routinen2, leer, geburtstage, geburtstage2).
 - `icons/` – App-Symbole (192/512, maskable, apple-touch).
 - Veröffentlichen: `python3 build.py`, committen, `git push origin main`. GitHub Pages aktualisiert in 1–2 Min. Nutzer bekommen das Update beim nächsten Öffnen.
 - Das Einschalten von Pages über die API ist im Sandbox-Proxy gesperrt; Pages ist bereits eingeschaltet.
 - Eine ältere Version läuft noch als Claude-Artifact (claude.ai/artifact/XitXTSjShxG3JBC1FLzfe6). Weiterentwicklung nur noch hier.
 
 ## Daten (nur localStorage auf dem Gerät)
-`sp_anchor2` (Montag, an dem ein Spät-Block beginnt; Standard 2026-12-21 → Nachtschicht ab So 03.01.2027), `sp_vac2` ({Tagnummer: U|TZ|AG|K|SU}), `sp_quota` ({U:30,TZ:8}), `sp_notes` ({Starttag:{t,to}}), `sp_ot` (Überstunden [{id,d,from,to,pause,min,note}]), `sp_otcfg` ({agHours:8,carry}), `sp_contacts` (Telefonbuch [{name,tel,info,who}]; ohne `who` = „Teamleiter“), `sp_models` (eigene Schichtmodelle), `sp_colors`, `sp_anim`, `sp_sound`, `sp_vol`, `sp_myname` (eigener Name fürs Teilen), `sp_partners` (empfangene Partner-Pläne [{n,a,m,e,q,b,t}]), `sp_base` ("175" Standard | "none" = 17,5-Modell ausgeschaltet, leerer Kalender), `sp_routines` ([{id,name,ab,start,n,unit:d|w|m,end}]). Tagnummer = Tage seit 1.1.1970 (UTC).
+`sp_anchor2` (Montag, an dem ein Spät-Block beginnt; Standard 2026-12-21 → Nachtschicht ab So 03.01.2027), `sp_vac2` ({Tagnummer: U|TZ|AG|K|SU}), `sp_quota` ({U:30,TZ:8}), `sp_notes` ({Starttag:{t,to}}), `sp_ot` (Überstunden [{id,d,from,to,pause,min,note}]), `sp_otcfg` ({agHours:8,carry}), `sp_contacts` (Telefonbuch [{name,tel,info,who}]; ohne `who` = „Teamleiter“), `sp_models` (eigene Schichtmodelle), `sp_colors`, `sp_anim`, `sp_sound`, `sp_vol`, `sp_myname` (eigener Name fürs Teilen), `sp_partners` (empfangene Partner-Pläne [{n,a,m,e,q,b,t}]), `sp_base` ("175" Standard | "none" = 17,5-Modell ausgeschaltet, leerer Kalender), `sp_routines` ([{id,name,ab,start,n,unit:d|w|m,end}]), `sp_bdays` (Geburtstage [{id,name,d:"MM-TT",y|null}]), `sp_bdlead` (Hinweis Tage vorher, Standard 7). Tagnummer = Tage seit 1.1.1970 (UTC).
 Sicherung (JSON) enthält alles; Laden über Menü → Sicherung.
 
 ## Fachliche Regeln
@@ -37,6 +37,13 @@ Endlos-Kalender (ganze Seite scrollt, Kopf sticky), Wochentage in Kacheln, Woche
 - Wiederkehrende Aufgaben (z. B. Hausordnung alle 2 Wochen am Samstag): Name, eigene Abkürzung (1–3 Zeichen), erster Termin, alle n Tage/Wochen/Monate (Monat = gleicher Tag im Monat), optional Ende. Vorschau der nächsten 6 Termine.
 - Anzeige: kleines weißes Kürzel oben rechts in der Tageskachel (`.rt`), bei Feiertagssymbol darunter; mehrere Routinen → erstes Kürzel + „+“. Schichtfarben werden nicht verändert. Tag antippen zeigt den Namen.
 - Nicht in Jahresübersicht/PDF, nicht im Partner-Link. In der Sicherung enthalten.
+
+## Geburtstage (Menü → 🎂 Geburtstage, oder Tag antippen → „Geburtstag an diesem Tag eintragen“)
+- Name, Datum, Jahr optional (dann kein Alter). 29.2. erscheint in Nicht-Schaltjahren am 28.2.
+- Kalender: 🎂 im Symbol-Platz oben rechts (`data-ic`, zusammen mit Feiertagssymbol; dann Klasse `ic2` = kleiner). Kein eigener Platz, damit nichts die Zahl überdeckt.
+- Hinweisleiste `#bdBar` unter der Heute-Karte (wie Zeitumstellung): „🎂 In 3 Tagen (…): Monika wird 54“, am Tag „🎉 Heute hat Geburtstag: …“. Vorlauf einstellbar 0–30 Tage. Antippen springt zum Tag.
+- Pro Geburtstag Knopf „Jedes Jahr in Google Kalender eintragen“ (RRULE:FREQ=YEARLY) für echte Handy-Erinnerung.
+- Nicht im Partner-Link, nicht in der Jahresübersicht. In der Sicherung enthalten.
 
 ## Partner-Funktion (Menü → Partner)
 - Teilen ohne Server: Daten stecken im Link `…/#p=1<base64url(deflate-raw(JSON))>` (Fallback `0` = unkomprimiert). Per WhatsApp (wa.me), Teilen-Menü, Link kopieren oder QR-Code (qrcode-generator 1.4.4, MIT, direkt in der Datei eingebaut, funktioniert offline).
