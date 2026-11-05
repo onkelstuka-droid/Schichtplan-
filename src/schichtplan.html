@@ -2019,12 +2019,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // ---------- Impressum ----------
   function openImpressum(){
     openSheet('<h3>Impressum</h3>'+
-      '<div class="impr"><p class="impapp">📅 <b>Schichtplan 17,5</b><br><span>Schichtkalender für das 17,5-Schichtmodell in Bayern</span></p>'+
+      '<div class="impr"><p class="impapp">📅 <b>Schichtplan</b><br><span>Persönlicher Schichtkalender für Schichtarbeit: Schichten, Urlaub, Überstunden, Notizen, Routinen und Geburtstage auf einen Blick</span></p>'+
       '<h4>Idee und Konzept</h4><p><b>Hans-Jürgen Schlichting</b></p>'+
       '<h4>Umsetzung</h4><p>Programmiert, gestaltet und vertont von <b>Claude</b>, dem KI-Assistenten von Anthropic, nach der Idee und den Vorgaben von Hans-Jürgen Schlichting.</p>'+
-      '<h4>Hinweise</h4><p>Schichten, Feiertage (Bayern), Zeitumstellung und Ostertermine werden automatisch berechnet. Alle Angaben ohne Gewähr. Maßgeblich ist immer der offizielle Schichtplan deines Arbeitgebers.</p>'+
-      '<h4>Datenschutz</h4><p>Deine Einträge, Notizen, Überstunden und Telefonnummern werden <b>nur auf deinem Gerät</b> gespeichert und nicht übertragen. Schriftarten werden von Google Fonts geladen, die PDF-Erstellung von cdnjs. „In Google Kalender eintragen“ öffnet Google nur, wenn du es antippst.</p>'+
-      '<h4>Bilder, Klänge, Musik</h4><p>Animationen und Klänge werden in der App selbst erzeugt. Die Weihnachtslieder sind gemeinfrei. Symbole sind die Emojis deines Geräts.</p>'+
+      '<h4>Hinweise</h4><p>Die App ist ein privates, kostenloses Hilfsmittel und ersetzt keine offiziellen Unterlagen. Schichten werden nach dem eingestellten Schichtmodell berechnet, Feiertage (Bayern), Zeitumstellung und Ostertermine automatisch. Alle Angaben ohne Gewähr. Maßgeblich sind immer der offizielle Schichtplan und die Regelungen deines Arbeitgebers.</p>'+
+      '<h4>Datenschutz</h4><p>Alle deine Daten (Schichten, Einträge, Notizen, Überstunden, Routinen, Geburtstage und Telefonnummern) werden <b>nur auf deinem Gerät</b> gespeichert. Es gibt kein Benutzerkonto und keinen Server, der deine Daten sammelt.</p>'+
+      '<p>Nur wenn du es selbst antippst, verlassen Daten dein Gerät: beim <b>Teilen mit dem Partner</b> (Schichten, Urlaub, TZ, Ausgleich, Sonderurlaub stecken im Link, den du verschickst), beim Speichern von PDF, Tabelle oder Sicherung und bei „In Google Kalender eintragen“. Schriftarten werden von Google Fonts geladen, die PDF-Erstellung von cdnjs.</p>'+
+      '<h4>Bilder, Klänge, Musik</h4><p>Animationen und Klänge werden in der App selbst erzeugt. Die Weihnachtslieder sind gemeinfrei. Symbole sind die Emojis deines Geräts. QR-Codes: qrcode-generator, © Kazuhiko Arase, MIT-Lizenz.</p>'+
       '<p class="smeta">© '+fromDn(TODAY).y+' Hans-Jürgen Schlichting</p></div>'+
       '<button class="btn" data-a="close">Schließen</button>');
     sheet.onclick=ev=>{if(ev.target.closest("[data-a]")?.dataset.a==="close")closeSheet()};
