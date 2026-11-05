@@ -272,6 +272,8 @@ textarea{font:13px/1.4 ui-monospace,Menlo,monospace;width:100%;padding:10px;bord
 .ccard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px}
 .cinfo{display:grid;gap:2px}
 .cinfo b{font-size:17px}
+.cwho{font-style:normal;justify-self:start;font:700 11.5px var(--f-body);text-transform:uppercase;letter-spacing:.05em;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 9px;color:var(--muted)}
+.cwhos{display:flex;flex-wrap:wrap;gap:6px;margin-top:-4px}
 .cinfo span{font-size:13px;color:var(--muted)}
 .ctel{font:700 24px var(--f-display);letter-spacing:.03em;color:var(--fg);text-decoration:none;user-select:all;-webkit-user-select:all;font-variant-numeric:tabular-nums}
 .cbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -332,6 +334,7 @@ body.pv .budget{display:none}
 .pvitem div{flex:1;min-width:0}.pvitem b{display:block}.pvitem small{color:var(--muted)}
 .pvitem button{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:9px 10px;font:600 14px var(--f-body);cursor:pointer}
 .pvnote{font-size:13.5px;color:var(--muted);margin:0}
+.backfab{z-index:12;background:var(--nacht);color:var(--nacht-ink)}
 .day .rt{position:absolute;right:2px;top:3px;max-width:calc(55% - 4px);overflow:hidden;white-space:nowrap;font:800 9.5px/1.3 var(--f-body);letter-spacing:.02em;padding:0 2px;border-radius:3px;background:rgba(255,255,255,.88);color:#1d1f24;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
 .day[data-ic] .rt{top:18px}
 .day.ot .rt{top:6px}.day.ot[data-ic] .rt{top:18px}
@@ -410,6 +413,7 @@ a.btn{text-decoration:none;justify-content:center}
 </div>
 
 <button class="fab" id="todayBtn">Heute</button>
+<button class="fab backfab" id="backFab" type="button" hidden aria-label="Zurück zum Kalender">‹ Kalender</button>
 <div class="banner" id="banner" hidden><span id="bannerTxt">Letzten Urlaubstag antippen</span><button id="bannerCancel">Abbrechen</button></div>
 <div class="yearview" id="yearView" hidden></div>
 <div class="yearview" id="statsView" hidden></div>
@@ -1090,7 +1094,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const show=txt=>{const d=parseBackup(txt), box=document.getElementById("bkConfirm"), er=document.getElementById("bkErr");
       if(!d){er.textContent="Das ist keine gültige Schichtplan-Sicherung. Bitte die .json-Datei aus „Sicherung speichern“ verwenden.";box.innerHTML="";return}
       er.textContent=""; const cnt={}; for(const k in d.vac)cnt[d.vac[k]]=(cnt[d.vac[k]]||0)+1;
-      box.innerHTML='<p>Sicherung vom <b>'+(d.saved||"?")+'</b>: '+(Object.keys(cnt).map(k=>cnt[k]+' '+k).join(", ")||"keine Einträge")+(d.notes?', '+Object.keys(d.notes).length+' Notizen':'')+(d.contacts?', '+d.contacts.length+' Teamleiter':'')+(d.ot?', '+d.ot.length+' Überstunden-Einträge':'')+'.<br>Deine jetzigen Einträge werden dabei ersetzt.</p>'+
+      box.innerHTML='<p>Sicherung vom <b>'+(d.saved||"?")+'</b>: '+(Object.keys(cnt).map(k=>cnt[k]+' '+k).join(", ")||"keine Einträge")+(d.notes?', '+Object.keys(d.notes).length+' Notizen':'')+(d.contacts?', '+d.contacts.length+' Telefonnummern':'')+(d.ot?', '+d.ot.length+' Überstunden-Einträge':'')+'.<br>Deine jetzigen Einträge werden dabei ersetzt.</p>'+
         '<button class="btn primary" data-a="apply">Sicherung jetzt laden</button>';
       box.dataset.json=JSON.stringify(d);};
     document.getElementById("bkFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>show(String(r.result));r.readAsText(f)};
@@ -1390,19 +1394,21 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function openOverlay(el){el.hidden=false;el.scrollTop=0;document.body.style.overflow="hidden"}
   function closeOverlay(el){el.hidden=true;document.body.style.overflow=""}
 
-  // ---------- Teamleiter ----------
+  // ---------- Telefonbuch (früher Teamleiter; Daten weiter in sp_contacts) ----------
   const cv2=document.getElementById("contactsView");
+  const CWHO=["Teamleiter","Kollege","Familie","Arzt","Notfall","Sonstige"];
+  const cWho=c=>c.who||"Teamleiter"; // alte Einträge waren Teamleiter
   function renderContacts(){
-    cv2.innerHTML='<div class="yvbar"><strong class="st" style="text-align:left">Teamleiter</strong><button type="button" class="iconbtn" data-c="x">Schließen</button></div>'+
+    cv2.innerHTML='<div class="yvbar"><strong class="st" style="text-align:left">Telefonbuch</strong><button type="button" class="iconbtn" data-c="x">Schließen</button></div>'+
       '<div class="sbody">'+
-      (contacts.length?'<ul class="clist">'+contacts.map((c,i)=>{const num=c.tel.replace(/[^\d+]/g,"");
-        return '<li class="ccard"><div class="cinfo"><b>'+esc(c.name)+'</b>'+(c.info?'<span>'+esc(c.info)+'</span>':'')+
+      (contacts.length?'<ul class="clist">'+contacts.map((c,i)=>[c,i]).sort((x,y)=>cWho(x[0]).localeCompare(cWho(y[0]),"de")||x[0].name.localeCompare(y[0].name,"de")).map(([c,i])=>{const num=c.tel.replace(/[^\d+]/g,"");
+        return '<li class="ccard"><div class="cinfo"><em class="cwho">'+esc(cWho(c))+'</em><b>'+esc(c.name)+'</b>'+(c.info?'<span>'+esc(c.info)+'</span>':'')+
           '<a class="ctel" href="tel:'+esc(num)+'">'+esc(c.tel)+'</a></div>'+
           '<div class="cbtns"><a class="btn ty half" style="--tc:var(--urlaub);--ti:var(--urlaub-ink)" href="tel:'+esc(num)+'">Anrufen</a>'+
           '<button type="button" class="btn half" data-copy="'+i+'">Nummer kopieren</button>'+
           '<button type="button" class="btn half" data-cedit="'+i+'">Bearbeiten</button></div></li>'}).join("")+'</ul>'
         :'<p class="smeta">Noch keine Nummern eingetragen.</p>')+
-      '<button type="button" class="btn primary" data-cadd="1">Teamleiter hinzufügen</button>'+
+      '<button type="button" class="btn primary" data-cadd="1">+ Nummer hinzufügen</button>'+
       '<p class="smeta">„Anrufen“ öffnet die Telefon-App. Klappt das in deiner Ansicht nicht, kopiere die Nummer.</p></div>';
     cv2.onclick=ev=>{const t=ev.target;
       if(t.closest("[data-c]")){closeOverlay(cv2);return}
@@ -1413,22 +1419,26 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     };
   }
   function contactSheet(i){
-    const c=i>=0?contacts[i]:{name:"",tel:"",info:""};
-    openSheet('<h3>'+(i>=0?'Teamleiter bearbeiten':'Teamleiter hinzufügen')+'</h3>'+
-      '<label class="f" for="cName">Name<input type="text" id="cName" class="inp" maxlength="60" autocomplete="off" value="'+esc(c.name)+'" placeholder="z. B. Thomas Huber"></label>'+
+    const c=i>=0?contacts[i]:{name:"",tel:"",info:"",who:""};
+    const whos=[...new Set(CWHO.concat(contacts.map(cWho)))];
+    openSheet('<h3>'+(i>=0?'Nummer bearbeiten':'Nummer hinzufügen')+'</h3>'+
+      '<label class="f" for="cWho">Wer ist das? (z. B. Teamleiter, Kollege, Familie)<input type="text" id="cWho" class="inp" maxlength="30" autocomplete="off" value="'+esc(i>=0?cWho(c):"")+'" placeholder="z. B. Teamleiter"></label>'+
+      '<div class="cwhos">'+whos.map(w=>'<button type="button" class="chipf" data-who="'+esc(w)+'">'+esc(w)+'</button>').join("")+'</div>'+
+      '<label class="f" for="cName">Name (wem gehört die Nummer?)<input type="text" id="cName" class="inp" maxlength="60" autocomplete="off" value="'+esc(c.name)+'" placeholder="z. B. Thomas Huber"></label>'+
       '<label class="f" for="cTel">Telefonnummer<input type="tel" id="cTel" class="inp" maxlength="30" inputmode="tel" value="'+esc(c.tel)+'" placeholder="z. B. 0171 2345678"></label>'+
       '<label class="f" for="cInfo">Bemerkung (optional)<input type="text" id="cInfo" class="inp" maxlength="80" value="'+esc(c.info||"")+'" placeholder="z. B. Schichtgruppe B, Halle 3"></label>'+
       '<div class="err" id="cErr"></div>'+
       '<button class="btn primary" data-a="csave">Speichern</button>'+
-      (i>=0?'<button class="btn danger" data-a="cdel">Teamleiter löschen</button>':'')+
+      (i>=0?'<button class="btn danger" data-a="cdel">Nummer löschen</button>':'')+
       '<button class="btn" data-a="close">Abbrechen</button>');
-    sheet.onclick=ev=>{const a=ev.target.closest("[data-a]")?.dataset.a;if(!a)return;
+    sheet.onclick=ev=>{const wb=ev.target.closest("[data-who]");if(wb){document.getElementById("cWho").value=wb.dataset.who;return}
+      const a=ev.target.closest("[data-a]")?.dataset.a;if(!a)return;
       if(a==="close")return closeSheet();
       if(a==="cdel"){ if(sheet.dataset.sure!=="1"){sheet.dataset.sure="1";ev.target.closest("[data-a]").textContent="Wirklich löschen? Nochmal tippen";return}
         contacts.splice(i,1);saveContacts();closeSheet();renderContacts();toast("Gelöscht");return}
-      const name=document.getElementById("cName").value.trim(), tel=document.getElementById("cTel").value.trim(), info=document.getElementById("cInfo").value.trim();
+      const name=document.getElementById("cName").value.trim(), tel=document.getElementById("cTel").value.trim(), info=document.getElementById("cInfo").value.trim(), who=document.getElementById("cWho").value.trim()||"Sonstige";
       if(!name||!/\d{3,}/.test(tel.replace(/\s/g,""))){document.getElementById("cErr").textContent="Bitte Name und eine Telefonnummer mit Ziffern eintragen.";return}
-      if(i>=0)contacts[i]={name,tel,info}; else contacts.push({name,tel,info});
+      if(i>=0)contacts[i]={name,tel,info,who}; else contacts.push({name,tel,info,who});
       saveContacts();closeSheet();renderContacts();toast("Gespeichert");
     };
     sheet.dataset.sure="";
@@ -1442,10 +1452,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<button class="mtile" data-m="stats"><span>📊</span>Statistik<small>Zähler, Jahreskalender, PDF</small></button>'+
       '<button class="mtile" data-m="entries"><span>📋</span>Meine Einträge<small>ändern, löschen, hinspringen</small></button>'+
       '<button class="mtile" data-m="notes"><span>📝</span>Notizen<small>'+(nc?nc+' Notiz'+(nc===1?'':'en'):'noch keine')+'</small></button>'+
-      '<button class="mtile" data-m="contacts"><span>📞</span>Teamleiter<small>'+(contacts.length?contacts.length+' Nummer'+(contacts.length===1?'':'n'):'Nummern eintragen')+'</small></button>'+
+      '<button class="mtile" data-m="contacts"><span>📞</span>Telefonbuch<small>'+(contacts.length?contacts.length+' Nummer'+(contacts.length===1?'':'n'):'Nummern eintragen')+'</small></button>'+
       '<button class="mtile" data-m="year"><span>🗓️</span>Jahresübersicht<small>ganzes Jahr, A4</small></button>'+
       '<button class="mtile" data-m="partner"><span>👥</span>Partner<small>Plan teilen per Link oder QR</small></button>'+
-      '<button class="mtile" data-m="models"><span>🔁</span>Schichtmodelle<small>'+(models.length?models.length+' eigene':'eigenes anlegen')+'</small></button>'+
+      '<button class="mtile" data-m="models"><span>🔁</span>Schichtplan<small>'+(base==="none"?'17,5 aus · ':'17,5-Modell · ')+(models.length?models.length+' eigene':'eigenes anlegen')+'</small></button>'+
       '<button class="mtile" data-m="routines"><span>🧹</span>Routinen<small>'+(routines.length?routines.length+' Routine'+(routines.length===1?'':'n'):'z. B. Hausordnung')+'</small></button>'+
       '<button class="mtile" data-m="settings"><span>⚙️</span>Einstellungen<small>Farben, Urlaub, Rhythmus</small></button>'+
       '<button class="mtile" data-m="help"><span>📖</span>Anleitung<small>alle Funktionen mit Bildern</small></button>'+
@@ -1466,7 +1476,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(m==="help")openHelp();
       if(m==="impressum")openImpressum();
       if(m==="settings")document.getElementById("setBtn").click();
-      if(m==="backup"){openSheet('<h3>Sicherung</h3><p>Deine Einträge, Notizen und Teamleiter-Nummern liegen nur auf diesem Handy. Speichere ab und zu eine Sicherung.</p><button class="btn primary" data-a="bak">Sicherung speichern</button><button class="btn" data-a="res">Sicherung laden</button><button class="btn" data-a="close">Schließen</button>');
+      if(m==="backup"){openSheet('<h3>Sicherung</h3><p>Deine Einträge, Notizen und Telefonnummern liegen nur auf diesem Handy. Speichere ab und zu eine Sicherung.</p><button class="btn primary" data-a="bak">Sicherung speichern</button><button class="btn" data-a="res">Sicherung laden</button><button class="btn" data-a="close">Schließen</button>');
         sheet.onclick=e2=>{const b=e2.target.closest("[data-a]")?.dataset.a;if(b==="bak"){closeSheet();saveBackup()}else if(b==="res")restoreSheet();else if(b==="close")closeSheet()}}
     };
   };
@@ -1858,11 +1868,17 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function modelsSheet(){
     const list=models.map((m,i)=>{const len=m.blocks.reduce((s,b)=>s+b[1],0);
       return '<button class="btn" data-mi="'+i+'"><span><b>'+esc(m.name)+'</b><br><small>'+m.from.split("-").reverse().join(".")+' – '+m.to.split("-").reverse().join(".")+' · Zyklus '+len+' Tage</small></span><span class="mchips">'+m.blocks.map(b=>'<i style="background:'+MCOL[b[0]]+';flex:'+b[1]+'"></i>').join("")+'</span></button>'}).join("");
-    openSheet('<h3>Schichtmodelle</h3><p>'+(base==="none"?'Das 17,5-Modell ist ausgeschaltet. Überall, wo kein eigenes Modell gilt, ist der Kalender <b>frei</b>. Lege hier dein eigenes Modell an.':'Überall, wo kein eigenes Modell gilt, rechnet die App mit dem <b>17,5-Modell</b>. Für einen Zeitraum kannst du ein anderes Modell festlegen.')+'</p>'+
-      (list||'<p class="smeta">Noch kein eigenes Schichtmodell.</p>')+
-      '<button class="btn primary" data-a="mnew">+ Neues Schichtmodell</button><button class="btn" data-a="close">Schließen</button>');
+    openSheet('<h3>Schichtplan</h3><p>'+(base==="none"?'Das 17,5-Modell ist ausgeschaltet. Überall, wo kein eigenes Modell gilt, ist der Kalender <b>frei</b>. Lege hier dein eigenes Modell an.':'Überall, wo kein eigenes Modell gilt, rechnet die App mit dem <b>17,5-Modell</b>. Für einen Zeitraum kannst du ein anderes Modell festlegen.')+'</p>'+
+      '<h4>Eigene Schichtmodelle</h4>'+(list||'<p class="smeta">Noch kein eigenes Schichtmodell.</p>')+
+      '<button class="btn primary" data-a="mnew">+ Neues Schichtmodell</button>'+
+      '<h4>17,5-Modell</h4>'+(base==="none"?'<div class="basebox"><p style="margin:0"><b>Das 17,5-Modell ist ausgeschaltet.</b> Dein Kalender ist leer, bis du oben ein eigenes Schichtmodell anlegst.</p><button class="btn primary" data-a="baseon">17,5-Modell wieder einschalten</button></div>':
+      '<div class="basebox"><p class="pvnote">Du arbeitest nicht im 17,5-Modell? Dann entferne es hier und du bekommst einen leeren Kalender. Deine Einträge (Urlaub, Notizen, Überstunden) bleiben erhalten. Du kannst es jederzeit wieder einschalten. Bei anderen ändert sich dadurch nichts.</p><button class="btn danger" data-a="baseoff">17,5-Modell entfernen (leerer Kalender)</button></div>')+
+      '<button class="btn" data-a="close">Schließen</button>');
     sheet.onclick=ev=>{const mi=ev.target.closest("[data-mi]"),a=ev.target.closest("[data-a]")?.dataset.a;
-      if(mi)return modelEditor(+mi.dataset.mi); if(a==="mnew")return modelEditor(-1); if(a==="close")closeSheet()};
+      if(mi)return modelEditor(+mi.dataset.mi); if(a==="mnew")return modelEditor(-1); if(a==="close")closeSheet();
+      if(a==="baseoff"){const b=ev.target.closest("[data-a]");if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Wirklich entfernen? Nochmal tippen";return}
+        base="none";store.set("sp_base",base);mCache=null;repaintAll();toast("17,5-Modell entfernt. Dein Kalender ist jetzt leer.");return modelsSheet()}
+      if(a==="baseon"){base="175";store.set("sp_base",base);mCache=null;repaintAll();toast("17,5-Modell ist wieder eingeschaltet");return modelsSheet()}};
   }
   function modelEditor(idx){
     const o=fromDn(TODAY);
@@ -1929,7 +1945,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["feiertage","Feiertage und besondere Tage","feiertage",
      "Alle Feiertage in Bayern sowie Heiligabend und Silvester sind <b>rot und frei</b>, mit eigenem Symbol. Unter jedem Monat stehen die Feiertage und besonderen Tage wie Nikolaus oder Muttertag. 🕑 markiert die Zeitumstellung, 14 Tage vorher erscheint oben ein Hinweis."],
     ["menue","Das Menü ☰","menue",
-     "Über ☰ oben rechts erreichst du alle Seiten: Statistik, Meine Einträge, Notizen, Teamleiter, Jahresübersicht, Partner, Schichtmodelle, Routinen, Einstellungen, Sicherung und diese Anleitung."],
+     "Über ☰ oben rechts erreichst du alle Seiten: Statistik, Meine Einträge, Notizen, Telefonbuch, Jahresübersicht, Partner, Schichtplan, Routinen, Einstellungen, Sicherung und diese Anleitung."],
     ["statistik","Statistik","statistik",
      "Alle Zähler eines Jahres auf einen Blick, dazu deine Überstunden pro Monat als Balken. Mit ‹ › wechselst du das Jahr."],
     ["statistik2","Jahreskalender und Speichern","statistik2",
@@ -1946,10 +1962,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
      "Für wiederkehrende Aufgaben wie <b>Hausordnung jeden 2. Samstag</b>: ☰ → <b>🧹 Routinen</b> → „Neue Routine“. Name eintragen, eine eigene <b>Abkürzung</b> (1–3 Zeichen, z. B. HO) wählen, den ersten Termin festlegen und einstellen, wie oft sie sich wiederholt: alle 1, 2, 3 … Tage, Wochen oder Monate. Darunter siehst du gleich die nächsten Termine. Im Kalender steht das Kürzel klein oben rechts im Tag, die Schichtfarben bleiben unverändert. Antippen des Tages zeigt den vollen Namen."],
     ["routinen2","Routinen im Kalender","routinen2",
      "So sieht es im Kalender aus: <b>HO</b> für Hausordnung alle 2 Wochen am Samstag, <b>M</b> für eine wöchentliche Routine. Mehrere Routinen am selben Tag zeigen ein <b>+</b>. Routinen werden beim Teilen mit dem Partner <b>nicht</b> mitgeschickt."],
-    ["teamleiter","Teamleiter","teamleiter",
-     "Speichere die Nummern deiner Teamleiter. <b>Anrufen</b> öffnet die Telefon-App, <b>Nummer kopieren</b> legt sie in die Zwischenablage."],
+    ["teamleiter","Telefonbuch","teamleiter",
+     "Unter ☰ → <b>📞 Telefonbuch</b> speicherst du wichtige Nummern. Bei <b>„Wer ist das?“</b> tippst du auf Teamleiter, Kollege, Familie, Arzt, Notfall oder schreibst selbst etwas hinein. Dann Name und Nummer eintragen. Die Liste ist danach sortiert. <b>Anrufen</b> öffnet die Telefon-App, <b>Nummer kopieren</b> legt sie in die Zwischenablage."],
     ["leer","Ohne 17,5-Modell (leerer Kalender)","leer",
-     "Arbeitest du nicht im 17,5-Modell? Unter Einstellungen ⚙️ → Schichtrhythmus tippst du auf <b>„17,5-Modell entfernen (leerer Kalender)“</b> und bestätigst mit einem zweiten Tippen. Dann ist der Kalender leer und du legst dein eigenes Modell unter <b>Schichtmodelle</b> an. Deine Einträge bleiben erhalten. Mit „17,5-Modell wieder einschalten“ machst du es rückgängig. Das gilt nur für dein Handy, bei anderen ändert sich nichts."],
+     "Arbeitest du nicht im 17,5-Modell? Unter ☰ → <b>🔁 Schichtplan</b> tippst du unten auf <b>„17,5-Modell entfernen (leerer Kalender)“</b> und bestätigst mit einem zweiten Tippen. Dann ist der Kalender leer und du legst auf derselben Seite dein eigenes Schichtmodell an. Deine Einträge bleiben erhalten. Mit „17,5-Modell wieder einschalten“ machst du es rückgängig. Das gilt nur für dein Handy, bei anderen ändert sich nichts."],
     ["einstellungen","Einstellungen","einstellungen",
      "Animation und Sound an- und ausschalten, Lautstärke, Urlaubsanspruch, Stunden pro Ausgleichstag und Überstunden-Übertrag, Schichtmodelle und der Start deines 17,5-Rhythmus."],
     ["farben","Farben ändern","farben",
@@ -1988,7 +2004,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<h4>Idee und Konzept</h4><p><b>Hans-Jürgen Schlichting</b></p>'+
       '<h4>Umsetzung</h4><p>Programmiert, gestaltet und vertont von <b>Claude</b>, dem KI-Assistenten von Anthropic, nach der Idee und den Vorgaben von Hans-Jürgen Schlichting.</p>'+
       '<h4>Hinweise</h4><p>Schichten, Feiertage (Bayern), Zeitumstellung und Ostertermine werden automatisch berechnet. Alle Angaben ohne Gewähr. Maßgeblich ist immer der offizielle Schichtplan deines Arbeitgebers.</p>'+
-      '<h4>Datenschutz</h4><p>Deine Einträge, Notizen, Überstunden und Teamleiter-Nummern werden <b>nur auf deinem Gerät</b> gespeichert und nicht übertragen. Schriftarten werden von Google Fonts geladen, die PDF-Erstellung von cdnjs. „In Google Kalender eintragen“ öffnet Google nur, wenn du es antippst.</p>'+
+      '<h4>Datenschutz</h4><p>Deine Einträge, Notizen, Überstunden und Telefonnummern werden <b>nur auf deinem Gerät</b> gespeichert und nicht übertragen. Schriftarten werden von Google Fonts geladen, die PDF-Erstellung von cdnjs. „In Google Kalender eintragen“ öffnet Google nur, wenn du es antippst.</p>'+
       '<h4>Bilder, Klänge, Musik</h4><p>Animationen und Klänge werden in der App selbst erzeugt. Die Weihnachtslieder sind gemeinfrei. Symbole sind die Emojis deines Geräts.</p>'+
       '<p class="smeta">© '+fromDn(TODAY).y+' Hans-Jürgen Schlichting</p></div>'+
       '<button class="btn" data-a="close">Schließen</button>');
@@ -2017,11 +2033,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<label class="f" for="agH">Stunden pro Ausgleichstag<input type="number" id="agH" min="0" max="24" step="0.25" inputmode="decimal" value="'+otCfg.agHours+'"></label>'+
       '<label class="f" for="otCarry">Übertrag (Stunden)<input type="number" id="otCarry" min="-999" max="9999" step="0.25" inputmode="decimal" value="'+otCfg.carry+'"></label></div>'+
       '<p>Saldo = Übertrag + eingetragene Überstunden − Ausgleichstage × Stunden.</p>'+
-      '<h4>Schichtmodelle</h4><button class="btn" data-a="models">Schichtmodelle verwalten <small>'+(models.length?models.length+' eigene':base==="none"?'noch keins':'nur 17,5-Modell')+'</small></button>'+
+      '<h4>Schichtplan</h4><button class="btn" data-a="models">Schichtmodelle und 17,5-Modell <small>'+(models.length?models.length+' eigene':base==="none"?'noch keins':'nur 17,5-Modell')+'</small></button>'+
       '<h4>Routinen</h4><button class="btn" data-a="routines">Routinen verwalten <small>'+(routines.length?routines.length+' Routine'+(routines.length===1?'':'n'):'z. B. Hausordnung')+'</small></button>'+
       '<h4>Schichtrhythmus (17,5-Modell)</h4>'+
-      (base==="none"?'<div class="basebox"><p style="margin:0"><b>Das 17,5-Modell ist ausgeschaltet.</b> Dein Kalender ist leer. Eigene Schichten legst du über „Schichtmodelle verwalten“ an.</p><button class="btn primary" data-a="baseon">17,5-Modell wieder einschalten</button></div>':
-      '<div class="basebox"><p class="pvnote">Du arbeitest nicht im 17,5-Modell? Dann kannst du es hier ausschalten und bekommst einen leeren Kalender. Deine Einträge (Urlaub, Notizen, Überstunden) bleiben erhalten. Du kannst es jederzeit wieder einschalten.</p><button class="btn danger" data-a="baseoff">17,5-Modell entfernen (leerer Kalender)</button></div>')+
+
       '<p>28-Tage-Zyklus: 6× Spät (Mo–Sa), So frei, 6× Früh (Mo–Sa), 6× Nacht (So–Fr), dann 9 Tage frei.</p>'+
       '<div class="cycle" aria-hidden="true">'+cyc+'</div>'+
       '<label class="f" for="anc">Ein Montag, an dem dein Spät-Block beginnt<input type="date" id="anc" value="'+iso(anchor)+'"></label>'+
@@ -2038,9 +2053,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(a==="year"){closeSheet();return openYear(viewYear)}
       if(a==="models")return modelsSheet();
       if(a==="routines")return routinesSheet();
-      if(a==="baseoff"){const b=ev.target.closest("[data-a]");if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Wirklich entfernen? Nochmal tippen";return}
-        base="none";store.set("sp_base",base);mCache=null;repaintAll();closeSheet();toast("17,5-Modell entfernt. Dein Kalender ist jetzt leer.");return}
-      if(a==="baseon"){base="175";store.set("sp_base",base);mCache=null;repaintAll();closeSheet();toast("17,5-Modell ist wieder eingeschaltet");return}
       if(a==="help"){closeSheet();return openHelp()}
       if(a==="impressum")return openImpressum();
       if(a==="bak"){closeSheet();return saveBackup()}
@@ -2113,6 +2125,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         if(idx>=0)routines[idx]=st; else routines.push(st); saveRoutines(); repaintAll(); toast("Routine „"+st.name+"“ gespeichert"); return routinesSheet()}
     };
   }
+  // ---------- Schwebender Knopf: von jeder Seite zurück zum Kalender ----------
+  { const OV=["yearView","statsView","notesView","helpView","entriesView","contactsView"].map(id=>document.getElementById(id)), bf=document.getElementById("backFab");
+    const upd=()=>{bf.hidden=!OV.some(o=>!o.hidden)};
+    const mo=new MutationObserver(upd); OV.forEach(o=>mo.observe(o,{attributes:true,attributeFilter:["hidden"]}));
+    bf.onclick=()=>{OV.forEach(o=>o.hidden=true);closeSheet();document.body.style.overflow="";upd()}; }
   // ---------- Partner: Plan per Link/QR teilen (ohne Server, Daten stecken im Link) ----------
   const APPURL="https://onkelstuka-droid.github.io/Schichtplan-/";
   const SHARE_T=["U","TZ","AG","SU"]; // Krank, Notizen, Überstunden werden nicht geteilt
