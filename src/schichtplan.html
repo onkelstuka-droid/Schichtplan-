@@ -1158,7 +1158,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   const emCache={};
   function emojiPng(ch){if(!ch)return null;if(emCache[ch])return emCache[ch];try{const c=document.createElement("canvas");c.width=c.height=64;const x=c.getContext("2d");
     x.font='52px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';x.textAlign="center";x.textBaseline="middle";x.fillText(ch,32,36);return emCache[ch]=c.toDataURL("image/png")}catch(e){return null}}
-  async function savePdf(y,bw){
+  async function savePdf(y,bw,ent){ // ent = Jahreskalender mit Einträgen (Urlaub, TZ, AG, K, SU)
     if(!dl){toast("PDF-Speichern geht nur in der Claude-App oder auf claude.ai.");return}
     toast("PDF wird erstellt …");
     let lib; try{lib=await loadJsPDF()}catch(e){toast("PDF-Erstellung konnte nicht geladen werden. Bitte Internet prüfen.");return}
@@ -1167,7 +1167,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if(bw)Object.assign(C,{F:"#ffffff",S:"#bdbdbd",N:"#2b2b2b",X:"#ffffff",FT:"#ffffff",WE:"#ededed"}); // Schwarz-Weiß: Graustufen statt Farben
     const BWINK={F:"#000000",S:"#000000",N:"#ffffff",X:"#7a7a7a"};
     const fill=c=>doc.setFillColor(...hex2rgb(c)), txt=c=>doc.setTextColor(...hex2rgb(c)), stroke=c=>doc.setDrawColor(...hex2rgb(c));
-    doc.setFont("helvetica","bold");doc.setFontSize(22);txt("#1d1f24");doc.text("SCHICHTPLAN "+y+(PV?" · "+PV.n.toUpperCase():""),12,18);
+    doc.setFont("helvetica","bold");doc.setFontSize(22);txt("#1d1f24");doc.text((ent?"JAHRESKALENDER ":"SCHICHTPLAN ")+y+(PV?" · "+PV.n.toUpperCase():""),12,18);
     doc.setFont("helvetica","normal");doc.setFontSize(9);txt("#6b6f78");doc.text(base==="none"?"Bayern":"17,5-Modell · Bayern",198,18,{align:"right"});
     stroke("#1d1f24");doc.setLineWidth(.6);doc.line(12,21,198,21);
     const mw=58.6, gap=5.1, cw=mw/7, ch=6.3, top=27, mh=50;
@@ -1180,7 +1180,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       // Wochenend-Band hinter Samstag und Sonntag
       doc.setGState(new doc.GState({opacity:bw?1:.42}));fill(C.WE);doc.roundedRect(x0+5*cw-.3,y0+1.2,2*cw+.6,4+rows*ch+.4,1.6,1.6,"F");doc.setGState(new doc.GState({opacity:1}));
       if(bw){doc.setFont("helvetica","bold");doc.setFontSize(6);txt("#000000");["S","S"].forEach((d,i)=>doc.text(d,x0+(5+i)*cw+cw/2,y0+3.6,{align:"center"}))}
-      for(let d=0;d<days;d++){const n=first+d,p=lead+d,cx=x0+(p%7)*cw,cy=y0+5+Math.floor(p/7)*ch,s=shift(n),t=null,h=holiday(n),key=s;
+      for(let d=0;d<days;d++){const n=first+d,p=lead+d,cx=x0+(p%7)*cw,cy=y0+5+Math.floor(p/7)*ch,s=shift(n),t=ent?vt(n):null,h=holiday(n),key=s;
+        if(t){ if(bw){fill("#ffffff");stroke("#000000");doc.setLineWidth(.45);doc.setLineDashPattern([.8,.5],0);doc.roundedRect(cx+.4,cy+.4,cw-.8,ch-.8,.8,.8,"FD");doc.setLineDashPattern([],0)}
+          else{fill(C[t]);doc.roundedRect(cx+.3,cy+.3,cw-.6,ch-.6,.8,.8,"F")}
+          if(h){stroke(bw?"#000000":C.FT);doc.setLineWidth(.7);doc.roundedRect(cx+.75,cy+.75,cw-1.5,ch-1.5,.5,.5,"S")}
+          txt(bw?"#000000":inkFor(C[t]));doc.setFont("helvetica","normal");doc.setFontSize(5.2);doc.text(String(d+1),cx+cw/2,cy+2.5,{align:"center"});
+          doc.setFont("helvetica","bold");doc.setFontSize(t.length>1?5.6:6.4);doc.text(t,cx+cw/2,cy+5.2,{align:"center"});continue}
         if(bw){fill(h?C.FT:C[key]);stroke(h?"#000000":"#8a8a8a");doc.setLineWidth(h?.7:.2);doc.roundedRect(cx+.3,cy+.3,cw-.6,ch-.6,.8,.8,"FD")}
         else{fill(h?C.FT:C[key]);doc.roundedRect(cx+.3,cy+.3,cw-.6,ch-.6,.8,.8,"F");
         if(h&&key!=="X"){stroke(C[key]);doc.setLineWidth(.9);doc.roundedRect(cx+.75,cy+.75,cw-1.5,ch-1.5,.5,.5,"S")}}
@@ -1196,14 +1201,20 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(k==="WE"&&!bw)doc.setGState(new doc.GState({opacity:.42}));fill(C[k]);
       if(bw){stroke(k==="FT"?"#000000":"#8a8a8a");doc.setLineWidth(k==="FT"?.7:.2);doc.roundedRect(lx,fy-3,5,4,.6,.6,"FD");const L={F:"F",S:"S",N:"N",FT:"FT"}[k];if(L){doc.setFont("helvetica","bold");doc.setFontSize(L==="FT"?4.6:5.5);txt(k==="N"?"#ffffff":"#000000");doc.text(L,lx+2.5,fy-.2,{align:"center"})}}
       else doc.roundedRect(lx,fy-3,5,4,.6,.6,"F");doc.setGState(new doc.GState({opacity:1}));doc.setFont("helvetica","normal");doc.setFontSize(7.5);txt("#1d1f24");doc.text(l,lx+6.2,fy);lx+=6.2+doc.getTextWidth(l)+4});
+    if(ent){fy+=6;lx=12;KINDS.forEach(k=>{const l=k+" "+TYPE[k].name;
+      if(bw){fill("#ffffff");stroke("#000000");doc.setLineWidth(.45);doc.setLineDashPattern([.8,.5],0);doc.roundedRect(lx,fy-3,5,4,.6,.6,"FD");doc.setLineDashPattern([],0);txt("#000000")}
+      else{fill(C[k]);doc.roundedRect(lx,fy-3,5,4,.6,.6,"F");txt(inkFor(C[k]))}
+      doc.setFont("helvetica","bold");doc.setFontSize(k.length>1?4.4:5.5);doc.text(k,lx+2.5,fy-.2,{align:"center"});
+      doc.setFont("helvetica","normal");doc.setFontSize(7.5);txt("#1d1f24");doc.text(TYPE[k].name,lx+6.2,fy);lx+=6.2+doc.getTextWidth(TYPE[k].name)+4})}
     let cnt={F:0,S:0,N:0};for(let n=dn(y,0,1);n<dn(y+1,0,1);n++){const s=shift(n);if(s!=="X")cnt[s]++}
     fy+=7;doc.setFont("helvetica","bold");doc.setFontSize(8);
     doc.text("Früh "+cnt.F+" · Spät "+cnt.S+" · Nacht "+cnt.N+" · Schichten gesamt "+(cnt.F+cnt.S+cnt.N)+" · Feiertage auf Schichttagen "+ftInShift(y),12,fy);
+    if(ent){fy+=5;doc.setFont("helvetica","normal");doc.text("Urlaub "+used(y,"U")+" von "+quota.U+" · TZ "+used(y,"TZ")+" von "+quota.TZ+" · Ausgleich "+used(y,"AG")+" · Krank "+used(y,"K")+" · Sonderurlaub "+used(y,"SU")+"   (gezählt nur an Schichttagen)",12,fy)}
     fy+=6;doc.setFontSize(7.2);const hl=[...holidays(y)];
     hl.forEach(([n,name],i)=>{const col=Math.floor(i/5),row=i%5,yy=fy+row*4;let x=12+col*62;const o=fromDn(n);
       if(!bw){const im=emojiPng(ICON[name]);if(im)doc.addImage(im,"PNG",x,yy-2.8,3.4,3.4)}x+=bw?0:4.5;doc.setFont("helvetica","bold");txt(bw?"#000000":C.FT);doc.text(o.d+"."+(o.m+1)+".",x,yy);
       doc.setFont("helvetica","normal");txt("#1d1f24");doc.text(name,x+9,yy)});
-    try{ await dl.save({filename:"Schichtplan-"+y+(PV?"-"+PV.n.replace(/[^\wäöüÄÖÜß-]+/g,"_"):"")+(bw?"-sw":"")+".pdf",data:doc.output("arraybuffer")}); toast("PDF gespeichert") }
+    try{ await dl.save({filename:(ent?"Jahreskalender-":"Schichtplan-")+y+(PV?"-"+PV.n.replace(/[^\wäöüÄÖÜß-]+/g,"_"):"")+(bw?"-sw":"")+".pdf",data:doc.output("arraybuffer")}); toast("PDF gespeichert") }
     catch(e){ if(!e||e.code!=="declined") toast("Speichern hat nicht geklappt. Bitte später noch einmal versuchen.") }
   }
 
@@ -1241,6 +1252,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<p class="smeta">Geplante Schichten ohne Einträge: Früh '+cnt.F+' · Spät '+cnt.S+' · Nacht '+cnt.N+'</p>'+
       otBlock+'<h3 class="sh">Jahreskalender</h3><div class="ccal">'+cal+'</div>'+
       '<p class="smeta">Farbig gefüllt = deine Einträge. Grau mit Farbstrich = normale Schicht (gelb Früh, orange Spät, blau Nacht). Roter Rahmen = Feiertag.</p>'+
+      '<div class="row2"><button type="button" class="btn half" data-s="calpdf">📄 Jahreskalender als PDF <small>mit Einträgen, Farbe</small></button><button type="button" class="btn half" data-s="calpdfbw">🖨️ Schwarz-Weiß <small>mit Einträgen, spart Tinte</small></button></div>'+
       '<h3 class="sh">Alle Einträge</h3>'+(groups||'<p class="smeta">In '+y+' ist noch nichts eingetragen. Tippe im Kalender auf einen Tag, um Urlaub, Ausgleich, Krank oder Sonderurlaub einzutragen.</p>')+
       '<h3 class="sh">Speichern</h3><div class="sbtns">'+
       '<button type="button" class="btn" data-s="pdf">Jahresplan '+y+' als PDF <small>A4, in Farbe</small></button>'+
@@ -1254,6 +1266,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(g){ closeStats(); const n=+g.dataset.go; jumpTo(n); return }
       if(s==="pdf") savePdf(y);
       if(s==="pdfbw") savePdf(y,true);
+      if(s==="calpdf") savePdf(y,false,true);
+      if(s==="calpdfbw") savePdf(y,true,true);
       if(s==="csv") {const c=csvFor(y); saveFile("Schichtplan-Eintraege-"+y+".csv",c,c)}
       if(s==="bak") saveBackup();
       if(s==="res") restoreSheet();
@@ -1972,7 +1986,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["statistik","Statistik","statistik",
      "Alle Zähler eines Jahres auf einen Blick, dazu deine Überstunden pro Monat als Balken. Mit ‹ › wechselst du das Jahr."],
     ["statistik2","Jahreskalender und Speichern","statistik2",
-     "Weiter unten: der kompakte Jahreskalender, alle Einträge nach Art und die Speicher-Knöpfe für <b>PDF</b>, <b>Excel-Tabelle</b> und <b>Sicherung</b>."],
+     "Weiter unten: der kompakte Jahreskalender mit deinen Einträgen. Darunter speicherst du ihn als <b>📄 PDF in Farbe</b> oder <b>🖨️ Schwarz-Weiß</b> (Einträge mit gestricheltem Rahmen und Kürzel U, TZ, AG, K, SU). Danach folgen alle Einträge nach Art und die Speicher-Knöpfe für <b>PDF</b>, <b>Excel-Tabelle</b> und <b>Sicherung</b>."],
     ["eintraege","Meine Einträge","eintraege",
      "Hier steht alles, was du eingetragen hast. Oben filterst du nach Art. Antippen springt zum Tag, <b>✎</b> ändert, <b>🗑</b> löscht (zweimal tippen)."],
     ["notizen","Notizen-Übersicht","notizen",
