@@ -39,7 +39,8 @@ Endlos-Kalender (ganze Seite scrollt, Kopf sticky), Wochentage in Kacheln, Woche
   3. allgemeine Regeln: Symbol-Präfix, Teile an „ · “, „: “, Klammern, Zahl am Ende, Sätze, Kommas.
 - Neue deutsche Texte in der App **immer auch in `I18N_D` (oder als Muster) eintragen**, sonst bleiben sie in den anderen Sprachen deutsch. Prüfen: Crawler-Test in allen Sprachen, Texte suchen, die gleich geblieben sind.
 - Direkt lokalisiert (nicht über das Wörterbuch): `MONTHS`, `WD`, `WDL`, `WDH` (Ein-Buchstaben-Wochentage), `fmt`/`fmtS`/`dayMon`/`bdDate`, WhatsApp-Text, Google-Kalender-Text, Zeitraum-Hinweis.
-- Anleitung: `I18N_HELP[lang][id] = [Titel, HTML]` ersetzt die Kapitel von `HELP`; Bilder bleiben deutsch. Impressum: `I18N_IMPR`.
+- Anleitung: `I18N_HELP[lang][id] = [Titel, HTML]` ersetzt die Kapitel von `HELP`. Bilder je Sprache in `help/en/`, `help/tr/`, `help/ro/` (deutsch: `help/*.jpg`); fehlt ein Bild, wird das deutsche gezeigt. Offline vorab gespeichert werden nur die deutschen Bilder, die anderen beim ersten Ansehen. Impressum: `I18N_IMPR`.
+- **Bilder neu erzeugen:** `python3 -m http.server 8765` starten, dann `python3 tools/help_bilder.py en tr ro` (oder `de`, überschreibt die deutschen). Das Skript stellt alle 27 Szenen mit Beispieldaten nach (Datum fest 3.11.2026). Bei neuen Funktionen/Kapiteln dort eine Szene ergänzen.
 - PDF: `doc.text`/`getTextWidth` laufen durch `trS` + `pdfTxt` (ersetzt ş ğ ı ș ț ă durch s g i s t a, weil die PDF-Standardschrift sie nicht kennt). CSV-Zellen ebenfalls übersetzt.
 - Nutzerdaten (Namen, Notizen) werden nicht übersetzt, außer sie gleichen zufällig einem Wörterbuch-Eintrag. Elemente mit Klasse `nt` werden nie übersetzt.
 - Schichtbuchstaben F/S/N und Kürzel U/TZ/AG/K/SU/FT/ÜS bleiben in allen Sprachen gleich.
@@ -56,7 +57,8 @@ Endlos-Kalender (ganze Seite scrollt, Kopf sticky), Wochentage in Kacheln, Woche
 ## Geburtstage (Menü → 🎂 Geburtstage, oder Tag antippen → „Geburtstag an diesem Tag eintragen“)
 - Eigene Vollbild-Seite `#bdaysView` (`renderBdays`): oben „+ Geburtstag hinzufügen“, „Als Nächstes“ (3 nächste), dann „Alle Geburtstage“ nach Monaten; jede Karte mit ✎ Bearbeiten und 🗑 Löschen (zweimal tippen); bald anstehende rosa umrandet; „Hinweis vorher“ unten. Bearbeiten öffnet ein Sheet (`bdEditor`), danach zurück zur Seite.
 - Neu eintragen: mehrere Personen auf einmal („+ Weitere Person“ fügt Zeilen hinzu, ✕ entfernt, ganz leere Zeilen werden übersprungen, Fehler nennen „Person N“, „Alle speichern“). Bearbeiten bleibt eine Person.
-- Name, Datum, Jahr optional (dann kein Alter). 29.2. erscheint in Nicht-Schaltjahren am 28.2.
+- Eingabe: Tag + Monat (Auswahllisten), dazu **Geburtsjahr oder Alter** (das andere wird live berechnet, Hinweis „Wird 54 am …“); beides leer = Jahr unbekannt, kein Alter. 29.2. erscheint in Nicht-Schaltjahren am 28.2.
+- Monatsliste unter dem Kalender (bei den Feiertagen, `statMonth`): „🎂 8.11. Monika wird 54“ (Klasse `bdli`, rosa Datum). Achtung: `statMonth` läuft schon beim Start, dort `escEarly()` statt `esc()` benutzen.
 - Kalender: 🎂 im Symbol-Platz oben rechts (`data-ic`, zusammen mit Feiertagssymbol; dann Klasse `ic2` = kleiner). Kein eigener Platz, damit nichts die Zahl überdeckt.
 - Hinweisleiste `#bdBar` unter der Heute-Karte (wie Zeitumstellung): „🎂 In 3 Tagen (…): Monika wird 54“, am Tag „🎉 Heute hat Geburtstag: …“. Vorlauf einstellbar 0–30 Tage. Antippen springt zum Tag.
 - Pro Geburtstag Knopf „Jedes Jahr in Google Kalender eintragen“ (RRULE:FREQ=YEARLY) für echte Handy-Erinnerung.
