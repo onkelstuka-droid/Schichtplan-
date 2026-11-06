@@ -55,6 +55,7 @@ Endlos-Kalender (ganze Seite scrollt, Kopf sticky), Wochentage in Kacheln, Woche
 
 ## Geburtstage (Menü → 🎂 Geburtstage, oder Tag antippen → „Geburtstag an diesem Tag eintragen“)
 - Eigene Vollbild-Seite `#bdaysView` (`renderBdays`): oben „+ Geburtstag hinzufügen“, „Als Nächstes“ (3 nächste), dann „Alle Geburtstage“ nach Monaten; jede Karte mit ✎ Bearbeiten und 🗑 Löschen (zweimal tippen); bald anstehende rosa umrandet; „Hinweis vorher“ unten. Bearbeiten öffnet ein Sheet (`bdEditor`), danach zurück zur Seite.
+- Neu eintragen: mehrere Personen auf einmal („+ Weitere Person“ fügt Zeilen hinzu, ✕ entfernt, ganz leere Zeilen werden übersprungen, Fehler nennen „Person N“, „Alle speichern“). Bearbeiten bleibt eine Person.
 - Name, Datum, Jahr optional (dann kein Alter). 29.2. erscheint in Nicht-Schaltjahren am 28.2.
 - Kalender: 🎂 im Symbol-Platz oben rechts (`data-ic`, zusammen mit Feiertagssymbol; dann Klasse `ic2` = kleiner). Kein eigener Platz, damit nichts die Zahl überdeckt.
 - Hinweisleiste `#bdBar` unter der Heute-Karte (wie Zeitumstellung): „🎂 In 3 Tagen (…): Monika wird 54“, am Tag „🎉 Heute hat Geburtstag: …“. Vorlauf einstellbar 0–30 Tage. Antippen springt zum Tag.

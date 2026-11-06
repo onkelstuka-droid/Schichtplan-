@@ -336,6 +336,8 @@ body.pv .budget{display:none}
 .pvnote{font-size:13.5px;color:var(--muted);margin:0}
 .day.ic2::before,.day.ic2[data-ic].ot::before{font-size:10px;letter-spacing:-1px;right:1px}
 .bdbar{box-shadow:inset 3px 0 0 #e0479e}
+.bdrowedit{border:1px solid var(--line);border-radius:14px;padding:10px 12px 12px;display:grid;gap:8px;background:var(--bg)}
+.bdrh{display:flex;align-items:center;justify-content:space-between}.bdrh b{font-size:15px}
 .bdcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
 .bdcard.soon{border-color:#e0479e;box-shadow:inset 4px 0 0 #e0479e}
 .bdtop{display:flex;align-items:center;gap:10px}.bdtop .bdi{font-size:26px}.bdtop b{font-size:17px;display:block}.bdtop small{color:var(--muted);font-size:13.5px}
@@ -643,6 +645,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   // Geburtstage
   "Geburtstag":["Birthday","Doğum günü","Zi de naștere"],"Geburtstag eintragen":["Add birthday","Doğum günü ekle","Adaugă zi de naștere"],"Geburtstag ändern":["Edit birthday","Doğum gününü değiştir","Modifică ziua de naștere"],
   "Geburtstag löschen":["Delete birthday","Doğum gününü sil","Șterge ziua de naștere"],"Geburtstag gelöscht":["Birthday deleted","Doğum günü silindi","Zi de naștere ștearsă"],
+  "Weitere Person":["Add another person","Başka kişi ekle","Adaugă altă persoană"],"Person entfernen":["Remove person","Kişiyi kaldır","Elimină persoana"],
+  "Geburtstage eintragen":["Add birthdays","Doğum günleri ekle","Adaugă zile de naștere"],"Alle speichern":["Save all","Tümünü kaydet","Salvează tot"],
   "Geburtstag hinzufügen":["Add birthday","Doğum günü ekle","Adaugă zi de naștere"],"Als Nächstes":["Coming up","Sıradakiler","Urmează"],"Hinweis vorher":["Reminder in advance","Önceden hatırlatma","Aviz înainte"],
   "Geburtsjahr nicht bekannt (Alter nicht anzeigen)":["Year of birth unknown (don't show age)","Doğum yılı bilinmiyor (yaşı gösterme)","Anul nașterii necunoscut (nu afișa vârsta)"],
   "Jedes Jahr in Google Kalender eintragen":["Add to Google Calendar every year","Her yıl Google Takvim'e ekle","Adaugă anual în Google Calendar"],
@@ -744,6 +748,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   ["^Den Plan von (.+) kannst du nur ansehen\\. Änderungen macht (.+) auf dem eigenen Handy und schickt dir einen neuen Link\\.$","You can only view the plan of $1. $2 makes changes on their own phone and sends you a new link.","$1 planını sadece görüntüleyebilirsin. Değişiklikleri $2 kendi telefonunda yapar ve sana yeni bir bağlantı gönderir.","Planul lui $1 poate fi doar vizualizat. $2 face modificările pe telefonul propriu și îți trimite un link nou."],
   ["^Ersetzt den bisherigen Stand vom (.+)\\.$","Replaces the previous version from $1.","$1 tarihli önceki durumun yerini alır.","Înlocuiește versiunea anterioară din $1."],
   ["^Geburtstag von (.+) gespeichert$","Birthday of $1 saved","$1 doğum günü kaydedildi","Ziua de naștere a lui $1 a fost salvată"],["^Geburtstag von (.+) gelöscht$","Birthday of $1 deleted","$1 doğum günü silindi","Ziua de naștere a lui $1 a fost ștearsă"],
+  ["^Person (\\d+)$","Person $1","$1. kişi","Persoana $1"],
+  ["^(\\d+) Geburtstage gespeichert$","$1 birthdays saved","$1 doğum günü kaydedildi","$1 zile de naștere salvate"],
   ["^Geburtstag (.+)$","Birthday $1","Doğum günü $1","Zi de naștere $1"],
   ["^Routine „(.+)“ gespeichert$","Routine “$1” saved","“$1” rutini kaydedildi","Rutina „$1” a fost salvată"],
   ["^Gespeichert\\. Überschneidet sich mit „(.+)“, das neue gilt dort\\.$","Saved. Overlaps with “$1”, the new one applies there.","Kaydedildi. “$1” ile çakışıyor, orada yenisi geçerli.","Salvat. Se suprapune cu „$1”, acolo se aplică cel nou."],
@@ -769,7 +775,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function trOne(c){
     const d=I18N_D[c]; if(d)return d[LI];
     for(const [re,t] of I18N_P){const m=re.exec(c); if(m)return t[LI].replace(/([$%])(\d)/g,(_,k,i)=>k==="$"?(m[i]||""):tr1(m[i]||""))}
-    let m=/^([^\p{L}\p{N}„(]+)(\p{L}[\s\S]*)$/u.exec(c); if(m){const r=tr1(m[2]); if(r!==m[2])return m[1]+r}
+    let m=/^([^\p{L}\p{N}„(]+)([\p{L}\p{N}][\s\S]*)$/u.exec(c); if(m){const r=tr1(m[2]); if(r!==m[2])return m[1]+r}
     if(c.includes(" · ")){const p=c.split(" · "),q=p.map(x=>x.trim()?tr1(x):x); if(q.some((x,i)=>x!==p[i]))return q.join(" · ")}
     if(c.startsWith("· ")){const r=tr1(c.slice(2)); if(r!==c.slice(2))return "· "+r}
     if(c.endsWith(" ·")){const r=tr1(c.slice(0,-2)); if(r!==c.slice(0,-2))return r+" ·"}
@@ -813,7 +819,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     notizen:["Notes overview","All notes with date, split into upcoming and past. Tapping jumps to the day."],
     jahr:["Year overview and printing","The whole year on one A4 page, with shifts and public holidays only. With <b>📄 Save as PDF and print</b> you save the page in colour. If your printer has no colour or you want to save ink, use <b>🖨️ Black-and-white PDF</b>: early is white, late light grey, night dark with white text, public holidays have a thick black frame with “FT”. Open the PDF on your phone and print it via “Print” or “Share → Print”."],
     modelle:["Shift plan and your own shift models","Under ☰ → <b>🔁 Shift plan</b> you can set a different shift model for a period. Tap “+ New shift model”: name, valid from, to, then build the sequence from blocks (early, late, night or off, each with a number of days). The preview shows the first weeks. Outside that period the 17.5 model applies, unless you have switched it off further down on the same page."],
-    geburtstage:["Birthdays","Under ☰ → <b>🎂 Birthdays</b> you enter a name and birthday. If you don't know the year, tick “Year of birth unknown”. It's even quicker from the calendar: tap a day → <b>🎂 Add a birthday on this day</b>. On the <b>Birthdays</b> page you see the next three at the top and below them <b>all birthdays by month</b>. Each entry has <b>✎ Edit</b> and <b>🗑 Delete</b> (tap twice), at the top <b>+ Add birthday</b>. Upcoming birthdays have a pink frame. Under “Reminder in advance” you set how many days before you are reminded (default 7). Under ✎ Edit you find <b>📅 Add to Google Calendar every year</b>, which also gives you a reminder from your phone."],
+    geburtstage:["Birthdays","Under ☰ → <b>🎂 Birthdays</b> you enter a name and birthday. If you don't know the year, tick “Year of birth unknown”. With <b>+ Add another person</b> you enter several people at once and save them all with one tap. It's even quicker from the calendar: tap a day → <b>🎂 Add a birthday on this day</b>. On the <b>Birthdays</b> page you see the next three at the top and below them <b>all birthdays by month</b>. Each entry has <b>✎ Edit</b> and <b>🗑 Delete</b> (tap twice), at the top <b>+ Add birthday</b>. Upcoming birthdays have a pink frame. Under “Reminder in advance” you set how many days before you are reminded (default 7). Under ✎ Edit you find <b>📅 Add to Google Calendar every year</b>, which also gives you a reminder from your phone."],
     geburtstage2:["Birthdays in the calendar","On a birthday the calendar shows a small <b>🎂</b> at the right of the day. Below the today card a bar appears in good time, e.g. “🎂 In 3 days (Saturday, 7 November): Monika turns 54”, and on the day itself “🎉 Birthday today”. Tapping the bar jumps to the day. Birthdays are not sent when you share your plan with your partner."],
     routinen:["Routines","For recurring tasks such as <b>cleaning duty every 2nd Saturday</b>: ☰ → <b>🧹 Routines</b> → “New routine”. Enter a name, choose your own <b>abbreviation</b> (1–3 characters, e.g. HO), set the first date and how often it repeats: every 1, 2, 3 … days, weeks or months. Right below you see the next dates. In the calendar the abbreviation appears small at the top right of the day, the shift colours stay unchanged. Tapping the day shows the full name."],
     routinen2:["Routines in the calendar","This is how it looks in the calendar: <b>HO</b> for cleaning duty every 2 weeks on Saturday, <b>M</b> for a weekly routine. Several routines on the same day show a <b>+</b>. Routines are <b>not</b> sent when you share your plan with your partner."],
@@ -845,7 +851,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     notizen:["Not görünümü","Tüm notlar tarihleriyle, yaklaşan ve geçmiş olarak ayrılmış. Dokunmak güne atlar."],
     jahr:["Yıllık görünüm ve yazdırma","Bütün yıl tek bir A4 sayfada, sadece vardiyalar ve resmî tatillerle. <b>📄 PDF olarak kaydet ve yazdır</b> ile sayfayı renkli kaydedersin. Renkli olmayan bir yazıcın varsa veya mürekkep tasarrufu istiyorsan <b>🖨️ Siyah-beyaz PDF</b>'i seç: sabah beyaz, akşam açık gri, gece beyaz yazılı koyu, resmî tatillerde “FT” yazan kalın siyah bir çerçeve vardır. PDF'i telefonda açar ve “Yazdır” veya “Paylaş → Yazdır” ile yazdırırsın."],
     modelle:["Vardiya planı ve kendi vardiya modellerin","☰ → <b>🔁 Vardiya planı</b> altında bir zaman aralığı için başka bir vardiya modeli belirleyebilirsin. “+ Yeni vardiya modeli”ne dokun: ad, başlangıç, bitiş, ardından sırayı bloklardan oluştur (sabah, akşam, gece veya boş, her biri gün sayısıyla). Önizleme ilk haftaları gösterir. Bu aralığın dışında 17,5 modeli geçerlidir, aynı sayfanın altında kapatmadıysan."],
-    geburtstage:["Doğum günleri","☰ → <b>🎂 Doğum günleri</b> altında ad ve doğum gününü girersin. Yılı bilmiyorsan “Doğum yılı bilinmiyor” kutusunu işaretle. Takvimden daha da hızlı: bir güne dokun → <b>🎂 Bu güne doğum günü ekle</b>. <b>Doğum günleri</b> sayfasında üstte sıradaki üç doğum gününü, altında da <b>aylara göre tüm doğum günlerini</b> görürsün. Her kayıtta <b>✎ Düzenle</b> ve <b>🗑 Sil</b> (iki kez dokun), üstte <b>+ Doğum günü ekle</b> vardır. Yaklaşan doğum günlerinin pembe bir çerçevesi olur. “Önceden hatırlatma” ile kaç gün önce hatırlatılacağını ayarlarsın (varsayılan 7). ✎ Düzenle altında <b>📅 Her yıl Google Takvim'e ekle</b> bulunur, böylece telefondan da hatırlatma alırsın."],
+    geburtstage:["Doğum günleri","☰ → <b>🎂 Doğum günleri</b> altında ad ve doğum gününü girersin. Yılı bilmiyorsan “Doğum yılı bilinmiyor” kutusunu işaretle. <b>+ Başka kişi ekle</b> ile birden fazla kişiyi bir kerede girer ve hepsini tek dokunuşla kaydedersin. Takvimden daha da hızlı: bir güne dokun → <b>🎂 Bu güne doğum günü ekle</b>. <b>Doğum günleri</b> sayfasında üstte sıradaki üç doğum gününü, altında da <b>aylara göre tüm doğum günlerini</b> görürsün. Her kayıtta <b>✎ Düzenle</b> ve <b>🗑 Sil</b> (iki kez dokun), üstte <b>+ Doğum günü ekle</b> vardır. Yaklaşan doğum günlerinin pembe bir çerçevesi olur. “Önceden hatırlatma” ile kaç gün önce hatırlatılacağını ayarlarsın (varsayılan 7). ✎ Düzenle altında <b>📅 Her yıl Google Takvim'e ekle</b> bulunur, böylece telefondan da hatırlatma alırsın."],
     geburtstage2:["Takvimde doğum günleri","Takvimde doğum gününde günün sağında küçük bir <b>🎂</b> görünür. Bugün kartının altında zamanında bir şerit çıkar, ör. “🎂 3 gün sonra (Cumartesi, 7 Kasım): Monika 54 yaşına giriyor”, günün kendisinde ise “🎉 Bugün doğum günü”. Şeride dokunmak güne atlar. Doğum günleri partnerle paylaşırken gönderilmez."],
     routinen:["Rutinler","<b>Her 2. cumartesi bina temizliği</b> gibi tekrarlayan işler için: ☰ → <b>🧹 Rutinler</b> → “Yeni rutin”. Bir ad gir, kendi <b>kısaltmanı</b> seç (1–3 karakter, ör. HO), ilk tarihi belirle ve ne sıklıkla tekrarlanacağını ayarla: her 1, 2, 3 … gün, hafta veya ay. Hemen altında sıradaki tarihleri görürsün. Takvimde kısaltma günün sağ üstünde küçük yazılır, vardiya renkleri değişmez. Güne dokunmak tam adı gösterir."],
     routinen2:["Takvimde rutinler","Takvimde şöyle görünür: 2 haftada bir cumartesi bina temizliği için <b>HO</b>, haftalık bir rutin için <b>M</b>. Aynı gündeki birden fazla rutin bir <b>+</b> gösterir. Rutinler partnerle paylaşırken <b>gönderilmez</b>."],
@@ -877,7 +883,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     notizen:["Prezentarea notițelor","Toate notițele cu dată, împărțite în viitoare și trecute. Atingerea sare la zi."],
     jahr:["Prezentare anuală și tipărire","Tot anul pe o singură pagină A4, doar cu ture și sărbători legale. Cu <b>📄 Salvează ca PDF și tipărește</b> salvezi pagina color. Dacă imprimanta ta nu are culori sau vrei să economisești cerneală, folosește <b>🖨️ PDF alb-negru</b>: dimineața e albă, după-amiaza gri deschis, noaptea închisă la culoare cu scris alb, sărbătorile legale au un chenar negru gros cu „FT”. PDF-ul îl deschizi pe telefon și îl tipărești prin „Tipărire” sau „Distribuie → Tipărire”."],
     modelle:["Plan de ture și modele proprii","La ☰ → <b>🔁 Plan de ture</b> poți stabili un alt model de ture pentru o perioadă. Atinge „+ Model nou de ture”: nume, valabil de la, până la, apoi construiești succesiunea din blocuri (dimineață, după-amiază, noapte sau liber, fiecare cu un număr de zile). Previzualizarea arată primele săptămâni. În afara perioadei se aplică modelul 17,5, dacă nu l-ai dezactivat mai jos pe aceeași pagină."],
-    geburtstage:["Zile de naștere","La ☰ → <b>🎂 Zile de naștere</b> introduci numele și ziua de naștere. Dacă nu știi anul, bifează „Anul nașterii necunoscut”. Și mai repede merge din calendar: atinge o zi → <b>🎂 Adaugă o zi de naștere în această zi</b>. Pe pagina <b>Zile de naștere</b> vezi sus următoarele trei și dedesubt <b>toate zilele de naștere pe luni</b>. Fiecare înregistrare are <b>✎ Editează</b> și <b>🗑 Șterge</b> (atinge de două ori), iar sus <b>+ Adaugă zi de naștere</b>. Zilele de naștere apropiate au un chenar roz. La „Aviz înainte” setezi cu câte zile înainte ți se amintește (implicit 7). La ✎ Editează găsești <b>📅 Adaugă anual în Google Calendar</b>, astfel primești și o amintire de la telefon."],
+    geburtstage:["Zile de naștere","La ☰ → <b>🎂 Zile de naștere</b> introduci numele și ziua de naștere. Dacă nu știi anul, bifează „Anul nașterii necunoscut”. Cu <b>+ Adaugă altă persoană</b> introduci mai multe persoane deodată și le salvezi pe toate cu o singură atingere. Și mai repede merge din calendar: atinge o zi → <b>🎂 Adaugă o zi de naștere în această zi</b>. Pe pagina <b>Zile de naștere</b> vezi sus următoarele trei și dedesubt <b>toate zilele de naștere pe luni</b>. Fiecare înregistrare are <b>✎ Editează</b> și <b>🗑 Șterge</b> (atinge de două ori), iar sus <b>+ Adaugă zi de naștere</b>. Zilele de naștere apropiate au un chenar roz. La „Aviz înainte” setezi cu câte zile înainte ți se amintește (implicit 7). La ✎ Editează găsești <b>📅 Adaugă anual în Google Calendar</b>, astfel primești și o amintire de la telefon."],
     geburtstage2:["Zile de naștere în calendar","În calendar, în ziua de naștere apare un mic <b>🎂</b> în dreapta zilei. Sub cardul de azi apare la timp o bandă, de ex. „🎂 Peste 3 zile (sâmbătă, 7 noiembrie): Monika împlinește 54 de ani”, iar în ziua respectivă „🎉 Azi e ziua de naștere”. Atingerea benzii sare la zi. Zilele de naștere nu se trimit când partajezi planul cu partenerul."],
     routinen:["Rutine","Pentru sarcini care se repetă, cum ar fi <b>curățenia scării în fiecare a doua sâmbătă</b>: ☰ → <b>🧹 Rutine</b> → „Rutină nouă”. Introdu un nume, alege o <b>prescurtare</b> proprie (1–3 caractere, de ex. HO), stabilește prima dată și cât de des se repetă: la fiecare 1, 2, 3 … zile, săptămâni sau luni. Imediat dedesubt vezi următoarele date. În calendar prescurtarea apare mic în dreapta sus a zilei, culorile turelor rămân neschimbate. Atingerea zilei arată numele complet."],
     routinen2:["Rutine în calendar","Așa arată în calendar: <b>HO</b> pentru curățenia scării la 2 săptămâni sâmbăta, <b>M</b> pentru o rutină săptămânală. Mai multe rutine în aceeași zi arată un <b>+</b>. Rutinele <b>nu</b> se trimit când partajezi planul cu partenerul."],
@@ -2477,7 +2483,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["modelle","Schichtplan und eigene Schichtmodelle","modelle",
      "Unter ☰ → <b>🔁 Schichtplan</b> kannst du für einen Zeitraum ein anderes Schichtmodell festlegen. Tippe auf „+ Neues Schichtmodell“. Für einen Zeitraum kannst du ein anderes Schichtmodell festlegen: Name, Gilt von, bis, dann den Ablauf aus Blöcken bauen (Früh, Spät, Nacht oder Frei, jeweils mit Anzahl Tage). Die Vorschau zeigt die ersten Wochen. Außerhalb gilt das 17,5-Modell, außer du hast es auf derselben Seite unten ausgeschaltet."],
     ["geburtstage","Geburtstage","geburtstage",
-     "Unter ☰ → <b>🎂 Geburtstage</b> trägst du Name und Geburtstag ein. Kennst du das Jahr nicht, setze den Haken „Geburtsjahr nicht bekannt“. Schneller geht es auch über den Kalender: Tag antippen → <b>🎂 Geburtstag an diesem Tag eintragen</b>. Auf der Seite <b>Geburtstage</b> siehst du oben die nächsten drei und darunter <b>alle Geburtstage nach Monaten</b>. Bei jedem Eintrag gibt es <b>✎ Bearbeiten</b> und <b>🗑 Löschen</b> (zweimal tippen), oben <b>+ Geburtstag hinzufügen</b>. Bald anstehende Geburtstage sind rosa umrandet. Bei „Hinweis vorher“ stellst du ein, wie viele Tage vorher erinnert wird (Standard 7). Unter ✎ Bearbeiten findest du <b>📅 Jedes Jahr in Google Kalender eintragen</b>, damit bekommst du zusätzlich eine Erinnerung vom Handy."],
+     "Unter ☰ → <b>🎂 Geburtstage</b> trägst du Name und Geburtstag ein. Kennst du das Jahr nicht, setze den Haken „Geburtsjahr nicht bekannt“. Mit <b>+ Weitere Person</b> trägst du mehrere Personen auf einmal ein und speicherst alle mit einem Tipp. Schneller geht es auch über den Kalender: Tag antippen → <b>🎂 Geburtstag an diesem Tag eintragen</b>. Auf der Seite <b>Geburtstage</b> siehst du oben die nächsten drei und darunter <b>alle Geburtstage nach Monaten</b>. Bei jedem Eintrag gibt es <b>✎ Bearbeiten</b> und <b>🗑 Löschen</b> (zweimal tippen), oben <b>+ Geburtstag hinzufügen</b>. Bald anstehende Geburtstage sind rosa umrandet. Bei „Hinweis vorher“ stellst du ein, wie viele Tage vorher erinnert wird (Standard 7). Unter ✎ Bearbeiten findest du <b>📅 Jedes Jahr in Google Kalender eintragen</b>, damit bekommst du zusätzlich eine Erinnerung vom Handy."],
     ["geburtstage2","Geburtstage im Kalender","geburtstage2",
      "Im Kalender steht am Geburtstag ein kleines <b>🎂</b> rechts im Tag. Oben unter der Heute-Karte erscheint rechtzeitig eine Leiste, z. B. „🎂 In 3 Tagen (Samstag, 7. November): Monika wird 54“, am Tag selbst „🎉 Heute hat Geburtstag“. Antippen der Leiste springt zum Tag. Geburtstage werden beim Teilen mit dem Partner nicht mitgeschickt."],
     ["routinen","Routinen","routinen",
@@ -2685,32 +2691,47 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(bl){bdLead=Math.max(0,Math.min(30,bdLead+ +bl.dataset.bl));store.set("sp_bdlead",bdLead);renderToday();renderBdays()}};
   }
   function bdEditor(idx,day){
-    const b=idx>=0?Object.assign({},bdays[idx]):{id:Date.now().toString(36),name:"",d:"",y:null};
-    let val=b.d?(b.y||2000)+"-"+b.d:(day!=null?iso(day):""), noYear=idx>=0?!b.y:false, sure=false;
+    // idx>=0: einen Geburtstag ändern · idx<0: neu, mehrere Personen auf einmal möglich
+    const one=b=>({id:b.id,name:b.name,val:b.d?(b.y||2000)+"-"+b.d:"",noYear:!b.y});
+    let rows=idx>=0?[one(bdays[idx])]:[{id:"",name:"",val:day!=null?iso(day):"",noYear:false}], sure=false, focusLast=false;
+    const read=()=>rows.forEach((r,i)=>{const g=k=>document.getElementById(k+i);if(!g("bName"))return;r.name=g("bName").value;r.val=g("bDate").value;r.noYear=g("bNoY").checked});
     function render(){
-      sheet.innerHTML='<div class="grab"></div><h3>'+(idx>=0?'Geburtstag ändern':'Geburtstag eintragen')+'</h3>'+
-        '<label class="f" for="bName">Name<input type="text" id="bName" class="inp" maxlength="40" placeholder="z. B. Monika" value="'+esc(b.name)+'"></label>'+
-        '<label class="f" for="bDate">Geburtstag<input type="date" id="bDate" class="inp" value="'+val+'"></label>'+
-        '<label class="chk" for="bNoY"><input type="checkbox" id="bNoY"'+(noYear?' checked':'')+'> Geburtsjahr nicht bekannt (Alter nicht anzeigen)</label>'+
+      const multi=rows.length>1;
+      sheet.innerHTML='<div class="grab"></div><h3>'+(idx>=0?'Geburtstag ändern':multi?'Geburtstage eintragen':'Geburtstag eintragen')+'</h3>'+
+        rows.map((r,i)=>'<div class="'+(multi?'bdrowedit':'')+'">'+
+          (multi?'<div class="bdrh"><b>Person '+(i+1)+'</b><button type="button" class="iconbtn sq" data-rm="'+i+'" aria-label="Person entfernen">✕</button></div>':'')+
+          '<label class="f" for="bName'+i+'">Name<input type="text" id="bName'+i+'" class="inp" maxlength="40" placeholder="z. B. Monika" value="'+esc(r.name)+'"></label>'+
+          '<label class="f" for="bDate'+i+'">Geburtstag<input type="date" id="bDate'+i+'" class="inp" value="'+r.val+'"></label>'+
+          '<label class="chk" for="bNoY'+i+'"><input type="checkbox" id="bNoY'+i+'"'+(r.noYear?' checked':'')+'> Geburtsjahr nicht bekannt (Alter nicht anzeigen)</label></div>').join("")+
+        (idx<0?'<button type="button" class="btn" data-a="badd">+ Weitere Person</button>':'')+
         '<div class="err" id="bErr"></div>'+
-        '<button class="btn primary" data-a="bsave">Speichern</button>'+
-        (idx>=0?'<a class="btn" href="'+bdGcal(b)+'" target="_blank" rel="noopener">📅 Jedes Jahr in Google Kalender eintragen</a>':'')+
+        '<button class="btn primary" data-a="bsave">'+(multi?'Alle speichern':'Speichern')+'</button>'+
+        (idx>=0?'<a class="btn" href="'+bdGcal(bdays[idx])+'" target="_blank" rel="noopener">📅 Jedes Jahr in Google Kalender eintragen</a>':'')+
         (idx>=0?'<button class="btn danger" data-a="bdel">'+(sure?'Wirklich löschen? Nochmal tippen':'Geburtstag löschen')+'</button>':'')+
         '<button class="btn" data-a="bback">Abbrechen</button>';
+      if(focusLast){focusLast=false;const el=document.getElementById("bName"+(rows.length-1));if(el){el.scrollIntoView({block:"center"});el.focus()}}
     }
     sheet.hidden=false;scrim.hidden=false;render();
-    sheet.onclick=ev=>{const a=ev.target.closest("[data-a]")?.dataset.a;if(!a)return;
-      b.name=document.getElementById("bName").value; val=document.getElementById("bDate").value; noYear=document.getElementById("bNoY").checked;
+    sheet.onclick=ev=>{const rm=ev.target.closest("[data-rm]"),a=ev.target.closest("[data-a]")?.dataset.a;if(!rm&&!a)return;
+      read();
+      if(rm){rows.splice(+rm.dataset.rm,1);if(!rows.length)rows.push({id:"",name:"",val:"",noYear:false});return render()}
+      if(a==="badd"){rows.push({id:"",name:"",val:day!=null?iso(day):"",noYear:false});focusLast=true;return render()}
       if(a==="bback")return closeSheet();
       if(a==="bdel"){if(!sure){sure=true;return render()}bdays.splice(idx,1);saveBdays();repaintAll();toast("Geburtstag gelöscht");closeSheet();if(!bv.hidden)renderBdays();return}
-      if(a==="bsave"){const er=document.getElementById("bErr");b.name=b.name.trim();
-        if(!b.name){er.textContent="Bitte einen Namen eintragen.";return}
-        if(!/^\d{4}-\d\d-\d\d$/.test(val)){er.textContent="Bitte den Geburtstag wählen.";return}
-        const [Y,M,D]=val.split("-"); b.d=M+"-"+D; b.y=noYear?null:+Y;
-        if(b.y&&b.y>fromDn(TODAY).y){er.textContent="Das Geburtsjahr liegt in der Zukunft.";return}
-        if(idx>=0)bdays[idx]=b; else bdays.push(b); saveBdays(); repaintAll(); toast("🎂 Geburtstag von "+b.name+" gespeichert"); closeSheet(); if(!bv.hidden)renderBdays(); return}
+      if(a==="bsave"){const er=document.getElementById("bErr"),multi=rows.length>1,out=[];
+        for(let i=0;i<rows.length;i++){const r=rows[i],pre=multi?"Person "+(i+1)+": ":"",nm=r.name.trim();
+          if(multi&&!nm&&!r.val)continue; // leere Zeile überspringen
+          if(!nm){er.textContent=pre+"Bitte einen Namen eintragen.";return}
+          if(!/^\d{4}-\d\d-\d\d$/.test(r.val)){er.textContent=pre+"Bitte den Geburtstag wählen.";return}
+          const [Y,M,D]=r.val.split("-"),y=r.noYear?null:+Y;
+          if(y&&y>fromDn(TODAY).y){er.textContent=pre+"Das Geburtsjahr liegt in der Zukunft.";return}
+          out.push({id:r.id||Date.now().toString(36)+i,name:nm,d:M+"-"+D,y})}
+        if(!out.length){er.textContent="Bitte einen Namen eintragen.";return}
+        if(idx>=0)bdays[idx]=out[0]; else bdays.push(...out); saveBdays(); repaintAll();
+        toast(out.length===1?"🎂 Geburtstag von "+out[0].name+" gespeichert":"🎂 "+out.length+" Geburtstage gespeichert"); closeSheet(); if(!bv.hidden)renderBdays(); return}
     };
   }
+
   document.getElementById("bdBar").onclick=e=>{const g=+e.currentTarget.dataset.go;if(g)jumpTo(g)};
   // ---------- Schwebender Knopf: von jeder Seite zurück zum Kalender ----------
   { const OV=["yearView","statsView","notesView","helpView","entriesView","contactsView","bdaysView"].map(id=>document.getElementById(id)), bf=document.getElementById("backFab");
