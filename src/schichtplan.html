@@ -326,6 +326,9 @@ body.pv .budget{display:none}
 .bdbtns{display:grid;grid-template-columns:1fr 1fr;gap:6px}.bdbtns .btn{justify-content:center;padding:9px 6px;font-size:14px}
 .bdmon{margin:16px 0 6px;font:700 15px var(--f-body);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:flex;justify-content:space-between}
 .bdrow{display:flex;align-items:center;gap:10px}.bdrow .bdi{font-size:24px}.bdrow small{color:var(--muted)}
+.langs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.langb{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:12px;padding:11px 12px;font:600 15px var(--f-body);cursor:pointer;text-align:left}
+.langb span{font-size:20px}.langb.on{border-color:var(--fg);box-shadow:inset 0 0 0 2px var(--fg)}
 .backfab{z-index:12;background:var(--nacht);color:var(--nacht-ink)}
 .day .rt{position:absolute;right:2px;top:3px;max-width:calc(55% - 4px);overflow:hidden;white-space:nowrap;font:800 9.5px/1.3 var(--f-body);letter-spacing:.02em;padding:0 2px;border-radius:3px;background:rgba(255,255,255,.88);color:#1d1f24;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
 .day[data-ic] .rt{top:18px}
@@ -425,13 +428,472 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 </script>
 <script>
 (function(){
+  // ---------- Sprache (Deutsch, English, Türkçe, Română) ----------
+  const LANG=(()=>{try{const v=JSON.parse(localStorage.getItem("sp_lang"));return ["en","tr","ro"].includes(v)?v:"de"}catch(e){return "de"}})();
+  const LI={en:0,tr:1,ro:2}[LANG];
+  const L=(de,en,tr,ro)=>LANG==="en"?en:LANG==="tr"?tr:LANG==="ro"?ro:de;
+  // ---------- Sprachen: Wörterbuch Deutsch → [Englisch, Türkisch, Rumänisch] ----------
+  const I18N_D={
+  // Schichten, Arten, Kürzel
+  "Frühschicht":["Early shift","Sabah vardiyası","Tura de dimineață"],
+  "Spätschicht":["Late shift","Akşam vardiyası","Tura de după-amiază"],
+  "Nachtschicht":["Night shift","Gece vardiyası","Tura de noapte"],
+  "Früh":["Early","Sabah","Dimineață"],"Spät":["Late","Akşam","După-amiază"],"Nacht":["Night","Gece","Noapte"],
+  "Frei":["Off","Boş","Liber"],"frei":["off","boş","liber"],
+  "Urlaub":["Vacation","Yıllık izin","Concediu"],"TZ-Urlaub":["TZ leave","TZ izni","Concediu TZ"],
+  "Ausgleich":["Compensation day","Telafi günü","Zi compensatorie"],"Krank":["Sick","Hasta","Bolnav"],
+  "Sonderurlaub":["Special leave","Özel izin","Concediu special"],"Überstunden":["Overtime","Fazla mesai","Ore suplimentare"],
+  "Feiertag":["Public holiday","Resmî tatil","Sărbătoare legală"],"Feiertage":["Public holidays","Resmî tatiller","Sărbători legale"],
+  "Feiertag (frei)":["Public holiday (off)","Resmî tatil (boş)","Sărbătoare legală (liber)"],
+  "Wochenende":["Weekend","Hafta sonu","Weekend"],"Wochenende (Band)":["Weekend (band)","Hafta sonu (şerit)","Weekend (bandă)"],
+  "Urlaub (U)":["Vacation (U)","Yıllık izin (U)","Concediu (U)"],"Ausgleich (AG)":["Compensation day (AG)","Telafi günü (AG)","Zi compensatorie (AG)"],
+  "Krank (K)":["Sick (K)","Hasta (K)","Bolnav (K)"],"Sonderurlaub (SU)":["Special leave (SU)","Özel izin (SU)","Concediu special (SU)"],
+  "Überstunden (ÜS)":["Overtime (ÜS)","Fazla mesai (ÜS)","Ore suplimentare (ÜS)"],
+  "U Urlaub":["U Vacation","U Yıllık izin","U Concediu"],"AG Ausgleich":["AG Compensation day","AG Telafi günü","AG Zi compensatorie"],
+  "SU Sonderurlaub":["SU Special leave","SU Özel izin","SU Concediu special"],"K Krank":["K Sick","K Hasta","K Bolnav"],"TZ TZ-Urlaub":["TZ TZ leave","TZ TZ izni","TZ Concediu TZ"],
+  "Ausgleichstage":["Compensation days","Telafi günleri","Zile compensatorii"],"Krankheitstage":["Sick days","Hastalık günleri","Zile de boală"],
+  "Urlaub übrig":["Vacation left","Kalan yıllık izin","Concediu rămas"],"TZ-Urlaub übrig":["TZ leave left","Kalan TZ izni","Concediu TZ rămas"],
+  "Überstunden-Saldo":["Overtime balance","Fazla mesai bakiyesi","Sold ore suplimentare"],
+  "Feiertage, die auf eine Schicht fallen (frei)":["Public holidays on a shift (off)","Vardiyaya denk gelen resmî tatiller (boş)","Sărbători legale care cad într-o tură (liber)"],
+  "Feiertage auf Schichttagen, frei":["Public holidays on shift days, off","Vardiya günlerine denk gelen resmî tatiller, boş","Sărbători legale în zile de tură, liber"],
+  "Zähler gelten für dieses Jahr":["Counters apply to this year","Sayaçlar bu yıl için geçerli","Contoarele sunt pentru acest an"],
+  // Feiertage und besondere Tage
+  "Neujahr":["New Year's Day","Yılbaşı","Anul Nou"],"Heilige Drei Könige":["Epiphany","Üç Kral Yortusu","Boboteaza"],
+  "Karfreitag":["Good Friday","Kutsal Cuma","Vinerea Mare"],"Ostermontag":["Easter Monday","Paskalya Pazartesisi","A doua zi de Paște"],
+  "Tag der Arbeit":["Labour Day","Emek ve Dayanışma Günü","Ziua Muncii"],"Christi Himmelfahrt":["Ascension Day","İsa'nın Göğe Yükselişi","Înălțarea Domnului"],
+  "Pfingstmontag":["Whit Monday","Pentekost Pazartesisi","A doua zi de Rusalii"],"Fronleichnam":["Corpus Christi","Kutsal Beden Bayramı","Corpus Christi"],
+  "Mariä Himmelfahrt":["Assumption Day","Meryem'in Göğe Kabulü","Adormirea Maicii Domnului"],"Tag der Deutschen Einheit":["German Unity Day","Alman Birliği Günü","Ziua Unității Germane"],
+  "Allerheiligen":["All Saints' Day","Azizler Günü","Ziua Tuturor Sfinților"],"Heiligabend":["Christmas Eve","Noel Arifesi","Ajunul Crăciunului"],
+  "1. Weihnachtstag":["Christmas Day","Noel (1. gün)","Crăciunul (prima zi)"],"2. Weihnachtstag":["Boxing Day","Noel (2. gün)","Crăciunul (a doua zi)"],
+  "Silvester":["New Year's Eve","Yılbaşı Gecesi","Revelionul"],"Faschingsbeginn":["Start of carnival","Karnaval başlangıcı","Începutul carnavalului"],
+  "Weiberfastnacht":["Women's carnival day","Kadınlar karnavalı","Joia femeilor (carnaval)"],"Rosenmontag":["Rose Monday (carnival)","Gül Pazartesisi (karnaval)","Lunea trandafirilor (carnaval)"],
+  "Faschingsdienstag":["Shrove Tuesday","Karnaval Salısı","Marțea de carnaval"],"Ostersonntag":["Easter Sunday","Paskalya Pazarı","Duminica Paștelui"],
+  "Muttertag":["Mother's Day","Anneler Günü","Ziua Mamei"],"Nikolaus":["St Nicholas' Day","Aziz Nikolaus Günü","Sfântul Nicolae"],
+  "Sommerzeit beginnt":["Summer time begins","Yaz saati başlıyor","Începe ora de vară"],"Winterzeit beginnt":["Winter time begins","Kış saati başlıyor","Începe ora de iarnă"],
+  "kein Feiertag":["not a public holiday","resmî tatil değil","nu e sărbătoare legală"],"(kein gesetzlicher Feiertag)":["(not a statutory public holiday)","(yasal resmî tatil değil)","(nu e sărbătoare legală)"],
+  "Zeitumstellung, Uhr 2→3 vor":["Clock change, 2→3 forward","Saat değişikliği, 2→3 ileri","Schimbarea orei, 2→3 înainte"],
+  "Zeitumstellung, Uhr 3→2 zurück":["Clock change, 3→2 back","Saat değişikliği, 3→2 geri","Schimbarea orei, 3→2 înapoi"],
+  "Zeitumstellung: Uhr wird nachts von 2 auf 3 Uhr vorgestellt. Die Nacht ist eine Stunde kürzer.":["Clock change: at night the clock goes forward from 2 to 3 o'clock. The night is one hour shorter.","Saat değişikliği: gece saat 2'den 3'e ileri alınır. Gece bir saat kısalır.","Schimbarea orei: noaptea ceasul se dă înainte de la 2 la 3. Noaptea e cu o oră mai scurtă."],
+  "Zeitumstellung: Uhr wird nachts von 3 auf 2 Uhr zurückgestellt. Die Nacht ist eine Stunde länger.":["Clock change: at night the clock goes back from 3 to 2 o'clock. The night is one hour longer.","Saat değişikliği: gece saat 3'ten 2'ye geri alınır. Gece bir saat uzar.","Schimbarea orei: noaptea ceasul se dă înapoi de la 3 la 2. Noaptea e cu o oră mai lungă."],
+  "In der Nacht von Samstag auf Sonntag hast du keine Nachtschicht, für dich ändert sich also nur die Uhrzeit.":["You have no night shift from Saturday to Sunday, so only the time changes for you.","Cumartesiyi pazara bağlayan gece vardiyan yok, senin için sadece saat değişiyor.","În noaptea de sâmbătă spre duminică nu ai tură de noapte, deci pentru tine se schimbă doar ora."],
+  "Deine Nachtschicht von Samstag auf Sonntag dauert eine Stunde kürzer.":["Your night shift from Saturday to Sunday is one hour shorter.","Cumartesiyi pazara bağlayan gece vardiyan bir saat kısa sürer.","Tura ta de noapte de sâmbătă spre duminică durează cu o oră mai puțin."],
+  "Deine Nachtschicht von Samstag auf Sonntag dauert eine Stunde länger.":["Your night shift from Saturday to Sunday is one hour longer.","Cumartesiyi pazara bağlayan gece vardiyan bir saat uzun sürer.","Tura ta de noapte de sâmbătă spre duminică durează cu o oră mai mult."],
+  "Turmuhr: Zeitumstellung":["Tower clock: clock change","Kule saati: saat değişikliği","Ceasul din turn: schimbarea orei"],
+  "Bildchen = Feier- und Festtage":["Pictures = holidays and festive days","Resimler = tatiller ve bayramlar","Imagini = sărbători și zile festive"],
+  // Wochentage (feste Texte)
+  "Mo":["Mo","Pzt","Lu"],"Di":["Tu","Sal","Ma"],"Mi":["We","Çar","Mi"],"Do":["Th","Per","Jo"],"Fr":["Fr","Cum","Vi"],"Sa":["Sa","Cmt","Sâ"],"So":["Su","Paz","Du"],
+  "Montag":["Monday","Pazartesi","Luni"],"Dienstag":["Tuesday","Salı","Marți"],"Mittwoch":["Wednesday","Çarşamba","Miercuri"],"Donnerstag":["Thursday","Perşembe","Joi"],"Donnerst.":["Thursday","Perşembe","Joi"],
+  "Freitag":["Friday","Cuma","Vineri"],"Samstag":["Saturday","Cumartesi","Sâmbătă"],"Sonntag":["Sunday","Pazar","Duminică"],
+  // Kopf, Menü, Navigation
+  "Heute":["Today","Bugün","Azi"],"heute":["today","bugün","azi"],"Morgen":["Tomorrow","Yarın","Mâine"],"morgen":["tomorrow","yarın","mâine"],
+  "Heute Nacht":["Tonight","Bu gece","La noapte"],"Menü":["Menu","Menü","Meniu"],"Schließen":["Close","Kapat","Închide"],"Zurück":["Back","Geri","Înapoi"],
+  "Zurück zum Kalender":["Back to calendar","Takvime dön","Înapoi la calendar"],"‹ Kalender":["‹ Calendar","‹ Takvim","‹ Calendar"],
+  "Sound an":["Sound on","Ses açık","Sunet pornit"],"Sound aus":["Sound off","Ses kapalı","Sunet oprit"],
+  "Einstellungen und Legende":["Settings and legend","Ayarlar ve açıklama","Setări și legendă"],"Statistik und Speichern":["Statistics and saving","İstatistik ve kaydetme","Statistici și salvare"],
+  "Nächster Monat":["Next month","Sonraki ay","Luna următoare"],"Vorheriger Monat":["Previous month","Önceki ay","Luna anterioară"],
+  "Frühere Monate anzeigen":["Show earlier months","Önceki ayları göster","Arată lunile anterioare"],"Vorheriges Jahr":["Previous year","Önceki yıl","Anul anterior"],"Nächstes Jahr":["Next year","Sonraki yıl","Anul următor"],
+  "Weniger":["Less","Az","Mai puțin"],"Mehr":["More","Fazla","Mai mult"],
+  "Statistik":["Statistics","İstatistik","Statistici"],"Zähler, Jahreskalender, PDF":["Counters, year calendar, PDF","Sayaçlar, yıllık takvim, PDF","Contoare, calendar anual, PDF"],
+  "Meine Einträge":["My entries","Kayıtlarım","Înregistrările mele"],"ändern, löschen, hinspringen":["edit, delete, jump to","değiştir, sil, git","modifică, șterge, sari la"],
+  "Notizen":["Notes","Notlar","Notițe"],"noch keine":["none yet","henüz yok","încă niciuna"],"Telefonbuch":["Phone book","Telefon rehberi","Agendă telefonică"],
+  "Nummern eintragen":["add numbers","numara ekle","adaugă numere"],"Jahresübersicht":["Year overview","Yıllık görünüm","Prezentare anuală"],"ganzes Jahr, A4":["whole year, A4","bütün yıl, A4","tot anul, A4"],
+  "Partner":["Partner","Partner","Partener"],"Plan teilen per Link oder QR":["share plan via link or QR","planı bağlantı veya QR ile paylaş","partajează planul prin link sau QR"],
+  "Schichtplan":["Shift plan","Vardiya planı","Plan de ture"],"Geburtstage":["Birthdays","Doğum günleri","Zile de naștere"],"eintragen, Hinweis vorher":["add, reminder in advance","ekle, önceden hatırlatma","adaugă, aviz înainte"],
+  "Routinen":["Routines","Rutinler","Rutine"],"z. B. Hausordnung":["e.g. cleaning duty","ör. bina temizliği","de ex. curățenie"],
+  "Einstellungen":["Settings","Ayarlar","Setări"],"Farben, Urlaub, Rhythmus":["colours, vacation, rhythm","renkler, izin, ritim","culori, concediu, ritm"],
+  "Sicherung":["Backup","Yedekleme","Copie de siguranță"],"speichern oder laden":["save or load","kaydet veya yükle","salvează sau încarcă"],
+  "Anleitung":["Guide","Kılavuz","Ghid"],"alle Funktionen mit Bildern":["all features with pictures","resimlerle tüm özellikler","toate funcțiile cu imagini"],
+  "Impressum":["Legal notice","Künye","Informații legale"],"Idee, Umsetzung, Datenschutz":["idea, development, privacy","fikir, uygulama, gizlilik","idee, realizare, confidențialitate"],
+  "Idee: Hans-Jürgen Schlichting · Umsetzung: Claude":["Idea: Hans-Jürgen Schlichting · Development: Claude","Fikir: Hans-Jürgen Schlichting · Uygulama: Claude","Idee: Hans-Jürgen Schlichting · Realizare: Claude"],
+  "Farben":["Colours","Renkler","Culori"],"Farben ändern":["Change colours","Renkleri değiştir","Schimbă culorile"],"Farben zurücksetzen":["Reset colours","Renkleri sıfırla","Resetează culorile"],
+  "Legende":["Legend","Açıklama","Legendă"],"Ecke unten links = Notiz":["Corner bottom left = note","Sol alt köşe = not","Colț stânga jos = notiță"],
+  "Balken oben = Überstunden":["Bar at top = overtime","Üstte çubuk = fazla mesai","Bară sus = ore suplimentare"],
+  "Pläne von anderen":["Plans from others","Başkalarının planları","Planurile altora"],
+  // Tag antippen
+  "Was möchtest du eintragen?":["What would you like to enter?","Ne girmek istiyorsun?","Ce vrei să introduci?"],
+  "Plan:":["Plan:","Plan:","Plan:"],"eingetragen als":["entered as","şu şekilde kayıtlı:","introdus ca"],
+  "Nur dieser eine Tag":["Just this one day","Sadece bu gün","Doar această zi"],"Mehrere Tage":["Several days","Birden fazla gün","Mai multe zile"],
+  "von – bis im Kalender wählen":["choose from – to in the calendar","takvimde başlangıç – bitiş seç","alege de la – până la în calendar"],
+  "Nur Notiz hinzufügen":["Add note only","Sadece not ekle","Doar notă"],"Notiz":["Note","Not","Notiță"],
+  "Überstunden eintragen":["Add overtime","Fazla mesai ekle","Adaugă ore suplimentare"],"Überstunden ändern":["Edit overtime","Fazla mesaiyi değiştir","Modifică orele suplimentare"],
+  "Überstunden löschen":["Delete overtime","Fazla mesaiyi sil","Șterge orele suplimentare"],"Überstunden gelöscht":["Overtime deleted","Fazla mesai silindi","Ore suplimentare șterse"],
+  "Geburtstag an diesem Tag eintragen":["Add a birthday on this day","Bu güne doğum günü ekle","Adaugă o zi de naștere în această zi"],
+  "hat Geburtstag":["has a birthday","doğum günü","are ziua de naștere"],"hat Geburtstag und wird":["has a birthday and turns","doğum günü, yaşı:","are ziua de naștere și împlinește"],
+  "hat Geburtstag:":["has a birthday:","doğum günü:","are ziua de naștere:"],"Heute hat Geburtstag:":["Birthday today:","Bugün doğum günü:","Azi e ziua de naștere:"],
+  "(Routine)":["(routine)","(rutin)","(rutină)"],"Ändern":["Change","Değiştir","Modifică"],"Ändern in":["Change to","Şuna değiştir","Schimbă în"],"Art ändern in":["Change type to","Türü şuna değiştir","Schimbă tipul în"],
+  "Ganzen Zeitraum entfernen":["Remove whole period","Tüm dönemi kaldır","Elimină toată perioada"],"Zeitraum geändert":["Period changed","Dönem değiştirildi","Perioadă modificată"],
+  "Zeitraum wählen":["Choose period","Dönem seç","Alege perioada"],"Letzten Urlaubstag antippen":["Tap the last day of leave","Son izin gününe dokun","Atinge ultima zi de concediu"],
+  "Letzten Tag antippen":["Tap the last day","Son güne dokun","Atinge ultima zi"],"eintragen":["add","ekle","adaugă"],
+  "Abbrechen":["Cancel","İptal","Anulează"],"Speichern":["Save","Kaydet","Salvează"],"Löschen":["Delete","Sil","Șterge"],"Löschen?":["Delete?","Silinsin mi?","Ștergi?"],
+  "Bearbeiten":["Edit","Düzenle","Editează"],"Gespeichert":["Saved","Kaydedildi","Salvat"],"Gelöscht":["Deleted","Silindi","Șters"],"Geändert":["Changed","Değiştirildi","Modificat"],
+  "Sicher?":["Sure?","Emin misin?","Sigur?"],"Sicher? Nochmal tippen":["Sure? Tap again","Emin misin? Tekrar dokun","Sigur? Atinge din nou"],
+  "Wirklich löschen? Nochmal tippen":["Really delete? Tap again","Gerçekten silinsin mi? Tekrar dokun","Sigur ștergi? Atinge din nou"],
+  "Wirklich entfernen? Nochmal tippen":["Really remove? Tap again","Gerçekten kaldırılsın mı? Tekrar dokun","Sigur elimini? Atinge din nou"],
+  "Ja":["Yes","Evet","Da"],"Nein":["No","Hayır","Nu"],"Nein, danke":["No, thanks","Hayır, teşekkürler","Nu, mulțumesc"],"und":["and","ve","și"],"oder":["or","veya","sau"],"Mit":["With","İle","Cu"],
+  "Tag":["Day","Gün","Zi"],"Tage":["Days","Gün","Zile"],"Woche":["Week","Hafta","Săptămână"],"Wochen":["Weeks","Hafta","Săptămâni"],"Monat":["Month","Ay","Lună"],"Monate":["Months","Ay","Luni"],
+  // Notizen
+  "Neue Notiz":["New note","Yeni not","Notiță nouă"],"Notiz bearbeiten":["Edit note","Notu düzenle","Editează notița"],"Notiz hinzufügen?":["Add a note?","Not eklensin mi?","Adaugi o notiță?"],
+  "Notiz (optional)":["Note (optional)","Not (isteğe bağlı)","Notiță (opțional)"],"Notiz speichern":["Save note","Notu kaydet","Salvează notița"],"Notiz löschen":["Delete note","Notu sil","Șterge notița"],
+  "Notiz gespeichert":["Note saved","Not kaydedildi","Notiță salvată"],"Notiz gelöscht":["Note deleted","Not silindi","Notiță ștearsă"],"Ohne Notiz weiter":["Continue without note","Notsuz devam et","Continuă fără notiță"],
+  "z. B. Arzttermin 9 Uhr, Urlaub genehmigt von Herrn M., Überstunden aus Oktober …":["e.g. doctor 9 am, leave approved by Mr M., overtime from October …","ör. saat 9 doktor, izni Bay M. onayladı, ekim ayından fazla mesai …","de ex. medic la ora 9, concediu aprobat de dl M., ore suplimentare din octombrie …"],
+  "Möchtest du sie auch in deinen Handy-Kalender eintragen?":["Would you also like to add it to your phone calendar?","Bunu telefon takvimine de eklemek ister misin?","Vrei să o adaugi și în calendarul telefonului?"],
+  "In Google Kalender eintragen":["Add to Google Calendar","Google Takvim'e ekle","Adaugă în Google Calendar"],
+  "Der Google Kalender öffnet sich mit dem fertigen Termin, du musst nur noch auf „Speichern“ tippen.":["Google Calendar opens with the event ready, you only need to tap “Save”.","Google Takvim hazır etkinlikle açılır, sadece “Kaydet”e dokunman yeterli.","Google Calendar se deschide cu evenimentul gata, trebuie doar să atingi „Salvează”."],
+  "Anstehend":["Upcoming","Yaklaşan","Viitoare"],"Vergangen":["Past","Geçmiş","Trecute"],"Noch keine Notizen.":["No notes yet.","Henüz not yok.","Încă nu există notițe."],
+  // Überstunden
+  "Von":["From","Başlangıç","De la"],"Bis":["To","Bitiş","Până la"],"von":["from","başlangıç","de la"],"bis":["to","bitiş","până la"],
+  "Pause in Minuten":["Break in minutes","Dakika olarak mola","Pauză în minute"],"Bemerkung (optional)":["Remark (optional)","Not (isteğe bağlı)","Observație (opțional)"],
+  "z. B. Kollege krank, Inventur":["e.g. colleague sick, stocktaking","ör. iş arkadaşı hasta, envanter","de ex. coleg bolnav, inventar"],
+  "Bitte Von- und Bis-Zeit eintragen.":["Please enter from and to times.","Lütfen başlangıç ve bitiş saatini gir.","Te rog introdu ora de început și de sfârșit."],
+  "Die Pause ist länger als die Arbeitszeit.":["The break is longer than the working time.","Mola çalışma süresinden uzun.","Pauza este mai lungă decât timpul de lucru."],
+  "(über Mitternacht)":["(past midnight)","(gece yarısını geçiyor)","(peste miezul nopții)"],
+  "Saldo = Übertrag + eingetragene Überstunden − Ausgleichstage × Stunden.":["Balance = carried over + entered overtime − compensation days × hours.","Bakiye = devreden + girilen fazla mesai − telafi günleri × saat.","Sold = report + ore suplimentare introduse − zile compensatorii × ore."],
+  // Statistik
+  "Jahreskalender":["Year calendar","Yıllık takvim","Calendar anual"],"Alle Einträge":["All entries","Tüm kayıtlar","Toate înregistrările"],
+  "Farbig gefüllt = deine Einträge. Grau mit Farbstrich = normale Schicht (gelb Früh, orange Spät, blau Nacht). Roter Rahmen = Feiertag.":["Filled with colour = your entries. Grey with a coloured line = normal shift (yellow early, orange late, blue night). Red frame = public holiday.","Renkli dolu = kayıtların. Renkli çizgili gri = normal vardiya (sarı sabah, turuncu akşam, mavi gece). Kırmızı çerçeve = resmî tatil.","Umplut color = înregistrările tale. Gri cu linie colorată = tură normală (galben dimineață, portocaliu după-amiază, albastru noapte). Chenar roșu = sărbătoare legală."],
+  "Jahreskalender als PDF":["Year calendar as PDF","PDF olarak yıllık takvim","Calendar anual ca PDF"],"mit Einträgen, Farbe":["with entries, colour","kayıtlarla, renkli","cu înregistrări, color"],
+  "Schwarz-Weiß":["Black and white","Siyah-beyaz","Alb-negru"],"mit Einträgen, spart Tinte":["with entries, saves ink","kayıtlarla, mürekkep tasarrufu","cu înregistrări, economisește cerneală"],
+  "A4, in Farbe":["A4, in colour","A4, renkli","A4, color"],"A4, spart Tinte":["A4, saves ink","A4, mürekkep tasarrufu","A4, economisește cerneală"],
+  "Excel-Tabelle":["Excel table","Excel tablosu","Tabel Excel"],"CSV für Excel":["CSV for Excel","Excel için CSV","CSV pentru Excel"],
+  "Daten sichern":["Back up data","Verileri yedekle","Salvează datele"],"Sicherung speichern":["Save backup","Yedeği kaydet","Salvează copia"],"Sicherung laden":["Load backup","Yedeği yükle","Încarcă copia"],
+  "z. B. auf neuem Handy":["e.g. on a new phone","ör. yeni telefonda","de ex. pe un telefon nou"],"Sicherung geladen":["Backup loaded","Yedek yüklendi","Copie încărcată"],
+  "Datei auswählen":["Choose file","Dosya seç","Alege fișierul"],"Deine jetzigen Einträge werden dabei ersetzt.":["Your current entries will be replaced.","Mevcut kayıtların değiştirilecek.","Înregistrările actuale vor fi înlocuite."],
+  "Deine Einträge liegen nur auf diesem Handy. Speichere ab und zu eine Sicherung, damit nichts verloren geht.":["Your entries are stored only on this phone. Save a backup from time to time so nothing gets lost.","Kayıtların sadece bu telefonda. Hiçbir şey kaybolmasın diye arada bir yedek kaydet.","Înregistrările tale sunt doar pe acest telefon. Salvează din când în când o copie, ca să nu se piardă nimic."],
+  "Deine Einträge, Notizen und Telefonnummern liegen nur auf diesem Handy. Speichere ab und zu eine Sicherung.":["Your entries, notes and phone numbers are stored only on this phone. Save a backup from time to time.","Kayıtların, notların ve telefon numaraların sadece bu telefonda. Arada bir yedek kaydet.","Înregistrările, notițele și numerele de telefon sunt doar pe acest telefon. Salvează din când în când o copie."],
+  "Das ist keine gültige Schichtplaner-Sicherung. Bitte die .json-Datei aus „Sicherung speichern“ verwenden.":["This is not a valid Schichtplaner backup. Please use the .json file from “Save backup”.","Bu geçerli bir Schichtplaner yedeği değil. Lütfen “Yedeği kaydet”teki .json dosyasını kullan.","Aceasta nu este o copie Schichtplaner validă. Folosește fișierul .json de la „Salvează copia”."],
+  "Direktes Speichern geht in dieser Ansicht nicht. Kopiere den Text und sichere ihn z. B. in einer Notiz oder schick ihn dir per WhatsApp.":["Saving directly isn't possible in this view. Copy the text and keep it e.g. in a note or send it to yourself via WhatsApp.","Bu görünümde doğrudan kaydetme mümkün değil. Metni kopyala ve ör. bir notta sakla veya kendine WhatsApp ile gönder.","Salvarea directă nu e posibilă aici. Copiază textul și păstrează-l de ex. într-o notiță sau trimite-l pe WhatsApp."],
+  "Text markiert, jetzt kopieren":["Text selected, now copy it","Metin seçildi, şimdi kopyala","Text selectat, acum copiază-l"],"Kopiert":["Copied","Kopyalandı","Copiat"],
+  "PDF wird erstellt …":["Creating PDF …","PDF oluşturuluyor …","Se creează PDF-ul …"],"PDF gespeichert":["PDF saved","PDF kaydedildi","PDF salvat"],
+  "PDF-Erstellung konnte nicht geladen werden. Bitte Internet prüfen.":["PDF creation could not be loaded. Please check your internet.","PDF oluşturma yüklenemedi. Lütfen interneti kontrol et.","Crearea PDF nu a putut fi încărcată. Verifică internetul."],
+  "PDF-Speichern geht nur in der Claude-App oder auf claude.ai.":["Saving a PDF only works in the Claude app or on claude.ai.","PDF kaydetme sadece Claude uygulamasında veya claude.ai'de çalışır.","Salvarea PDF merge doar în aplicația Claude sau pe claude.ai."],
+  "Speichern hat nicht geklappt. Bitte später noch einmal versuchen.":["Saving didn't work. Please try again later.","Kaydetme başarısız. Lütfen daha sonra tekrar dene.","Salvarea nu a reușit. Încearcă din nou mai târziu."],
+  "Speichern ist in dieser Ansicht nicht möglich. Öffne den Schichtplaner in der Claude-App oder auf claude.ai.":["Saving isn't possible in this view. Open the Schichtplaner in the Claude app or on claude.ai.","Bu görünümde kaydetme mümkün değil. Schichtplaner'ı Claude uygulamasında veya claude.ai'de aç.","Salvarea nu e posibilă aici. Deschide Schichtplaner în aplicația Claude sau pe claude.ai."],
+  "Geplante Schichten ohne Einträge":["Planned shifts without entries","Kayıtsız planlanan vardiyalar","Ture planificate fără înregistrări"],
+  "Schichten gesamt":["Shifts total","Toplam vardiya","Total ture"],"Feiertage auf Schichttagen":["Public holidays on shift days","Vardiya günlerindeki resmî tatiller","Sărbători în zile de tură"],
+  "Stunden pro Ausgleichstag":["Hours per compensation day","Telafi günü başına saat","Ore pe zi compensatorie"],"Übertrag (Stunden)":["Carried over (hours)","Devreden (saat)","Report (ore)"],
+  "Urlaubsanspruch pro Jahr":["Annual leave per year","Yıllık izin hakkı","Concediu pe an"],"TZ-Urlaub pro Jahr":["TZ leave per year","Yıllık TZ izni","Concediu TZ pe an"],
+  "Bitte beim Urlaubsanspruch eine Zahl ab 0 eintragen.":["Please enter a number from 0 for annual leave.","Lütfen yıllık izin hakkı için 0 veya daha büyük bir sayı gir.","Te rog introdu un număr de la 0 pentru concediu."],
+  "genommen":["taken","kullanıldı","luat"],"Tage gezählt":["days counted","gün sayıldı","zile numărate"],"Tag gezählt":["day counted","gün sayıldı","zi numărată"],
+  "FT nicht gezählt":["FT not counted","FT sayılmadı","FT nenumărat"],"Feiertag zählt":["public holiday counts","resmî tatil sayılır","sărbătoarea contează"],"Feiertage zählen":["public holidays count","resmî tatiller sayılır","sărbătorile contează"],
+  "alle Einträge, alle Jahre":["all entries, all years","tüm kayıtlar, tüm yıllar","toate înregistrările, toți anii"],"Alle":["All","Tümü","Toate"],"alle":["all","tümü","toate"],
+  "Antippen springt zum Tag. ✎ ändert, 🗑 löscht (zweimal tippen).":["Tap to jump to the day. ✎ edits, 🗑 deletes (tap twice).","Dokunmak güne atlar. ✎ değiştirir, 🗑 siler (iki kez dokun).","Atingerea sare la zi. ✎ modifică, 🗑 șterge (atinge de două ori)."],
+  "Noch keine Einträge.":["No entries yet.","Henüz kayıt yok.","Încă nu există înregistrări."],
+  // Jahresübersicht
+  "Jahresplan":["Year plan","Yıllık plan","Plan anual"],"ganzes Jahr auf einer Seite":["whole year on one page","bütün yıl tek sayfada","tot anul pe o pagină"],
+  "Als PDF speichern und drucken":["Save as PDF and print","PDF olarak kaydet ve yazdır","Salvează ca PDF și tipărește"],"Schwarz-Weiß-PDF":["Black-and-white PDF","Siyah-beyaz PDF","PDF alb-negru"],
+  "für Drucker ohne Farbe, spart Tinte":["for printers without colour, saves ink","renksiz yazıcılar için, mürekkep tasarrufu","pentru imprimante fără culoare, economisește cerneală"],
+  "Das PDF öffnest du nach dem Speichern auf dem Handy und druckst es über „Drucken“ oder „Teilen → Drucken“.":["After saving, open the PDF on your phone and print it via “Print” or “Share → Print”.","Kaydettikten sonra PDF'i telefonda aç ve “Yazdır” veya “Paylaş → Yazdır” ile yazdır.","După salvare deschide PDF-ul pe telefon și tipărește-l prin „Tipărire” sau „Distribuie → Tipărire”."],
+  "17,5-Modell":["17.5 model","17,5 modeli","Modelul 17,5"],"Bayern":["Bavaria","Bavyera","Bavaria"],"PDF in Farbe":["PDF in colour","Renkli PDF","PDF color"],
+  "(gezählt nur an Schichttagen)":["(counted on shift days only)","(sadece vardiya günlerinde sayılır)","(numărate doar în zile de tură)"],
+  // Schichtplan / Modelle
+  "Eigene Schichtmodelle":["Your own shift models","Kendi vardiya modellerin","Modele proprii de ture"],"Neues Schichtmodell":["New shift model","Yeni vardiya modeli","Model nou de ture"],
+  "Schichtmodell ändern":["Edit shift model","Vardiya modelini değiştir","Modifică modelul de ture"],"Schichtmodell löschen":["Delete shift model","Vardiya modelini sil","Șterge modelul de ture"],
+  "Schichtmodell gespeichert":["Shift model saved","Vardiya modeli kaydedildi","Model de ture salvat"],"Schichtmodell gelöscht":["Shift model deleted","Vardiya modeli silindi","Model de ture șters"],
+  "Schichtmodell:":["Shift model:","Vardiya modeli:","Model de ture:"],"Noch kein eigenes Schichtmodell.":["No shift model of your own yet.","Henüz kendi vardiya modelin yok.","Încă nu ai un model propriu de ture."],
+  "Name":["Name","Ad","Nume"],"Gilt von":["Valid from","Başlangıç","Valabil de la"],"Ablauf (wiederholt sich ab „Gilt von“)":["Sequence (repeats from “Valid from”)","Sıra (“Başlangıç”tan itibaren tekrarlanır)","Succesiune (se repetă de la „Valabil de la”)"],
+  "Block hinzufügen":["Add block","Blok ekle","Adaugă bloc"],"Block entfernen":["Remove block","Bloğu kaldır","Elimină blocul"],"Vorschau der ersten Wochen":["Preview of the first weeks","İlk haftaların önizlemesi","Previzualizarea primelor săptămâni"],
+  "Zyklus:":["Cycle:","Döngü:","Ciclu:"],"Bitte mindestens einen Block mit Früh, Spät oder Nacht anlegen.":["Please create at least one block with early, late or night.","Lütfen sabah, akşam veya gece içeren en az bir blok oluştur.","Creează cel puțin un bloc cu dimineață, după-amiază sau noapte."],
+  "Bitte ein gültiges Von- und Bis-Datum wählen. „Bis“ darf nicht vor „Von“ liegen.":["Please choose a valid from and to date. “To” must not be before “From”.","Lütfen geçerli bir başlangıç ve bitiş tarihi seç. “Bitiş”, “Başlangıç”tan önce olamaz.","Alege o dată validă de la și până la. „Până la” nu poate fi înainte de „De la”."],
+  "Mein Schichtmodell":["My shift model","Vardiya modelim","Modelul meu de ture"],
+  "Das 17,5-Modell ist ausgeschaltet.":["The 17.5 model is switched off.","17,5 modeli kapalı.","Modelul 17,5 este dezactivat."],
+  "Dein Kalender ist leer, bis du oben ein eigenes Schichtmodell anlegst.":["Your calendar is empty until you create your own shift model above.","Yukarıda kendi vardiya modelini oluşturana kadar takvimin boş.","Calendarul tău e gol până când creezi mai sus un model propriu de ture."],
+  "17,5-Modell wieder einschalten":["Turn 17.5 model back on","17,5 modelini yeniden aç","Reactivează modelul 17,5"],
+  "17,5-Modell entfernen (leerer Kalender)":["Remove 17.5 model (empty calendar)","17,5 modelini kaldır (boş takvim)","Elimină modelul 17,5 (calendar gol)"],
+  "Du arbeitest nicht im 17,5-Modell? Dann entferne es hier und du bekommst einen leeren Kalender. Deine Einträge (Urlaub, Notizen, Überstunden) bleiben erhalten. Du kannst es jederzeit wieder einschalten. Bei anderen ändert sich dadurch nichts.":["Don't you work in the 17.5 model? Then remove it here and you get an empty calendar. Your entries (vacation, notes, overtime) are kept. You can switch it back on at any time. Nothing changes for anyone else.","17,5 modelinde çalışmıyor musun? O zaman burada kaldır, boş bir takvim elde edersin. Kayıtların (izin, notlar, fazla mesai) korunur. İstediğin zaman yeniden açabilirsin. Başkaları için hiçbir şey değişmez.","Nu lucrezi în modelul 17,5? Atunci elimină-l aici și primești un calendar gol. Înregistrările tale (concediu, notițe, ore suplimentare) rămân. Îl poți reactiva oricând. Pentru ceilalți nu se schimbă nimic."],
+  "17,5-Modell entfernt. Dein Kalender ist jetzt leer.":["17.5 model removed. Your calendar is now empty.","17,5 modeli kaldırıldı. Takvimin artık boş.","Modelul 17,5 a fost eliminat. Calendarul tău e acum gol."],
+  "17,5-Modell ist wieder eingeschaltet":["17.5 model is switched on again","17,5 modeli yeniden açıldı","Modelul 17,5 este din nou activ"],
+  "Überall, wo kein eigenes Modell gilt, rechnet die App mit dem":["Wherever no model of your own applies, the app calculates with the","Kendi modelinin geçerli olmadığı her yerde uygulama şununla hesaplar:","Oriunde nu se aplică un model propriu, aplicația calculează cu"],
+  "Für einen Zeitraum kannst du ein anderes Modell festlegen.":["You can set a different model for a period.","Bir dönem için başka bir model belirleyebilirsin.","Poți stabili un alt model pentru o perioadă."],
+  "Das 17,5-Modell ist ausgeschaltet. Überall, wo kein eigenes Modell gilt, ist der Kalender":["The 17.5 model is switched off. Wherever no model of your own applies, the calendar is","17,5 modeli kapalı. Kendi modelinin geçerli olmadığı her yerde takvim","Modelul 17,5 este dezactivat. Oriunde nu se aplică un model propriu, calendarul este"],
+  "Lege hier dein eigenes Modell an.":["Create your own model here.","Kendi modelini burada oluştur.","Creează aici modelul tău."],
+  "Schichtmodelle und 17,5-Modell":["Shift models and 17.5 model","Vardiya modelleri ve 17,5 modeli","Modele de ture și modelul 17,5"],"Schichtrhythmus (17,5-Modell)":["Shift rhythm (17.5 model)","Vardiya ritmi (17,5 modeli)","Ritmul turelor (modelul 17,5)"],
+  "Ein Montag, an dem dein Spät-Block beginnt":["A Monday on which your late block starts","Akşam bloğunun başladığı bir pazartesi","O zi de luni în care începe blocul de după-amiază"],
+  "Bitte einen Montag wählen. Der Spät-Block startet immer montags.":["Please choose a Monday. The late block always starts on a Monday.","Lütfen bir pazartesi seç. Akşam bloğu her zaman pazartesi başlar.","Alege o zi de luni. Blocul de după-amiază începe mereu lunea."],
+  "28-Tage-Zyklus: 6× Spät (Mo–Sa), So frei, 6× Früh (Mo–Sa), 6× Nacht (So–Fr), dann 9 Tage frei.":["28-day cycle: 6× late (Mon–Sat), Sun off, 6× early (Mon–Sat), 6× night (Sun–Fri), then 9 days off.","28 günlük döngü: 6× akşam (Pzt–Cmt), Paz boş, 6× sabah (Pzt–Cmt), 6× gece (Paz–Cum), sonra 9 gün boş.","Ciclu de 28 de zile: 6× după-amiază (Lu–Sâ), Du liber, 6× dimineață (Lu–Sâ), 6× noapte (Du–Vi), apoi 9 zile libere."],
+  "noch keins":["none yet","henüz yok","încă niciunul"],"nur 17,5-Modell":["17.5 model only","sadece 17,5 modeli","doar modelul 17,5"],"eigenes anlegen":["create your own","kendininkini oluştur","creează propriul"],"17,5 aus":["17.5 off","17,5 kapalı","17,5 oprit"],
+  // Routinen
+  "Neue Routine":["New routine","Yeni rutin","Rutină nouă"],"Routine ändern":["Edit routine","Rutini değiştir","Modifică rutina"],"Routine löschen":["Delete routine","Rutini sil","Șterge rutina"],
+  "Routine gelöscht":["Routine deleted","Rutin silindi","Rutină ștearsă"],"Routinen verwalten":["Manage routines","Rutinleri yönet","Gestionează rutinele"],
+  "Wiederkehrende Aufgaben wie":["Recurring tasks such as","Şu gibi tekrarlanan işler:","Sarcini recurente precum"],"Hausordnung jeden 2. Samstag":["cleaning duty every 2nd Saturday","her 2. cumartesi bina temizliği","curățenie în fiecare a doua sâmbătă"],
+  "Sie erscheinen im Kalender als kleines Kürzel oben links im Tag. Die Schichtfarben bleiben unverändert.":["They appear in the calendar as a small abbreviation at the top of the day. The shift colours stay unchanged.","Takvimde günün üstünde küçük bir kısaltma olarak görünürler. Vardiya renkleri değişmez.","Apar în calendar ca o mică prescurtare în partea de sus a zilei. Culorile turelor rămân neschimbate."],
+  "Noch keine Routine angelegt.":["No routine created yet.","Henüz rutin oluşturulmadı.","Încă nu ai creat nicio rutină."],
+  "Abkürzung im Kalender (1–3 Zeichen)":["Abbreviation in the calendar (1–3 characters)","Takvimdeki kısaltma (1–3 karakter)","Prescurtare în calendar (1–3 caractere)"],"Abkürzung":["Abbreviation","Kısaltma","Prescurtare"],
+  "Erster Termin":["First date","İlk tarih","Prima dată"],"Wiederholen":["Repeat","Tekrarla","Repetă"],"Ergibt:":["Result:","Sonuç:","Rezultat:"],
+  "Endet am (leer lassen = ohne Ende)":["Ends on (leave empty = no end)","Bitiş tarihi (boş bırak = sonsuz)","Se termină la (lasă gol = fără sfârșit)"],"Nächste Termine":["Next dates","Sıradaki tarihler","Următoarele date"],
+  "Keine Termine ab heute.":["No dates from today.","Bugünden itibaren tarih yok.","Nicio dată de azi încolo."],"keine weiteren Termine":["no further dates","başka tarih yok","nicio altă dată"],
+  "Bitte einen Namen eintragen, z. B. Hausordnung.":["Please enter a name, e.g. cleaning duty.","Lütfen bir ad gir, ör. bina temizliği.","Te rog introdu un nume, de ex. curățenie."],
+  "Bitte den ersten Termin wählen.":["Please choose the first date.","Lütfen ilk tarihi seç.","Te rog alege prima dată."],"Das Ende darf nicht vor dem ersten Termin liegen.":["The end must not be before the first date.","Bitiş ilk tarihten önce olamaz.","Sfârșitul nu poate fi înainte de prima dată."],
+  "jeden Tag":["every day","her gün","în fiecare zi"],
+  // Geburtstage
+  "Geburtstag":["Birthday","Doğum günü","Zi de naștere"],"Geburtstag eintragen":["Add birthday","Doğum günü ekle","Adaugă zi de naștere"],"Geburtstag ändern":["Edit birthday","Doğum gününü değiştir","Modifică ziua de naștere"],
+  "Geburtstag löschen":["Delete birthday","Doğum gününü sil","Șterge ziua de naștere"],"Geburtstag gelöscht":["Birthday deleted","Doğum günü silindi","Zi de naștere ștearsă"],
+  "Geburtstag hinzufügen":["Add birthday","Doğum günü ekle","Adaugă zi de naștere"],"Als Nächstes":["Coming up","Sıradakiler","Urmează"],"Hinweis vorher":["Reminder in advance","Önceden hatırlatma","Aviz înainte"],
+  "Geburtsjahr nicht bekannt (Alter nicht anzeigen)":["Year of birth unknown (don't show age)","Doğum yılı bilinmiyor (yaşı gösterme)","Anul nașterii necunoscut (nu afișa vârsta)"],
+  "Jedes Jahr in Google Kalender eintragen":["Add to Google Calendar every year","Her yıl Google Takvim'e ekle","Adaugă anual în Google Calendar"],
+  "Rosa umrandet = Geburtstag kommt bald. Im Kalender steht am Geburtstag ein 🎂.":["Pink frame = birthday coming soon. On the birthday the calendar shows a 🎂.","Pembe çerçeve = doğum günü yaklaşıyor. Takvimde doğum gününde bir 🎂 görünür.","Chenar roz = ziua de naștere se apropie. În calendar apare un 🎂 în ziua de naștere."],
+  "Noch kein Geburtstag eingetragen. Tippe auf „+ Geburtstag hinzufügen“ oder im Kalender auf einen Tag.":["No birthday added yet. Tap “+ Add birthday” or a day in the calendar.","Henüz doğum günü eklenmedi. “+ Doğum günü ekle”ye veya takvimde bir güne dokun.","Încă nu ai adăugat zile de naștere. Atinge „+ Adaugă zi de naștere” sau o zi din calendar."],
+  "nur am Geburtstag selbst":["only on the birthday itself","sadece doğum gününün kendisinde","doar în ziua de naștere"],
+  "Tage vorher erscheint oben im Kalender ein Hinweis":["days before, a notice appears at the top of the calendar","gün önce takvimin üstünde bir uyarı çıkar","zile înainte apare un aviz sus în calendar"],
+  "Tag vorher erscheint oben im Kalender ein Hinweis":["day before, a notice appears at the top of the calendar","gün önce takvimin üstünde bir uyarı çıkar","zi înainte apare un aviz sus în calendar"],
+  "Bitte den Geburtstag wählen.":["Please choose the birthday.","Lütfen doğum gününü seç.","Te rog alege ziua de naștere."],"Das Geburtsjahr liegt in der Zukunft.":["The year of birth is in the future.","Doğum yılı gelecekte.","Anul nașterii este în viitor."],
+  "Bitte einen Namen eintragen.":["Please enter a name.","Lütfen bir ad gir.","Te rog introdu un nume."],"z. B. Monika":["e.g. Monika","ör. Monika","de ex. Monika"],
+  // Telefonbuch
+  "Nummer hinzufügen":["Add number","Numara ekle","Adaugă număr"],"Nummer bearbeiten":["Edit number","Numarayı düzenle","Editează numărul"],"Nummer löschen":["Delete number","Numarayı sil","Șterge numărul"],
+  "Anrufen":["Call","Ara","Sună"],"Nummer kopieren":["Copy number","Numarayı kopyala","Copiază numărul"],"Telefonnummer":["Phone number","Telefon numarası","Număr de telefon"],
+  "Name (wem gehört die Nummer?)":["Name (whose number is it?)","Ad (numara kime ait?)","Nume (al cui e numărul?)"],"Wer ist das? (z. B. Teamleiter, Kollege, Familie)":["Who is this? (e.g. team leader, colleague, family)","Bu kim? (ör. ekip lideri, iş arkadaşı, aile)","Cine este? (de ex. șef de echipă, coleg, familie)"],
+  "Teamleiter":["Team leader","Ekip lideri","Șef de echipă"],"Kollege":["Colleague","İş arkadaşı","Coleg"],"Familie":["Family","Aile","Familie"],"Arzt":["Doctor","Doktor","Medic"],"Notfall":["Emergency","Acil durum","Urgență"],"Sonstige":["Other","Diğer","Altele"],
+  "z. B. Teamleiter":["e.g. team leader","ör. ekip lideri","de ex. șef de echipă"],"z. B. Thomas Huber":["e.g. Thomas Huber","ör. Thomas Huber","de ex. Thomas Huber"],"z. B. Schichtgruppe B, Halle 3":["e.g. shift group B, hall 3","ör. vardiya grubu B, hol 3","de ex. grupa de tură B, hala 3"],
+  "Bitte Name und eine Telefonnummer mit Ziffern eintragen.":["Please enter a name and a phone number with digits.","Lütfen bir ad ve rakamlı bir telefon numarası gir.","Te rog introdu un nume și un număr de telefon cu cifre."],
+  "„Anrufen“ öffnet die Telefon-App. Klappt das in deiner Ansicht nicht, kopiere die Nummer.":["“Call” opens the phone app. If that doesn't work in your view, copy the number.","“Ara” telefon uygulamasını açar. Bu görünümde çalışmazsa numarayı kopyala.","„Sună” deschide aplicația de telefon. Dacă nu merge, copiază numărul."],
+  "Bitte die Nummer lange antippen und kopieren":["Please long-press the number and copy it","Lütfen numaraya uzun bas ve kopyala","Apasă lung pe număr și copiază-l"],"Noch keine Nummern.":["No numbers yet.","Henüz numara yok.","Încă nu există numere."],
+  // Partner
+  "Meinen Plan teilen":["Share my plan","Planımı paylaş","Partajează planul meu"],"Dein Name":["Your name","Adın","Numele tău"],"(so sieht ihn dein Partner)":["(this is how your partner sees it)","(partnerin bunu görür)","(așa îl vede partenerul)"],
+  "z. B. Hans-Jürgen":["e.g. Hans-Jürgen","ör. Hans-Jürgen","de ex. Hans-Jürgen"],
+  "Dein Partner bekommt deine Schichten, Urlaub, TZ, Ausgleich und Sonderurlaub. Krankheitstage, Notizen und Überstunden bleiben privat.":["Your partner gets your shifts, vacation, TZ, compensation days and special leave. Sick days, notes and overtime stay private.","Partnerin vardiyalarını, yıllık iznini, TZ'yi, telafi günlerini ve özel izni alır. Hastalık günleri, notlar ve fazla mesai gizli kalır.","Partenerul primește turele, concediul, TZ, zilele compensatorii și concediul special. Zilele de boală, notițele și orele suplimentare rămân private."],
+  "Per WhatsApp senden":["Send via WhatsApp","WhatsApp ile gönder","Trimite pe WhatsApp"],"Teilen (SMS, E-Mail …)":["Share (SMS, e-mail …)","Paylaş (SMS, e-posta …)","Distribuie (SMS, e-mail …)"],"Teilen":["Share","Paylaş","Distribuie"],
+  "QR-Code zum Abscannen zeigen":["Show QR code to scan","Taranacak QR kodu göster","Arată codul QR pentru scanare"],"QR-Code":["QR code","QR kod","Cod QR"],"Link kopieren":["Copy link","Bağlantıyı kopyala","Copiază linkul"],"Link kopieren:":["Copy link:","Bağlantıyı kopyala:","Copiază linkul:"],
+  "Hast du etwas geändert? Einfach noch einmal senden. Der neue Link ersetzt beim Partner den alten Stand.":["Changed something? Just send it again. The new link replaces the old version for your partner.","Bir şey mi değiştirdin? Tekrar göndermen yeterli. Yeni bağlantı partnerindeki eski durumun yerini alır.","Ai schimbat ceva? Trimite din nou. Noul link înlocuiește vechea versiune la partener."],
+  "Noch keiner. Öffne den Link, den du bekommen hast, oder füge ihn hier ein:":["None yet. Open the link you received or paste it here:","Henüz yok. Aldığın bağlantıyı aç veya buraya yapıştır:","Încă niciunul. Deschide linkul primit sau lipește-l aici:"],
+  "Empfangenen Link hier einfügen":["Paste received link here","Alınan bağlantıyı buraya yapıştır","Lipește aici linkul primit"],"Link übernehmen":["Use link","Bağlantıyı al","Preia linkul"],"Link kopiert":["Link copied","Bağlantı kopyalandı","Link copiat"],
+  "Bitte zuerst deinen Namen eintragen.":["Please enter your name first.","Lütfen önce adını gir.","Te rog introdu mai întâi numele tău."],"Das ist kein gültiger Schichtplan-Link.":["This is not a valid shift plan link.","Bu geçerli bir vardiya planı bağlantısı değil.","Acesta nu este un link valid de plan de ture."],
+  "Der Link ist unvollständig. Bitte noch einmal schicken lassen.":["The link is incomplete. Please ask for it to be sent again.","Bağlantı eksik. Lütfen tekrar gönderilmesini iste.","Linkul este incomplet. Cere să ți-l trimită din nou."],
+  "Dein Partner öffnet die Kamera-App, hält sie auf den Code und tippt auf den Link, der erscheint.":["Your partner opens the camera app, points it at the code and taps the link that appears.","Partnerin kamera uygulamasını açar, koda tutar ve çıkan bağlantıya dokunur.","Partenerul deschide aplicația camerei, o îndreaptă spre cod și atinge linkul care apare."],
+  "Der Plan ist zu groß für einen QR-Code. Bitte den Link per WhatsApp schicken.":["The plan is too big for a QR code. Please send the link via WhatsApp.","Plan bir QR kod için çok büyük. Lütfen bağlantıyı WhatsApp ile gönder.","Planul e prea mare pentru un cod QR. Trimite linkul pe WhatsApp."],
+  "Plan empfangen":["Plan received","Plan alındı","Plan primit"],"Speichern und ansehen":["Save and view","Kaydet ve görüntüle","Salvează și vezi"],"Nicht speichern":["Don't save","Kaydetme","Nu salva"],
+  "Zurück zu meinem Plan":["Back to my plan","Planıma dön","Înapoi la planul meu"],"Ansehen":["View","Görüntüle","Vezi"],
+  "Hinweis fürs iPhone":["Note for iPhone","iPhone için not","Notă pentru iPhone"],"Verstanden":["Got it","Anladım","Am înțeles"],
+  "Der Plan ist jetzt in Safari gespeichert. Wenn du die App vom Home-Bildschirm benutzt, kopiere den Link aus WhatsApp und füge ihn dort ein: Menü ☰ → Partner → „Link übernehmen“.":["The plan is now saved in Safari. If you use the app from the home screen, copy the link from WhatsApp and paste it there: menu ☰ → Partner → “Use link”.","Plan şimdi Safari'de kayıtlı. Uygulamayı ana ekrandan kullanıyorsan, bağlantıyı WhatsApp'tan kopyala ve oraya yapıştır: menü ☰ → Partner → “Bağlantıyı al”.","Planul este acum salvat în Safari. Dacă folosești aplicația de pe ecranul principal, copiază linkul din WhatsApp și lipește-l acolo: meniu ☰ → Partener → „Preia linkul”."],
+  // Einstellungen
+  "Jahreszeiten-Animation anzeigen":["Show seasonal animation","Mevsim animasyonunu göster","Arată animația anotimpurilor"],"Jahreszeiten-Sound":["Seasonal sound","Mevsim sesi","Sunetul anotimpurilor"],"Lautstärke":["Volume","Ses düzeyi","Volum"],
+  "Animation und Sound":["Animation and sound","Animasyon ve ses","Animație și sunet"],"Dein Browser unterstützt keinen Sound.":["Your browser doesn't support sound.","Tarayıcın sesi desteklemiyor.","Browserul tău nu suportă sunet."],
+  "Einmal auf den Bildschirm tippen, dann startet der Sound":["Tap the screen once and the sound starts","Ekrana bir kez dokun, ses başlar","Atinge o dată ecranul și sunetul pornește"],
+  "Urlaub und Ausgleich":["Vacation and compensation","İzin ve telafi","Concediu și compensare"],"Sprache":["Language","Dil","Limbă"],
+  // Anleitung
+  "Alle Funktionen der App, mit Beispielbildern. Tippe auf ein Thema, um direkt hinzuspringen.":["All features of the app, with sample pictures. Tap a topic to jump straight to it.","Uygulamanın tüm özellikleri, örnek resimlerle. Doğrudan gitmek için bir konuya dokun.","Toate funcțiile aplicației, cu imagini exemplu. Atinge un subiect pentru a sări direct la el."],
+  "Alle Funktionen mit Bildern erklärt":["All features explained with pictures","Tüm özellikler resimlerle açıklandı","Toate funcțiile explicate cu imagini"],"Die Bilder zeigen Beispieldaten.":["The pictures show sample data (in German).","Resimler örnek verileri gösterir (Almanca).","Imaginile arată date exemplu (în germană)."],
+  "Datenschutz":["Privacy","Gizlilik","Confidențialitate"],"Hinweise":["Notes","Notlar","Note"],"Umsetzung":["Development","Uygulama","Realizare"],"Idee und Konzept":["Idea and concept","Fikir ve konsept","Idee și concept"]
+  };
+  Object.assign(I18N_D,{
+  "Zeitumstellung: Uhr wird nachts von 2 auf 3 Uhr vorgestellt.":["Clock change: at night the clock goes forward from 2 to 3 o'clock.","Saat değişikliği: gece saat 2'den 3'e ileri alınır.","Schimbarea orei: noaptea ceasul se dă înainte de la 2 la 3."],
+  "Zeitumstellung: Uhr wird nachts von 3 auf 2 Uhr zurückgestellt.":["Clock change: at night the clock goes back from 3 to 2 o'clock.","Saat değişikliği: gece saat 3'ten 2'ye geri alınır.","Schimbarea orei: noaptea ceasul se dă înapoi de la 3 la 2."],
+  "Die Nacht ist eine Stunde kürzer.":["The night is one hour shorter.","Gece bir saat kısalır.","Noaptea e cu o oră mai scurtă."],"Die Nacht ist eine Stunde länger.":["The night is one hour longer.","Gece bir saat uzar.","Noaptea e cu o oră mai lungă."],
+  "Uhr 2→3 vorstellen":["clocks go forward 2→3","saat 2→3 ileri alınır","ceasul se dă înainte 2→3"],"Uhr 3→2 zurückstellen":["clocks go back 3→2","saat 3→2 geri alınır","ceasul se dă înapoi 3→2"],
+  "Nachtschicht 1 h kürzer":["night shift 1 h shorter","gece vardiyası 1 saat kısa","tura de noapte cu 1 h mai scurtă"],"Nachtschicht 1 h länger":["night shift 1 h longer","gece vardiyası 1 saat uzun","tura de noapte cu 1 h mai lungă"],
+  "1 h kürzer":["1 h shorter","1 saat kısa","cu 1 h mai scurt"],"1 h länger":["1 h longer","1 saat uzun","cu 1 h mai lung"],
+  "gezählt nur an Schichttagen":["counted on shift days only","sadece vardiya günlerinde sayılır","numărate doar în zile de tură"],
+  "Wird gezählt":["Counted","Sayılır","Se numără"],"Datum":["Date","Tarih","Data"],"Wochentag":["Weekday","Gün","Ziua"],"Eintrag":["Entry","Kayıt","Înregistrare"],
+  "Geplante Schicht":["Planned shift","Planlanan vardiya","Tură planificată"],"Stunden":["Hours","Saat","Ore"],"ja":["yes","evet","da"],"nein":["no","hayır","nu"],
+  "Saldo":["Balance","Bakiye","Sold"],"Übertrag":["Carried over","Devreden","Report"],"Gruppe":["Group","Grup","Grupă"]
+  });
+  const I18N_P=[
+  ["^1 Tag$","1 day","1 gün","1 zi"],["^(\\d+) Tage$","$1 days","$1 gün","$1 zile"],
+  ["^1 Tag gezählt$","1 day counted","1 gün sayıldı","1 zi numărată"],["^(\\d+) Tage gezählt$","$1 days counted","$1 gün sayıldı","$1 zile numărate"],
+  ["^1 Tage? in (\\d{4})$","1 day in $1","$1 yılında 1 gün","1 zi în $1"],
+  ["^(\\d+) Tage? in (\\d{4})$","$1 days in $2","$2 yılında $1 gün","$1 zile în $2"],
+  ["^(\\d+) Schichten$","$1 shifts","$1 vardiya","$1 ture"],["^(\\d+) Schicht$","$1 shift","$1 vardiya","$1 tură"],
+  ["^Zyklus (\\d+) Tage$","cycle $1 days","döngü $1 gün","ciclu $1 zile"],
+  ["^1 Notiz$","1 note","1 not","1 notiță"],["^(\\d+) Notizen$","$1 notes","$1 not","$1 notițe"],
+  ["^1 Routine$","1 routine","1 rutin","1 rutină"],["^(\\d+) Routinen$","$1 routines","$1 rutin","$1 rutine"],
+  ["^1 Nummer$","1 number","1 numara","1 număr"],["^(\\d+) Nummern$","$1 numbers","$1 numara","$1 numere"],
+  ["^(\\d+) eigene$","$1 own","$1 kendi","$1 proprii"],["^(\\d+) eingetragen$","$1 added","$1 kayıtlı","$1 adăugate"],
+  ["^([\\d,.]+) h gespeichert$","$1 h saved","$1 sa kaydedildi","$1 h salvate"],
+  ["^(\\d+) von (\\d+) übrig$","$1 of $2 left","$2 içinden $1 kaldı","$1 din $2 rămase"],
+  ["^(.+) (\\d+) von (\\d+)$","%1 $2 of $3","%1 $3 içinden $2","%1 $2 din $3"],
+  ["^wird (\\d+)$","turns $1","$1 yaşına giriyor","împlinește $1 ani"],
+  ["^in (\\d+) Tagen$","in $1 days","$1 gün sonra","peste $1 zile"],["^In (\\d+) Tagen$","In $1 days","$1 gün sonra","Peste $1 zile"],
+  ["^noch (\\d+)$","$1 left","$1 kaldı","încă $1"],["^\\+(\\d+) weitere$","+$1 more","+$1 daha","+$1 în plus"],
+  ["^(\\d+) Feiertage? nicht gezählt$","$1 public holiday(s) not counted","$1 resmî tatil sayılmadı","$1 sărbători nenumărate"],
+  ["^(\\d+) FT nicht gezählt$","$1 FT not counted","$1 FT sayılmadı","$1 FT nenumărate"],
+  ["^Ab (.+)$","From $1","$1 itibarıyla","De la $1"],["^Bis (.+)$","Until $1","$1 tarihine kadar","Până la $1"],
+  ["^An (.+) wird nicht gearbeitet\\. Laut Rhythmus wäre (.+)\\.$","No work on %1. According to the rhythm it would be %2.","%1: çalışılmaz. Ritme göre %2 olurdu.","De %1 nu se lucrează. Conform ritmului ar fi fost %2."],
+  ["^An (.+) wird nicht gearbeitet\\.$","No work on %1.","%1: çalışılmaz.","De %1 nu se lucrează."],
+  ["^(.+) \\(kein Feiertag\\)$","%1 (not a public holiday)","%1 (resmî tatil değil)","%1 (nu e sărbătoare legală)"],
+  ["^Beispielbild: (.+)$","Sample picture: $1","Örnek resim: $1","Imagine exemplu: $1"],
+  ["^Alle Geburtstage \\((\\d+)\\)$","All birthdays ($1)","Tüm doğum günleri ($1)","Toate zilele de naștere ($1)"],
+  ["^Einträge (\\d{4}) als Tabelle$","Entries $1 as a table","$1 kayıtları tablo olarak","Înregistrări $1 ca tabel"],["^Einträge (\\d{4})$","Entries $1","$1 kayıtları","Înregistrări $1"],
+  ["^Jahresplan (\\d{4}) als PDF$","Year plan $1 as PDF","$1 yıllık planı PDF olarak","Plan anual $1 ca PDF"],
+  ["^Jahresplan (\\d{4}) schwarz-weiß$","Year plan $1 black and white","$1 yıllık planı siyah-beyaz","Plan anual $1 alb-negru"],
+  ["^Jahresübersicht (\\d{4}) \\(A4\\)$","Year overview $1 (A4)","$1 yıllık görünüm (A4)","Prezentare anuală $1 (A4)"],
+  ["^SCHICHTPLAN (\\d{4})(.*)$","SHIFT PLAN $1$2","VARDIYA PLANI $1$2","PLAN DE TURE $1$2"],["^JAHRESKALENDER (\\d{4})(.*)$","YEAR CALENDAR $1$2","YILLIK TAKVIM $1$2","CALENDAR ANUAL $1$2"],
+  ["^Stand (.+), (\\d\\d:\\d\\d) Uhr$","As of $1, $2","Durum: $1, $2","Stare: $1, $2"],
+  ["^Stunden geleistet \\((\\d+)×\\)$","Hours worked ($1×)","Çalışılan saat ($1×)","Ore lucrate ($1×)"],
+  ["^Stunden durch Ausgleich \\(([\\d,.]+) h/Tag\\)$","Hours via compensation ($1 h/day)","Telafiyle saat ($1 sa/gün)","Ore prin compensare ($1 h/zi)"],
+  ["^Saldo gesamt \\(inkl\\. Übertrag (.+)\\)$","Total balance (incl. carried over $1)","Toplam bakiye (devreden $1 dahil)","Sold total (incl. report $1)"],
+  ["^Überstunden (.+?) \\(−(\\d+) Min\\. Pause\\)$","Overtime $1 (−$2 min break)","Fazla mesai $1 (−$2 dk mola)","Ore suplimentare $1 (−$2 min pauză)"],
+  ["^Überstunden (−?[\\d,.]+ h)$","Overtime $1","Fazla mesai $1","Ore suplimentare $1"],
+  ["^Plan von (.+):$","Plan of $1:","$1 planı:","Planul lui $1:"],["^Plan von (.+) gelöscht$","Plan of $1 deleted","$1 planı silindi","Planul lui $1 a fost șters"],["^Plan von (.+)$","Plan of $1","$1 planı","Planul lui $1"],
+  ["^Schichtplan von (.+)$","Shift plan of $1","$1 vardiya planı","Planul de ture al lui $1"],["^Jahresübersicht von (.+)$","Year overview of $1","$1 yıllık görünümü","Prezentarea anuală a lui $1"],
+  ["^Du siehst jetzt den Plan von (.+)$","You are now viewing the plan of $1","Şu an $1 planını görüyorsun","Acum vezi planul lui $1"],
+  ["^Dein eigener Plan bleibt unverändert\\. Der Plan von (.+) kommt als eigene Ansicht dazu\\.$","Your own plan stays unchanged. The plan of $1 is added as a separate view.","Kendi planın değişmez. $1 planı ayrı bir görünüm olarak eklenir.","Planul tău rămâne neschimbat. Planul lui $1 se adaugă ca vizualizare separată."],
+  ["^Den Plan von (.+) kannst du nur ansehen\\. Änderungen macht (.+) auf dem eigenen Handy und schickt dir einen neuen Link\\.$","You can only view the plan of $1. $2 makes changes on their own phone and sends you a new link.","$1 planını sadece görüntüleyebilirsin. Değişiklikleri $2 kendi telefonunda yapar ve sana yeni bir bağlantı gönderir.","Planul lui $1 poate fi doar vizualizat. $2 face modificările pe telefonul propriu și îți trimite un link nou."],
+  ["^Ersetzt den bisherigen Stand vom (.+)\\.$","Replaces the previous version from $1.","$1 tarihli önceki durumun yerini alır.","Înlocuiește versiunea anterioară din $1."],
+  ["^Geburtstag von (.+) gespeichert$","Birthday of $1 saved","$1 doğum günü kaydedildi","Ziua de naștere a lui $1 a fost salvată"],["^Geburtstag von (.+) gelöscht$","Birthday of $1 deleted","$1 doğum günü silindi","Ziua de naștere a lui $1 a fost ștearsă"],
+  ["^Geburtstag (.+)$","Birthday $1","Doğum günü $1","Zi de naștere $1"],
+  ["^Routine „(.+)“ gespeichert$","Routine “$1” saved","“$1” rutini kaydedildi","Rutina „$1” a fost salvată"],
+  ["^Gespeichert\\. Überschneidet sich mit „(.+)“, das neue gilt dort\\.$","Saved. Overlaps with “$1”, the new one applies there.","Kaydedildi. “$1” ile çakışıyor, orada yenisi geçerli.","Salvat. Se suprapune cu „$1”, acolo se aplică cel nou."],
+  ["^Gespeichert: (.+)$","Saved: %1","Kaydedildi: %1","Salvat: %1"],["^Nummer kopiert: (.+)$","Number copied: $1","Numara kopyalandı: $1","Număr copiat: $1"],
+  ["^nächster Termin (.+)$","next date $1","sıradaki tarih $1","următoarea dată $1"],
+  ["^jeden Monat am (\\d+)\\.$","every month on day $1","her ay ayın $1. günü","în fiecare lună pe $1"],
+  ["^alle (\\d+) Tage$","every $1 days","$1 günde bir","la fiecare $1 zile"],["^alle (\\d+) Wochen$","every $1 weeks","$1 haftada bir","la fiecare $1 săptămâni"],["^alle (\\d+) Monate$","every $1 months","$1 ayda bir","la fiecare $1 luni"],
+  ["^alle (\\d+) Wochen am (.+)$","every $1 weeks on $2","$1 haftada bir, $2","la fiecare $1 săptămâni, $2"],
+  ["^alle (\\d+) Monate am (\\d+)\\.$","every $1 months on day $2","$1 ayda bir, ayın $2. günü","la fiecare $1 luni, pe $2"],
+  ["^jeden (.+)$","every $1","her $1","în fiecare $1"],
+  ["^(.+) bis (\\d+\\.\\d+\\.\\d{4})$","%1 until $2","%1, $2 tarihine kadar","%1 până la $2"],
+  ["^(.+), Geburtstag (.+)$","%1, birthday $2","%1, $2 doğum günü","%1, ziua de naștere $2"],
+  ["^Feiertag: (.+)$","Public holiday: %1","Resmî tatil: %1","Sărbătoare legală: %1"],
+  ["^(.+) an diesem Tag entfernen$","Remove %1 on this day","Bu gündeki %1 kaydını kaldır","Elimină %1 din această zi"],
+  ["^(.+): Zeitraum$","%1: period","%1: dönem","%1: perioadă"],
+  ["^(Urlaub|TZ-Urlaub|Ausgleich|Krank|Sonderurlaub) eintragen$","Add %1","%1 ekle","Adaugă %1"],
+  ["^(Urlaub|TZ-Urlaub|Ausgleich|Krank|Sonderurlaub) löschen$","Delete %1","%1 sil","Șterge %1"],
+  ["^(Urlaub|TZ-Urlaub|Ausgleich|Krank|Sonderurlaub) ändern$","Edit %1","%1 değiştir","Modifică %1"]
+  ].map(([re,...t])=>[new RegExp(re,"u"),t]);
+  const TRC=new Map();
+  function tr1(c){ if(LI==null)return c; c=String(c).replace(/\s+/g," ").trim(); if(!c||!/\p{L}{2}/u.test(c))return c; if(TRC.has(c))return TRC.get(c);
+    TRC.set(c,c); let r=trOne(c); if(r==null)r=c; TRC.set(c,r); return r }
+  function trOne(c){
+    const d=I18N_D[c]; if(d)return d[LI];
+    for(const [re,t] of I18N_P){const m=re.exec(c); if(m)return t[LI].replace(/([$%])(\d)/g,(_,k,i)=>k==="$"?(m[i]||""):tr1(m[i]||""))}
+    let m=/^([^\p{L}\p{N}„(]+)(\p{L}[\s\S]*)$/u.exec(c); if(m){const r=tr1(m[2]); if(r!==m[2])return m[1]+r}
+    if(c.includes(" · ")){const p=c.split(" · "),q=p.map(x=>x.trim()?tr1(x):x); if(q.some((x,i)=>x!==p[i]))return q.join(" · ")}
+    if(c.startsWith("· ")){const r=tr1(c.slice(2)); if(r!==c.slice(2))return "· "+r}
+    if(c.endsWith(" ·")){const r=tr1(c.slice(0,-2)); if(r!==c.slice(0,-2))return r+" ·"}
+    m=/^([^:]+): (.+)$/.exec(c); if(m){const a=tr1(m[1]),b=tr1(m[2]); if(a!==m[1]||b!==m[2])return a+": "+b}
+    m=/^(.+) \(([^()]+)\)$/.exec(c); if(m){const a=tr1(m[1]),b=tr1(m[2]); if(a!==m[1]||b!==m[2])return a+" ("+b+")"}
+    m=/^(.+?) (−?\d[\d.,]*(?: h)?)$/.exec(c); if(m){const a=tr1(m[1]); if(a!==m[1])return a+" "+m[2]}
+    if(/\. \p{Lu}/u.test(c)){const p=c.split(/(?<=\.) (?=\p{Lu})/u),q=p.map(tr1); if(q.some((x,i)=>x!==p[i]))return q.join(" ")}
+    if(c.includes(", ")){const p=c.split(", "),q=p.map(tr1); if(q.some((x,i)=>x!==p[i]))return q.join(", ")}
+    return null }
+  function trS(s){ if(LI==null||s==null)return s; s=String(s); const m=/^(\s*)([\s\S]*?)(\s*)$/.exec(s); if(!/\p{L}{2}/u.test(m[2]))return s;
+    const norm=m[2].replace(/\s+/g," ").trim(), r=tr1(norm); return r===norm?s:m[1]+r+m[3] }
+  const TRA=["placeholder","aria-label","title","alt"];
+  function trNode(n){
+    if(n.nodeType===3){const p=n.parentNode; if(!p||p.nodeName==="SCRIPT"||p.nodeName==="STYLE"||(p.closest&&p.closest(".nt")))return; const v=trS(n.data); if(v!==n.data)n.data=v; return}
+    if(n.nodeType!==1||n.nodeName==="SCRIPT"||n.nodeName==="STYLE"||n.classList.contains("nt"))return;
+    trAttrs(n); for(let c=n.firstChild;c;c=c.nextSibling)trNode(c) }
+  function trAttrs(n){for(const a of TRA){if(n.hasAttribute(a)){const v=n.getAttribute(a),w=trS(v); if(w!==v)n.setAttribute(a,w)}}}
+  function startI18n(){ document.documentElement.lang=LANG; if(LI==null)return;
+    trNode(document.body);
+    new MutationObserver(ms=>{for(const m of ms){if(m.type==="characterData")trNode(m.target);else if(m.type==="attributes")trAttrs(m.target);else m.addedNodes.forEach(trNode)}})
+      .observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:TRA}) }
+  const pdfTxt=s=>LANG==="tr"||LANG==="ro"?String(s).replace(/[şș]/g,"s").replace(/[ŞȘ]/g,"S").replace(/ğ/g,"g").replace(/Ğ/g,"G").replace(/ı/g,"i").replace(/İ/g,"I").replace(/[țţ]/g,"t").replace(/[ȚŢ]/g,"T").replace(/ă/g,"a").replace(/Ă/g,"A"):s;
+  const I18N_IMPR={
+    en:["Legal notice","<p class=\"impapp\">📅 <b>Schichtplaner</b><br><span>Personal shift calendar for shift work: shifts, vacation, overtime, notes, routines and birthdays at a glance</span></p><h4>Idea and concept</h4><p><b>Hans-Jürgen Schlichting</b></p><h4>Development</h4><p>Programmed, designed and given sound by <b>Claude</b>, the AI assistant by Anthropic, based on the idea and specifications of Hans-Jürgen Schlichting.</p><h4>Notes</h4><p>The app is a private, free tool and does not replace official documents. Shifts are calculated from the selected shift model; public holidays (Bavaria), clock changes and Easter dates are calculated automatically. All information without guarantee. The official shift plan and the rules of your employer always take precedence.</p><h4>Privacy</h4><p>All your data (shifts, entries, notes, overtime, routines, birthdays and phone numbers) is stored <b>only on your device</b>. There is no user account and no server that collects your data.</p><p>Data only leaves your device when you tap it yourself: when <b>sharing with your partner</b> (shifts, vacation, TZ, compensation days and special leave are contained in the link you send), when saving a PDF, table or backup, and with “Add to Google Calendar”. Fonts are loaded from Google Fonts, PDF creation from cdnjs.</p><h4>Pictures, sounds, music</h4><p>Animations and sounds are generated in the app itself. The Christmas songs are in the public domain. Symbols are your device's emojis. QR codes: qrcode-generator, © Kazuhiko Arase, MIT licence.</p>"],
+    tr:["Künye","<p class=\"impapp\">📅 <b>Schichtplaner</b><br><span>Vardiyalı çalışma için kişisel vardiya takvimi: vardiyalar, izin, fazla mesai, notlar, rutinler ve doğum günleri bir bakışta</span></p><h4>Fikir ve konsept</h4><p><b>Hans-Jürgen Schlichting</b></p><h4>Uygulama</h4><p>Hans-Jürgen Schlichting'in fikri ve talimatlarına göre Anthropic'in yapay zekâ asistanı <b>Claude</b> tarafından programlandı, tasarlandı ve seslendirildi.</p><h4>Notlar</h4><p>Uygulama özel, ücretsiz bir yardımcı araçtır ve resmî belgelerin yerini tutmaz. Vardiyalar seçilen vardiya modeline göre hesaplanır; resmî tatiller (Bavyera), saat değişiklikleri ve Paskalya tarihleri otomatik hesaplanır. Tüm bilgiler garanti verilmeden sunulur. Her zaman işvereninin resmî vardiya planı ve kuralları geçerlidir.</p><h4>Gizlilik</h4><p>Tüm verilerin (vardiyalar, kayıtlar, notlar, fazla mesai, rutinler, doğum günleri ve telefon numaraları) <b>sadece cihazında</b> saklanır. Kullanıcı hesabı ve verilerini toplayan bir sunucu yoktur.</p><p>Veriler sadece sen kendin dokunduğunda cihazından çıkar: <b>partnerle paylaşırken</b> (vardiyalar, izin, TZ, telafi günleri ve özel izin gönderdiğin bağlantının içindedir), PDF, tablo veya yedek kaydederken ve “Google Takvim'e ekle” ile. Yazı tipleri Google Fonts'tan, PDF oluşturma cdnjs'ten yüklenir.</p><h4>Resimler, sesler, müzik</h4><p>Animasyonlar ve sesler uygulamanın kendisinde üretilir. Noel şarkıları kamu malıdır. Simgeler cihazının emojileridir. QR kodlar: qrcode-generator, © Kazuhiko Arase, MIT lisansı.</p>"],
+    ro:["Informații legale","<p class=\"impapp\">📅 <b>Schichtplaner</b><br><span>Calendar personal pentru munca în ture: ture, concediu, ore suplimentare, notițe, rutine și zile de naștere dintr-o privire</span></p><h4>Idee și concept</h4><p><b>Hans-Jürgen Schlichting</b></p><h4>Realizare</h4><p>Programat, conceput și sonorizat de <b>Claude</b>, asistentul AI al Anthropic, după ideea și cerințele lui Hans-Jürgen Schlichting.</p><h4>Note</h4><p>Aplicația este un instrument privat și gratuit și nu înlocuiește documentele oficiale. Turele se calculează după modelul de ture ales; sărbătorile legale (Bavaria), schimbarea orei și datele Paștelui se calculează automat. Toate informațiile sunt fără garanție. Întotdeauna are prioritate planul oficial de ture și regulile angajatorului tău.</p><h4>Confidențialitate</h4><p>Toate datele tale (ture, înregistrări, notițe, ore suplimentare, rutine, zile de naștere și numere de telefon) sunt stocate <b>doar pe dispozitivul tău</b>. Nu există cont de utilizator și niciun server care să-ți colecteze datele.</p><p>Datele părăsesc dispozitivul doar când atingi tu: la <b>partajarea cu partenerul</b> (turele, concediul, TZ, zilele compensatorii și concediul special sunt în linkul trimis), la salvarea unui PDF, tabel sau copie de siguranță și la „Adaugă în Google Calendar”. Fonturile se încarcă de la Google Fonts, crearea PDF de la cdnjs.</p><h4>Imagini, sunete, muzică</h4><p>Animațiile și sunetele sunt generate în aplicație. Colindele sunt în domeniul public. Simbolurile sunt emoji-urile dispozitivului tău. Coduri QR: qrcode-generator, © Kazuhiko Arase, licență MIT.</p>"]};
+  const I18N_HELP={
+  en:{
+    kalender:["The calendar","Each day shows the weekday, date and your shift: <b>F</b> early (yellow), <b>S</b> late (orange), <b>N</b> night (blue), grey = day off. Saturday and Sunday sit on a coloured band. Swipe up and down, the calendar keeps loading endlessly. The <b>Today</b> button at the bottom right takes you back to the current day."],
+    kopf:["Top: today and counters","The today card shows your shift today and how many shifts are left in the block. Below are the counters for the year you are currently scrolling through: <b>U</b> and <b>TZ</b> remaining leave, <b>AG</b> compensation days, <b>ÜS</b> overtime balance, <b>K</b> sick days, <b>SU</b> special leave, <b>FT</b> public holidays that fall on a shift day. Next to it are the speaker button and the menu ☰."],
+    tag:["Tap a day","Tap a day to enter <b>vacation, TZ leave, compensation day, sick leave or special leave</b>. Then choose “Just this one day” or “Several days”. On a day with an entry you can change the type or delete the entry. Days off and public holidays don't use up any leave."],
+    zeitraum:["Choose a period","For several days a small calendar opens. The day you tapped is the start, tap the last day. Below it you see exactly how many days are deducted and how many are left afterwards. Nothing is saved until you tap “add”."],
+    notiz:["Notes","With <b>📝 Add note only</b> you can write a note for any day, even without leave. When you enter leave and the like, the app also offers to add a note. Days with a note have a dark corner at the bottom left."],
+    kalendereintrag:["Into your phone calendar","After saving a note you can transfer it with <b>📅 Add to Google Calendar</b>. Google Calendar opens with the event ready, you only need to tap Save."],
+    ueberstunden:["Overtime","Tap a day → <b>⏱ Add overtime</b>. Enter from, to and break, the hours are calculated automatically, even past midnight. Days with overtime have a turquoise bar at the top. You can see the balance at the top under <b>ÜS</b>."],
+    feiertage:["Public holidays and special days","All public holidays in Bavaria as well as Christmas Eve and New Year's Eve are <b>red and off</b>, each with its own symbol. Under each month you find the holidays and special days such as St Nicholas or Mother's Day. 🕑 marks the clock change, a notice appears at the top 14 days before."],
+    menue:["The menu ☰","Via ☰ at the top right you reach all pages: statistics, my entries, notes, phone book, year overview, partner, shift plan, birthdays, routines, settings, backup and this guide. On each of these pages the blue <b>‹ Calendar</b> button floats at the bottom right. It takes you straight back to the calendar from anywhere, without scrolling to the top."],
+    statistik:["Statistics","All counters of a year at a glance, plus your overtime per month as bars. Use ‹ › to change the year."],
+    statistik2:["Year calendar and saving","Further down: the compact year calendar with your entries. Below it you can save it as a <b>📄 colour PDF</b> or in <b>🖨️ black and white</b> (entries with a dashed frame and the codes U, TZ, AG, K, SU). After that come all entries by type and the save buttons for <b>PDF</b>, <b>Excel table</b> and <b>backup</b>."],
+    eintraege:["My entries","Everything you have entered is listed here. At the top you filter by type. Tapping jumps to the day, <b>✎</b> edits, <b>🗑</b> deletes (tap twice)."],
+    notizen:["Notes overview","All notes with date, split into upcoming and past. Tapping jumps to the day."],
+    jahr:["Year overview and printing","The whole year on one A4 page, with shifts and public holidays only. With <b>📄 Save as PDF and print</b> you save the page in colour. If your printer has no colour or you want to save ink, use <b>🖨️ Black-and-white PDF</b>: early is white, late light grey, night dark with white text, public holidays have a thick black frame with “FT”. Open the PDF on your phone and print it via “Print” or “Share → Print”."],
+    modelle:["Shift plan and your own shift models","Under ☰ → <b>🔁 Shift plan</b> you can set a different shift model for a period. Tap “+ New shift model”: name, valid from, to, then build the sequence from blocks (early, late, night or off, each with a number of days). The preview shows the first weeks. Outside that period the 17.5 model applies, unless you have switched it off further down on the same page."],
+    geburtstage:["Birthdays","Under ☰ → <b>🎂 Birthdays</b> you enter a name and birthday. If you don't know the year, tick “Year of birth unknown”. It's even quicker from the calendar: tap a day → <b>🎂 Add a birthday on this day</b>. On the <b>Birthdays</b> page you see the next three at the top and below them <b>all birthdays by month</b>. Each entry has <b>✎ Edit</b> and <b>🗑 Delete</b> (tap twice), at the top <b>+ Add birthday</b>. Upcoming birthdays have a pink frame. Under “Reminder in advance” you set how many days before you are reminded (default 7). Under ✎ Edit you find <b>📅 Add to Google Calendar every year</b>, which also gives you a reminder from your phone."],
+    geburtstage2:["Birthdays in the calendar","On a birthday the calendar shows a small <b>🎂</b> at the right of the day. Below the today card a bar appears in good time, e.g. “🎂 In 3 days (Saturday, 7 November): Monika turns 54”, and on the day itself “🎉 Birthday today”. Tapping the bar jumps to the day. Birthdays are not sent when you share your plan with your partner."],
+    routinen:["Routines","For recurring tasks such as <b>cleaning duty every 2nd Saturday</b>: ☰ → <b>🧹 Routines</b> → “New routine”. Enter a name, choose your own <b>abbreviation</b> (1–3 characters, e.g. HO), set the first date and how often it repeats: every 1, 2, 3 … days, weeks or months. Right below you see the next dates. In the calendar the abbreviation appears small at the top right of the day, the shift colours stay unchanged. Tapping the day shows the full name."],
+    routinen2:["Routines in the calendar","This is how it looks in the calendar: <b>HO</b> for cleaning duty every 2 weeks on Saturday, <b>M</b> for a weekly routine. Several routines on the same day show a <b>+</b>. Routines are <b>not</b> sent when you share your plan with your partner."],
+    teamleiter:["Phone book","Under ☰ → <b>📞 Phone book</b> you save important numbers. Under <b>“Who is this?”</b> tap team leader, colleague, family, doctor, emergency, or type something yourself. Then enter the name and number. The list is sorted by that. <b>Call</b> opens the phone app, <b>Copy number</b> puts it on the clipboard."],
+    leer:["Without the 17.5 model (empty calendar)","Don't you work in the 17.5 model? Under ☰ → <b>🔁 Shift plan</b> tap <b>“Remove 17.5 model (empty calendar)”</b> at the bottom and confirm with a second tap. The calendar is then empty and you create your own shift model on the same page. Your entries are kept. “Turn 17.5 model back on” undoes it. This only applies to your phone, nothing changes for anyone else."],
+    einstellungen:["Settings","Language, switching animation and sound on and off, volume, annual leave, hours per compensation day and overtime carried over, routines and the start of your 17.5 rhythm (a Monday on which your late block starts)."],
+    farben:["Change colours","Tap a colour field to change the colour for early, late, night, vacation, TZ, compensation, sick, special leave, overtime, public holidays or the weekend band. “Reset colours” sets everything back to default."],
+    sicherung:["Backup","Your entries are stored only on this phone. Save a <b>backup</b> from time to time. On a new phone you restore it with “Load backup”."],
+    partner:["Share your plan with your partner","Under ☰ → <b>👥 Partner</b> you enter your name once. Then you send your plan with <b>💬 Send via WhatsApp</b>, via <b>Share</b>, or show a <b>🔳 QR code</b> that your partner scans with the camera. Shared are shifts, vacation, TZ, compensation days and special leave. <b>Sick days, notes and overtime stay private.</b> If you changed something, simply send the link again."],
+    partner2:["Receive a plan","Your partner taps the link or scans the QR code and chooses <b>Save and view</b>. Their own plan stays unchanged. <b>iPhone:</b> if the app is used from the home screen, long-press the link in WhatsApp, choose “Copy” and paste it in the app under ☰ → Partner → <b>Use link</b>."],
+    partner3:["View your partner's plan","A blue bar <b>👀 Plan of …</b> appears at the top. The plan can only be viewed, not changed. <b>Back to my plan</b> takes you to your own calendar. Later you open it again via ☰ → Partner → <b>View</b>. Several plans, for example from colleagues, are possible too."],
+    sound:["Animation and sound","The background changes with the season: snow, blossoms, sun, leaves and now and then a thunderstorm in autumn. Figures such as ducks, the Easter bunny, Santa Claus or lanterns match the month. Tapping makes small swirls rise. With the <b>speaker button</b> you switch on nature sounds. Public holidays have their own sounds when you tap the day or when it is today. From 20 to 31 December Christmas songs play, and on New Year's Eve fireworks start when 31 December is in the middle of the screen."],
+    impressum:["Legal notice","Under ☰ menu → Legal notice you find who came up with and built the app, and how your data is handled."],
+    kachel:["Put it on your phone as an icon and share it","Open the Schichtplaner in the browser (Android: ⋮ → “Add to home screen”, iPhone: Share → “Add to Home Screen”). Your colleagues get the link via WhatsApp. Everyone saves their own entries, and everyone can set their own rhythm under settings."]
+  },
+  tr:{
+    kalender:["Takvim","Her gün haftanın gününü, tarihi ve vardiyanı gösterir: <b>F</b> sabah (sarı), <b>S</b> akşam (turuncu), <b>N</b> gece (mavi), gri = boş gün. Cumartesi ve pazar renkli bir şeridin üzerindedir. Yukarı ve aşağı kaydır, takvim sonsuza kadar yüklenmeye devam eder. Sağ alttaki <b>Bugün</b> düğmesi seni bugünkü güne geri götürür."],
+    kopf:["Üstte: bugün ve sayaçlar","Bugün kartı bugünkü vardiyanı ve bloktaki kalan vardiya sayısını gösterir. Altında, şu anda kaydırdığın yılın sayaçları vardır: <b>U</b> ve <b>TZ</b> kalan izin, <b>AG</b> telafi günleri, <b>ÜS</b> fazla mesai bakiyesi, <b>K</b> hastalık günleri, <b>SU</b> özel izin, <b>FT</b> vardiya gününe denk gelen resmî tatiller. Yanında hoparlör düğmesi ve menü ☰ bulunur."],
+    tag:["Bir güne dokun","<b>Yıllık izin, TZ izni, telafi günü, hastalık veya özel izin</b> girmek için bir güne dokun. Sonra “Sadece bu gün” veya “Birden fazla gün” seç. Kayıtlı bir günde türü değiştirebilir veya kaydı silebilirsin. Boş günler ve resmî tatiller izinden düşmez."],
+    zeitraum:["Zaman aralığı seç","Birden fazla gün için küçük bir takvim açılır. Dokunduğun gün başlangıçtır, son güne dokun. Altında kaç günün düşüleceği ve sonra ne kadar kalacağı tam olarak yazar. Ancak “ekle”ye dokunduğunda kaydedilir."],
+    notiz:["Notlar","<b>📝 Sadece not ekle</b> ile her güne, izin olmadan da bir not yazabilirsin. İzin vb. girerken uygulama da not eklemek isteyip istemediğini sorar. Notlu günlerin sol alt köşesi koyudur."],
+    kalendereintrag:["Telefon takvimine","Bir notu kaydettikten sonra <b>📅 Google Takvim'e ekle</b> ile aktarabilirsin. Google Takvim hazır etkinlikle açılır, sadece Kaydet'e dokunman yeterlidir."],
+    ueberstunden:["Fazla mesai","Bir güne dokun → <b>⏱ Fazla mesai ekle</b>. Başlangıç, bitiş ve molayı gir, saatler gece yarısını geçse bile otomatik hesaplanır. Fazla mesaili günlerin üstünde turkuaz bir çubuk vardır. Bakiyeyi üstte <b>ÜS</b> altında görürsün."],
+    feiertage:["Resmî tatiller ve özel günler","Bavyera'daki tüm resmî tatiller ile Noel arifesi ve yılbaşı gecesi kendi simgeleriyle <b>kırmızı ve boş</b> gösterilir. Her ayın altında resmî tatiller ve Aziz Nikolaus veya Anneler Günü gibi özel günler yazar. 🕑 saat değişikliğini gösterir, 14 gün önce üstte bir uyarı çıkar."],
+    menue:["Menü ☰","Sağ üstteki ☰ ile tüm sayfalara ulaşırsın: istatistik, kayıtlarım, notlar, telefon rehberi, yıllık görünüm, partner, vardiya planı, doğum günleri, rutinler, ayarlar, yedekleme ve bu kılavuz. Bu sayfaların her birinde sağ altta mavi <b>‹ Takvim</b> düğmesi durur. Onunla, yukarı kaydırmana gerek kalmadan her yerden hemen takvime dönersin."],
+    statistik:["İstatistik","Bir yılın tüm sayaçları bir bakışta, ayrıca aylık fazla mesain çubuk olarak. ‹ › ile yılı değiştirirsin."],
+    statistik2:["Yıllık takvim ve kaydetme","Daha aşağıda: kayıtlarınla birlikte kompakt yıllık takvim. Altında onu <b>📄 renkli PDF</b> veya <b>🖨️ siyah-beyaz</b> olarak kaydedersin (kayıtlar kesikli çerçeve ve U, TZ, AG, K, SU kısaltmalarıyla). Ardından türe göre tüm kayıtlar ve <b>PDF</b>, <b>Excel tablosu</b> ve <b>yedek</b> için kaydetme düğmeleri gelir."],
+    eintraege:["Kayıtlarım","Girdiğin her şey burada listelenir. Üstte türe göre filtrelersin. Dokunmak güne atlar, <b>✎</b> değiştirir, <b>🗑</b> siler (iki kez dokun)."],
+    notizen:["Not görünümü","Tüm notlar tarihleriyle, yaklaşan ve geçmiş olarak ayrılmış. Dokunmak güne atlar."],
+    jahr:["Yıllık görünüm ve yazdırma","Bütün yıl tek bir A4 sayfada, sadece vardiyalar ve resmî tatillerle. <b>📄 PDF olarak kaydet ve yazdır</b> ile sayfayı renkli kaydedersin. Renkli olmayan bir yazıcın varsa veya mürekkep tasarrufu istiyorsan <b>🖨️ Siyah-beyaz PDF</b>'i seç: sabah beyaz, akşam açık gri, gece beyaz yazılı koyu, resmî tatillerde “FT” yazan kalın siyah bir çerçeve vardır. PDF'i telefonda açar ve “Yazdır” veya “Paylaş → Yazdır” ile yazdırırsın."],
+    modelle:["Vardiya planı ve kendi vardiya modellerin","☰ → <b>🔁 Vardiya planı</b> altında bir zaman aralığı için başka bir vardiya modeli belirleyebilirsin. “+ Yeni vardiya modeli”ne dokun: ad, başlangıç, bitiş, ardından sırayı bloklardan oluştur (sabah, akşam, gece veya boş, her biri gün sayısıyla). Önizleme ilk haftaları gösterir. Bu aralığın dışında 17,5 modeli geçerlidir, aynı sayfanın altında kapatmadıysan."],
+    geburtstage:["Doğum günleri","☰ → <b>🎂 Doğum günleri</b> altında ad ve doğum gününü girersin. Yılı bilmiyorsan “Doğum yılı bilinmiyor” kutusunu işaretle. Takvimden daha da hızlı: bir güne dokun → <b>🎂 Bu güne doğum günü ekle</b>. <b>Doğum günleri</b> sayfasında üstte sıradaki üç doğum gününü, altında da <b>aylara göre tüm doğum günlerini</b> görürsün. Her kayıtta <b>✎ Düzenle</b> ve <b>🗑 Sil</b> (iki kez dokun), üstte <b>+ Doğum günü ekle</b> vardır. Yaklaşan doğum günlerinin pembe bir çerçevesi olur. “Önceden hatırlatma” ile kaç gün önce hatırlatılacağını ayarlarsın (varsayılan 7). ✎ Düzenle altında <b>📅 Her yıl Google Takvim'e ekle</b> bulunur, böylece telefondan da hatırlatma alırsın."],
+    geburtstage2:["Takvimde doğum günleri","Takvimde doğum gününde günün sağında küçük bir <b>🎂</b> görünür. Bugün kartının altında zamanında bir şerit çıkar, ör. “🎂 3 gün sonra (Cumartesi, 7 Kasım): Monika 54 yaşına giriyor”, günün kendisinde ise “🎉 Bugün doğum günü”. Şeride dokunmak güne atlar. Doğum günleri partnerle paylaşırken gönderilmez."],
+    routinen:["Rutinler","<b>Her 2. cumartesi bina temizliği</b> gibi tekrarlayan işler için: ☰ → <b>🧹 Rutinler</b> → “Yeni rutin”. Bir ad gir, kendi <b>kısaltmanı</b> seç (1–3 karakter, ör. HO), ilk tarihi belirle ve ne sıklıkla tekrarlanacağını ayarla: her 1, 2, 3 … gün, hafta veya ay. Hemen altında sıradaki tarihleri görürsün. Takvimde kısaltma günün sağ üstünde küçük yazılır, vardiya renkleri değişmez. Güne dokunmak tam adı gösterir."],
+    routinen2:["Takvimde rutinler","Takvimde şöyle görünür: 2 haftada bir cumartesi bina temizliği için <b>HO</b>, haftalık bir rutin için <b>M</b>. Aynı gündeki birden fazla rutin bir <b>+</b> gösterir. Rutinler partnerle paylaşırken <b>gönderilmez</b>."],
+    teamleiter:["Telefon rehberi","☰ → <b>📞 Telefon rehberi</b> altında önemli numaraları kaydedersin. <b>“Bu kim?”</b> kısmında ekip lideri, iş arkadaşı, aile, doktor, acil durum seçeneğine dokun veya kendin bir şey yaz. Sonra adı ve numarayı gir. Liste buna göre sıralanır. <b>Ara</b> telefon uygulamasını açar, <b>Numarayı kopyala</b> numarayı panoya kopyalar."],
+    leer:["17,5 modeli olmadan (boş takvim)","17,5 modelinde çalışmıyor musun? ☰ → <b>🔁 Vardiya planı</b> altında en aşağıda <b>“17,5 modelini kaldır (boş takvim)”</b>a dokun ve ikinci bir dokunuşla onayla. Takvim boş olur ve aynı sayfada kendi vardiya modelini oluşturursun. Kayıtların korunur. “17,5 modelini yeniden aç” ile geri alırsın. Bu sadece senin telefonun için geçerlidir, başkalarında hiçbir şey değişmez."],
+    einstellungen:["Ayarlar","Dil, animasyon ve sesi açıp kapatma, ses düzeyi, yıllık izin hakkı, telafi günü başına saat ve devreden fazla mesai, rutinler ve 17,5 ritminin başlangıcı (akşam bloğunun başladığı bir pazartesi)."],
+    farben:["Renkleri değiştir","Sabah, akşam, gece, yıllık izin, TZ, telafi, hastalık, özel izin, fazla mesai, resmî tatiller veya hafta sonu şeridinin rengini değiştirmek için bir renk alanına dokun. “Renkleri sıfırla” her şeyi varsayılana döndürür."],
+    sicherung:["Yedekleme","Kayıtların sadece bu telefonda saklanır. Arada bir <b>yedek</b> kaydet. Yeni bir telefonda “Yedeği yükle” ile geri yüklersin."],
+    partner:["Planı partnerle paylaş","☰ → <b>👥 Partner</b> altında adını bir kez girersin. Sonra planını <b>💬 WhatsApp ile gönder</b>, <b>Paylaş</b> ile gönderirsin veya partnerinin kamerayla taradığı bir <b>🔳 QR kod</b> gösterirsin. Vardiyalar, yıllık izin, TZ, telafi günleri ve özel izin paylaşılır. <b>Hastalık günleri, notlar ve fazla mesai gizli kalır.</b> Bir şey değiştirdiysen bağlantıyı tekrar göndermen yeterli."],
+    partner2:["Plan al","Partnerin bağlantıya dokunur veya QR kodu tarar ve <b>Kaydet ve görüntüle</b>'yi seçer. Kendi planı değişmeden kalır. <b>iPhone:</b> Uygulama ana ekrandan kullanılıyorsa, WhatsApp'taki bağlantıya uzun bas, “Kopyala”yı seç ve uygulamada ☰ → Partner → <b>Bağlantıyı al</b> altına yapıştır."],
+    partner3:["Partnerin planını görüntüle","Üstte mavi bir şerit çıkar: <b>👀 … planı</b>. Plan sadece görüntülenebilir, değiştirilemez. <b>Planıma dön</b> ile kendi takvimine dönersin. Daha sonra ☰ → Partner → <b>Görüntüle</b> ile tekrar açarsın. Örneğin iş arkadaşlarından birden fazla plan da mümkündür."],
+    sound:["Animasyon ve ses","Arka plan mevsime göre değişir: kar, çiçekler, güneş, yapraklar ve sonbaharda ara sıra bir fırtına. Ördekler, Paskalya tavşanı, Noel Baba veya fenerler gibi figürler aya uygundur. Dokunmak küçük girdaplar çıkarır. <b>Hoparlör düğmesi</b> ile doğa seslerini açarsın. Resmî tatillerde, güne dokunduğunda veya o gün bugünse kendi sesleri vardır. 20–31 Aralık arası Noel şarkıları çalar, yılbaşı gecesi 31 Aralık ekranın ortasındayken havai fişek başlar."],
+    impressum:["Künye","☰ menü → Künye altında uygulamayı kimin düşünüp yaptığı ve verilerinin nasıl ele alındığı yazar."],
+    kachel:["Telefona simge olarak ekle ve paylaş","Schichtplaner'ı tarayıcıda aç (Android: ⋮ → “Ana ekrana ekle”, iPhone: Paylaş → “Ana Ekrana Ekle”). İş arkadaşların bağlantıyı WhatsApp ile alır. Herkes kendi kayıtlarını saklar ve herkes ayarlar altında kendi ritmini ayarlayabilir."]
+  },
+  ro:{
+    kalender:["Calendarul","Fiecare zi arată ziua săptămânii, data și tura ta: <b>F</b> dimineață (galben), <b>S</b> după-amiază (portocaliu), <b>N</b> noapte (albastru), gri = zi liberă. Sâmbăta și duminica stau pe o bandă colorată. Glisează în sus și în jos, calendarul se încarcă la nesfârșit. Butonul <b>Azi</b> din dreapta jos te duce înapoi la ziua curentă."],
+    kopf:["Sus: azi și contoare","Cardul de azi arată tura ta de azi și câte ture mai urmează în bloc. Dedesubt sunt contoarele pentru anul prin care derulezi acum: <b>U</b> și <b>TZ</b> concediu rămas, <b>AG</b> zile compensatorii, <b>ÜS</b> soldul orelor suplimentare, <b>K</b> zile de boală, <b>SU</b> concediu special, <b>FT</b> sărbători legale care cad într-o zi de tură. Alături sunt butonul de difuzor și meniul ☰."],
+    tag:["Atinge o zi","Atinge o zi pentru a introduce <b>concediu, concediu TZ, zi compensatorie, boală sau concediu special</b>. Apoi alegi „Doar această zi” sau „Mai multe zile”. La o zi cu înregistrare poți schimba tipul sau poți șterge înregistrarea. Zilele libere și sărbătorile legale nu consumă concediu."],
+    zeitraum:["Alege o perioadă","Pentru mai multe zile se deschide un calendar mic. Ziua atinsă este începutul, atinge ultima zi. Dedesubt scrie exact câte zile se scad și cât rămâne după aceea. Se salvează abia când atingi „adaugă”."],
+    notiz:["Notițe","Cu <b>📝 Doar notă</b> scrii o notiță pentru orice zi, chiar și fără concediu. Când introduci concediu și altele, aplicația te întreabă de asemenea dacă vrei o notiță. Zilele cu notiță au un colț închis la culoare în stânga jos."],
+    kalendereintrag:["În calendarul telefonului","După ce salvezi o notiță, o poți transfera cu <b>📅 Adaugă în Google Calendar</b>. Google Calendar se deschide cu evenimentul gata făcut, trebuie doar să atingi Salvează."],
+    ueberstunden:["Ore suplimentare","Atinge o zi → <b>⏱ Adaugă ore suplimentare</b>. Introdu de la, până la și pauza, orele se calculează automat, chiar și peste miezul nopții. Zilele cu ore suplimentare au sus o bară turcoaz. Soldul îl vezi sus la <b>ÜS</b>."],
+    feiertage:["Sărbători legale și zile speciale","Toate sărbătorile legale din Bavaria, precum și Ajunul Crăciunului și Revelionul sunt <b>roșii și libere</b>, fiecare cu simbolul său. Sub fiecare lună sunt sărbătorile și zilele speciale precum Sfântul Nicolae sau Ziua Mamei. 🕑 marchează schimbarea orei, cu 14 zile înainte apare sus un aviz."],
+    menue:["Meniul ☰","Prin ☰ din dreapta sus ajungi la toate paginile: statistici, înregistrările mele, notițe, agendă telefonică, prezentare anuală, partener, plan de ture, zile de naștere, rutine, setări, copie de siguranță și acest ghid. Pe fiecare dintre aceste pagini, în dreapta jos plutește butonul albastru <b>‹ Calendar</b>. Cu el te întorci imediat la calendar de oriunde, fără să derulezi în sus."],
+    statistik:["Statistici","Toate contoarele unui an dintr-o privire, plus orele suplimentare pe lună sub formă de bare. Cu ‹ › schimbi anul."],
+    statistik2:["Calendar anual și salvare","Mai jos: calendarul anual compact cu înregistrările tale. Dedesubt îl salvezi ca <b>📄 PDF color</b> sau <b>🖨️ alb-negru</b> (înregistrări cu chenar punctat și codurile U, TZ, AG, K, SU). Urmează apoi toate înregistrările pe tipuri și butoanele de salvare pentru <b>PDF</b>, <b>tabel Excel</b> și <b>copie de siguranță</b>."],
+    eintraege:["Înregistrările mele","Aici apare tot ce ai introdus. Sus filtrezi după tip. Atingerea sare la zi, <b>✎</b> modifică, <b>🗑</b> șterge (atinge de două ori)."],
+    notizen:["Prezentarea notițelor","Toate notițele cu dată, împărțite în viitoare și trecute. Atingerea sare la zi."],
+    jahr:["Prezentare anuală și tipărire","Tot anul pe o singură pagină A4, doar cu ture și sărbători legale. Cu <b>📄 Salvează ca PDF și tipărește</b> salvezi pagina color. Dacă imprimanta ta nu are culori sau vrei să economisești cerneală, folosește <b>🖨️ PDF alb-negru</b>: dimineața e albă, după-amiaza gri deschis, noaptea închisă la culoare cu scris alb, sărbătorile legale au un chenar negru gros cu „FT”. PDF-ul îl deschizi pe telefon și îl tipărești prin „Tipărire” sau „Distribuie → Tipărire”."],
+    modelle:["Plan de ture și modele proprii","La ☰ → <b>🔁 Plan de ture</b> poți stabili un alt model de ture pentru o perioadă. Atinge „+ Model nou de ture”: nume, valabil de la, până la, apoi construiești succesiunea din blocuri (dimineață, după-amiază, noapte sau liber, fiecare cu un număr de zile). Previzualizarea arată primele săptămâni. În afara perioadei se aplică modelul 17,5, dacă nu l-ai dezactivat mai jos pe aceeași pagină."],
+    geburtstage:["Zile de naștere","La ☰ → <b>🎂 Zile de naștere</b> introduci numele și ziua de naștere. Dacă nu știi anul, bifează „Anul nașterii necunoscut”. Și mai repede merge din calendar: atinge o zi → <b>🎂 Adaugă o zi de naștere în această zi</b>. Pe pagina <b>Zile de naștere</b> vezi sus următoarele trei și dedesubt <b>toate zilele de naștere pe luni</b>. Fiecare înregistrare are <b>✎ Editează</b> și <b>🗑 Șterge</b> (atinge de două ori), iar sus <b>+ Adaugă zi de naștere</b>. Zilele de naștere apropiate au un chenar roz. La „Aviz înainte” setezi cu câte zile înainte ți se amintește (implicit 7). La ✎ Editează găsești <b>📅 Adaugă anual în Google Calendar</b>, astfel primești și o amintire de la telefon."],
+    geburtstage2:["Zile de naștere în calendar","În calendar, în ziua de naștere apare un mic <b>🎂</b> în dreapta zilei. Sub cardul de azi apare la timp o bandă, de ex. „🎂 Peste 3 zile (sâmbătă, 7 noiembrie): Monika împlinește 54 de ani”, iar în ziua respectivă „🎉 Azi e ziua de naștere”. Atingerea benzii sare la zi. Zilele de naștere nu se trimit când partajezi planul cu partenerul."],
+    routinen:["Rutine","Pentru sarcini care se repetă, cum ar fi <b>curățenia scării în fiecare a doua sâmbătă</b>: ☰ → <b>🧹 Rutine</b> → „Rutină nouă”. Introdu un nume, alege o <b>prescurtare</b> proprie (1–3 caractere, de ex. HO), stabilește prima dată și cât de des se repetă: la fiecare 1, 2, 3 … zile, săptămâni sau luni. Imediat dedesubt vezi următoarele date. În calendar prescurtarea apare mic în dreapta sus a zilei, culorile turelor rămân neschimbate. Atingerea zilei arată numele complet."],
+    routinen2:["Rutine în calendar","Așa arată în calendar: <b>HO</b> pentru curățenia scării la 2 săptămâni sâmbăta, <b>M</b> pentru o rutină săptămânală. Mai multe rutine în aceeași zi arată un <b>+</b>. Rutinele <b>nu</b> se trimit când partajezi planul cu partenerul."],
+    teamleiter:["Agendă telefonică","La ☰ → <b>📞 Agendă telefonică</b> salvezi numere importante. La <b>„Cine este?”</b> atingi șef de echipă, coleg, familie, medic, urgență sau scrii tu ceva. Apoi introduci numele și numărul. Lista este sortată după asta. <b>Sună</b> deschide aplicația de telefon, <b>Copiază numărul</b> îl pune în clipboard."],
+    leer:["Fără modelul 17,5 (calendar gol)","Nu lucrezi în modelul 17,5? La ☰ → <b>🔁 Plan de ture</b> atingi jos <b>„Elimină modelul 17,5 (calendar gol)”</b> și confirmi cu a doua atingere. Calendarul devine gol și îți creezi propriul model de ture pe aceeași pagină. Înregistrările tale rămân. Cu „Reactivează modelul 17,5” anulezi. Se aplică doar telefonului tău, la ceilalți nu se schimbă nimic."],
+    einstellungen:["Setări","Limba, pornirea și oprirea animației și a sunetului, volumul, dreptul la concediu, orele pe zi compensatorie și reportul de ore suplimentare, rutinele și începutul ritmului tău 17,5 (o zi de luni în care începe blocul tău de după-amiază)."],
+    farben:["Schimbă culorile","Atinge un câmp de culoare pentru a schimba culoarea pentru dimineață, după-amiază, noapte, concediu, TZ, compensare, boală, concediu special, ore suplimentare, sărbători legale sau banda de weekend. „Resetează culorile” readuce totul la valorile implicite."],
+    sicherung:["Copie de siguranță","Înregistrările tale sunt stocate doar pe acest telefon. Salvează din când în când o <b>copie de siguranță</b>. Pe un telefon nou o readuci cu „Încarcă copia”."],
+    partner:["Partajează planul cu partenerul","La ☰ → <b>👥 Partener</b> îți introduci o dată numele. Apoi trimiți planul cu <b>💬 Trimite pe WhatsApp</b>, prin <b>Distribuie</b> sau arăți un <b>🔳 cod QR</b> pe care partenerul îl scanează cu camera. Se partajează turele, concediul, TZ, zilele compensatorii și concediul special. <b>Zilele de boală, notițele și orele suplimentare rămân private.</b> Dacă ai schimbat ceva, trimiți pur și simplu linkul din nou."],
+    partner2:["Primește un plan","Partenerul atinge linkul sau scanează codul QR și alege <b>Salvează și vezi</b>. Propriul lui plan rămâne neschimbat. <b>iPhone:</b> dacă aplicația este folosită de pe ecranul principal, apasă lung linkul în WhatsApp, alege „Copiază” și lipește-l în aplicație la ☰ → Partener → <b>Preia linkul</b>."],
+    partner3:["Vezi planul partenerului","Sus apare o bandă albastră <b>👀 Planul lui …</b>. Planul poate fi doar vizualizat, nu modificat. Cu <b>Înapoi la planul meu</b> ajungi la calendarul tău. Mai târziu îl deschizi din nou prin ☰ → Partener → <b>Vezi</b>. Sunt posibile și mai multe planuri, de exemplu de la colegi."],
+    sound:["Animație și sunet","Fundalul se schimbă după anotimp: zăpadă, flori, soare, frunze și toamna din când în când o furtună. Figuri precum rațe, iepurașul de Paște, Moș Crăciun sau felinare se potrivesc cu luna. Atingerea face să se ridice mici vârtejuri. Cu <b>butonul de difuzor</b> pornești sunetele naturii. Sărbătorile legale au sunete proprii când atingi ziua sau când ziua este azi. Între 20 și 31 decembrie se cântă colinde, iar de Revelion pornesc artificiile când 31 decembrie este în mijlocul ecranului."],
+    impressum:["Informații legale","La ☰ meniu → Informații legale scrie cine a gândit și a construit aplicația și cum sunt tratate datele tale."],
+    kachel:["Pune-l pe telefon ca pictogramă și partajează","Deschide Schichtplaner în browser (Android: ⋮ → „Adaugă pe ecranul de pornire”, iPhone: Distribuie → „Adaugă pe ecranul principal”). Colegii tăi primesc linkul pe WhatsApp. Fiecare își salvează propriile înregistrări și fiecare își poate seta ritmul la setări."]
+  }};
+
+  startI18n();
+  document.addEventListener("click",e=>{const b=e.target.closest("[data-lang]");if(!b)return;e.stopPropagation();
+    try{localStorage.setItem("sp_lang",JSON.stringify(b.dataset.lang))}catch(err){} location.reload()},true);
   // 28-Tage-Zyklus ab Montag: 6×Spät (Mo–Sa), So frei, 6×Früh (Mo–Sa), 6×Nacht (So–Fr), 9 Tage frei
   const PATTERN = [..."SSSSSS","X",..."FFFFFF",..."NNNNNN",..."XXXXXXXXX"];
   const NAMES = {F:"Frühschicht",S:"Spätschicht",N:"Nachtschicht",X:"Frei",U:"Urlaub"};
   const SHORT = {F:"F",S:"S",N:"N",X:"frei"};
-  const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
-  const WD = ["So","Mo","Di","Mi","Do","Fr","Sa"];
-  const WDL = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+  const MONTHS = L(["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
+    ["January","February","March","April","May","June","July","August","September","October","November","December"],
+    ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"],
+    ["Ianuarie","Februarie","Martie","Aprilie","Mai","Iunie","Iulie","August","Septembrie","Octombrie","Noiembrie","Decembrie"]);
+  const WD = L(["So","Mo","Di","Mi","Do","Fr","Sa"],["Su","Mo","Tu","We","Th","Fr","Sa"],["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"],["Du","Lu","Ma","Mi","Jo","Vi","Sâ"]);
+  const WDL = L(["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"],["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+    ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"],["duminică","luni","marți","miercuri","joi","vineri","sâmbătă"]);
+  const WDH = L(["M","D","M","D","F","S","S"],["M","T","W","T","F","S","S"],["P","S","Ç","P","C","C","P"],["L","M","M","J","V","S","D"]); // Mo–So, ein Buchstabe
+  const dayMon=(d,m)=>LANG==="de"?d+". "+MONTHS[m]:LANG==="ro"?d+" "+MONTHS[m].toLowerCase():d+" "+MONTHS[m];
   let PV=null; // gerade angezeigter Partner-Plan (nur lesen)
   const PVKEYS=["sp_vac2","sp_models","sp_notes","sp_ot","sp_quota","sp_anchor2","sp_base","sp_routines","sp_bdays"];
   const store = {
@@ -489,8 +951,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   const bdAge=(b,n)=>b.y?fromDn(n).y-b.y:null;
   // An allen Feiertagen (inkl. Heiligabend und Silvester) wird nicht gearbeitet
   const shift = n=>{const s=rawShift(n);return s!=="X"&&holiday(n)?"X":s};
-  const fmt = n=>{const o=fromDn(n);return WDL[o.w]+", "+o.d+". "+MONTHS[o.m]+" "+o.y};
-  const fmtS = n=>fmt(n).replace(/ \d{4}$/,"");
+  const fmtS = n=>{const o=fromDn(n);return LANG==="tr"?dayMon(o.d,o.m)+" "+WDL[o.w]:WDL[o.w]+", "+dayMon(o.d,o.m)};
+  const fmt = n=>{const o=fromDn(n);return LANG==="tr"?dayMon(o.d,o.m)+" "+o.y+" "+WDL[o.w]:WDL[o.w]+", "+dayMon(o.d,o.m)+" "+o.y};
   // Verbrauch: zählt nur Urlaub auf geplanten Schichttagen
   function used(y,t){let c=0;for(const k in vac){const n=+k;if(vac[k]===t&&shift(n)!=="X"&&!holiday(n)&&fromDn(n).y===y)c++  /* Feiertage kosten keinen Urlaubstag */}return c}
   const left = (y,t)=>quota[t]-used(y,t);
@@ -645,7 +1107,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     { const bb=document.getElementById("bdBar"), up=bdays.map(b=>({b,n:bdNext(b,TODAY)})).filter(x=>x.n-TODAY<=bdLead).sort((x,y)=>x.n-y.n);
       if(!up.length){bb.hidden=true}else{const n0=up[0].n,same=up.filter(x=>x.n===n0),k=n0-TODAY,more=up.length-same.length;
         const eh=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-        const who=same.map(x=>eh(x.b.name)+(bdAge(x.b,n0)!=null?(k===0?' ('+bdAge(x.b,n0)+')':' wird '+bdAge(x.b,n0)):'')).join(", ");
+        const who=same.map(x=>'<span class="nt">'+eh(x.b.name)+'</span>'+(bdAge(x.b,n0)!=null?(k===0?' ('+bdAge(x.b,n0)+')':' <span>wird '+bdAge(x.b,n0)+'</span>'):'')).join(", ");
         bb.hidden=false;bb.dataset.go=n0;
         bb.innerHTML=(k===0?'🎉 <b>Heute</b> hat Geburtstag: '+who:'🎂 <b>'+(k===1?'Morgen':'In '+k+' Tagen')+'</b> ('+fmtS(n0)+'): '+who)+(more?' · <span style="opacity:.7">+'+more+' weitere</span>':'');}}
   }
@@ -1002,7 +1464,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         cells+='<button type="button" class="'+cls+'" data-pd="'+n+'"><b>'+(d+1)+'</b><i>'+(vt(n)||(s==="X"?"":s))+'</i></button>';}
       const c=count(), y=fromDn(st.a).y, T=TYPE[ty];
       let info;
-      if(st.b==null) info='Von <b>'+dShort(st.a)+'</b>: jetzt den <b>letzten Tag</b> antippen';
+      if(st.b==null) info=L('Von <b>'+dShort(st.a)+'</b>: jetzt den <b>letzten Tag</b> antippen','From <b>'+dShort(st.a)+'</b>: now tap the <b>last day</b>','Başlangıç <b>'+dShort(st.a)+'</b>: şimdi <b>son güne</b> dokun','De la <b>'+dShort(st.a)+'</b>: acum atinge <b>ultima zi</b>');
       else {
         info='Von <b>'+dShort(st.a)+'</b> bis <b>'+dShort(st.b)+'</b><br>'+c.d+' Kalendertage, davon <b>'+c.w+' Schichttage</b>'+
           (c.hol?' ('+c.hol+(c.hol===1?' Feiertag zählt':' Feiertage zählen')+' nicht)':'')+'<br>→ ';
@@ -1036,7 +1498,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     let months="";
     for(let m=0;m<12;m++){
       const first=dn(y,m,1), days=new Date(Date.UTC(y,m+1,0)).getUTCDate(), lead=(fromDn(first).w+6)%7;
-      let c='<span class="h">M</span><span class="h">D</span><span class="h">M</span><span class="h">D</span><span class="h">F</span><span class="h">S</span><span class="h">S</span>';
+      let c=WDH.map(x=>'<span class="h">'+x+'</span>').join("");
       for(let i=0;i<lead;i++)c+='<span></span>';
       for(let d=0;d<days;d++){const n=first+d,s=shift(n);
         const hd=holiday(n);c+='<span class="yd '+s+(hd?' hf':'')+'"><b>'+(d+1)+'</b>'+(hd?'<i class="yic">'+ICON[hd]+'</i>':s==="X"?"Frei":s)+'</span>';}
@@ -1148,7 +1610,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     for(let n=dn(y,0,1);n<dn(y+1,0,1);n++){const t=vt(n);if(!t)continue;const o=fromDn(n),s=shift(n),h=holiday(n);
       rows.push([String(o.d).padStart(2,"0")+"."+String(o.m+1).padStart(2,"0")+"."+o.y,WDL[o.w],TYPE[t].name,NAMES[s],h||"",(s!=="X"&&!h)?"ja":"nein",(noteAt(n)||[0,{t:""}])[1].t])}
     ot.filter(o=>fromDn(o.d).y===y).forEach(o=>{const d=fromDn(o.d);rows.push([String(d.d).padStart(2,"0")+"."+String(d.m+1).padStart(2,"0")+"."+d.y,WDL[d.w],"Überstunden",NAMES[shift(o.d)],holiday(o.d)||"","",o.note||"",o.from,o.to,String(Math.round(o.min/60*100)/100).replace(".",",")])});
-    return "﻿"+rows.map(r=>r.map(c=>/[;"\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c).join(";")).join("\r\n");
+    return "﻿"+rows.map(r=>r.map(c=>{c=String(c);if(LI!=null)c=trS(c);return /[;"\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(";")).join("\r\n");
   }
 
   // ---------- Jahresplan als PDF ----------
@@ -1163,6 +1625,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     toast("PDF wird erstellt …");
     let lib; try{lib=await loadJsPDF()}catch(e){toast("PDF-Erstellung konnte nicht geladen werden. Bitte Internet prüfen.");return}
     const doc=new lib.jsPDF({unit:"mm",format:"a4"});
+    if(LI!=null){const _t=doc.text.bind(doc),_w=doc.getTextWidth.bind(doc);doc.text=(t,...a)=>_t(pdfTxt(trS(String(t))),...a);doc.getTextWidth=t=>_w(pdfTxt(trS(String(t))))}
     const C={F:curCol("frueh"),S:curCol("spaet"),N:curCol("nacht"),U:curCol("urlaub"),TZ:curCol("tz"),AG:curCol("ag"),K:curCol("krank"),SU:curCol("su"),X:"#4a4d53",FT:curCol("feiertag"),WE:curCol("we")};
     if(bw)Object.assign(C,{F:"#ffffff",S:"#bdbdbd",N:"#2b2b2b",X:"#ffffff",FT:"#ffffff",WE:"#ededed"}); // Schwarz-Weiß: Graustufen statt Farben
     const BWINK={F:"#000000",S:"#000000",N:"#ffffff",X:"#7a7a7a"};
@@ -1175,11 +1638,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       const x0=12+(m%3)*(mw+gap), y0=top+Math.floor(m/3)*mh;
       doc.setFont("helvetica","bold");doc.setFontSize(10);txt("#1d1f24");doc.text(MONTHS[m].toUpperCase(),x0,y0);
       doc.setFont("helvetica","normal");doc.setFontSize(6);txt("#6b6f78");
-      ["M","D","M","D","F","S","S"].forEach((d,i)=>{if(i>4)txt("#4a3a2a");doc.text(d,x0+i*cw+cw/2,y0+3.6,{align:"center"})});
+      WDH.forEach((d,i)=>{if(i>4)txt("#4a3a2a");doc.text(d,x0+i*cw+cw/2,y0+3.6,{align:"center"})});
       const first=dn(y,m,1),days=new Date(Date.UTC(y,m+1,0)).getUTCDate(),lead=(fromDn(first).w+6)%7,rows=Math.ceil((lead+days)/7);
       // Wochenend-Band hinter Samstag und Sonntag
       doc.setGState(new doc.GState({opacity:bw?1:.42}));fill(C.WE);doc.roundedRect(x0+5*cw-.3,y0+1.2,2*cw+.6,4+rows*ch+.4,1.6,1.6,"F");doc.setGState(new doc.GState({opacity:1}));
-      if(bw){doc.setFont("helvetica","bold");doc.setFontSize(6);txt("#000000");["S","S"].forEach((d,i)=>doc.text(d,x0+(5+i)*cw+cw/2,y0+3.6,{align:"center"}))}
+      if(bw){doc.setFont("helvetica","bold");doc.setFontSize(6);txt("#000000");WDH.slice(5).forEach((d,i)=>doc.text(d,x0+(5+i)*cw+cw/2,y0+3.6,{align:"center"}))}
       for(let d=0;d<days;d++){const n=first+d,p=lead+d,cx=x0+(p%7)*cw,cy=y0+5+Math.floor(p/7)*ch,s=shift(n),t=ent?vt(n):null,h=holiday(n),key=s;
         if(t){ if(bw){fill("#ffffff");stroke("#000000");doc.setLineWidth(.45);doc.setLineDashPattern([.8,.5],0);doc.roundedRect(cx+.4,cy+.4,cw-.8,ch-.8,.8,.8,"FD");doc.setLineDashPattern([],0)}
           else{fill(C[t]);doc.roundedRect(cx+.3,cy+.3,cw-.6,ch-.6,.8,.8,"F")}
@@ -1399,7 +1862,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   // In den Handy-Kalender übernehmen (Google Kalender öffnet sich mit fertig ausgefülltem Termin)
   function gcalUrl(a,b,txt){const f=n=>iso(n).replace(/-/g,""),end=(b||a)+1,first=txt.split("\n")[0].slice(0,60);
-    return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(first)+"&dates="+f(a)+"/"+f(end)+"&details="+encodeURIComponent(txt+"\n\n(aus dem Schichtplaner)")}
+    return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(first)+"&dates="+f(a)+"/"+f(end)+"&details="+encodeURIComponent(txt+"\n\n"+L("(aus dem Schichtplaner)","(from Schichtplaner)","(Schichtplaner'dan)","(din Schichtplaner)"))}
   function calAsk(a,b,txt){
     openSheet('<h3>Notiz gespeichert</h3><p>Möchtest du sie auch in deinen Handy-Kalender eintragen?</p>'+
       '<div class="nbox"><b>'+(b?dShort(a)+' – '+dShort(b):fmt(a))+'</b><p>'+esc(txt)+'</p></div>'+
@@ -1496,6 +1959,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<button class="mtile" data-m="settings"><span>⚙️</span>Einstellungen<small>Farben, Urlaub, Rhythmus</small></button>'+
       '<button class="mtile" data-m="help"><span>📖</span>Anleitung<small>alle Funktionen mit Bildern</small></button>'+
       '<button class="mtile" data-m="impressum"><span>ℹ️</span>Impressum<small>Idee, Umsetzung, Datenschutz</small></button>'+
+      '<button class="mtile nt" data-m="lang"><span>🌐</span>Sprache · Language<small>Deutsch · English · Türkçe · Română</small></button>'+
       '<button class="mtile" data-m="backup"><span>💾</span>Sicherung<small>speichern oder laden</small></button></div>'+
       '<button class="btn" data-a="close">Schließen</button>');
     sheet.onclick=ev=>{const m=ev.target.closest("[data-m]")?.dataset.m, a=ev.target.closest("[data-a]")?.dataset.a;
@@ -1512,6 +1976,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(m==="bdays")bdaysSheet();
       if(m==="help")openHelp();
       if(m==="impressum")openImpressum();
+      if(m==="lang"){openSheet('<h3 class="nt">🌐 Sprache · Language · Dil · Limbă</h3><div class="langs nt">'+[["de","🇩🇪","Deutsch"],["en","🇬🇧","English"],["tr","🇹🇷","Türkçe"],["ro","🇷🇴","Română"]].map(([c,f,n])=>'<button type="button" class="langb'+(LANG===c?' on':'')+'" data-lang="'+c+'"><span>'+f+'</span>'+n+'</button>').join("")+'</div><button class="btn" data-a="close">Schließen</button>');sheet.onclick=ev=>{if(ev.target.closest("[data-a]"))closeSheet()}}
       if(m==="settings")document.getElementById("setBtn").click();
       if(m==="backup"){openSheet('<h3>Sicherung</h3><p>Deine Einträge, Notizen und Telefonnummern liegen nur auf diesem Handy. Speichere ab und zu eine Sicherung.</p><button class="btn primary" data-a="bak">Sicherung speichern</button><button class="btn" data-a="res">Sicherung laden</button><button class="btn" data-a="close">Schließen</button>');
         sheet.onclick=e2=>{const b=e2.target.closest("[data-a]")?.dataset.a;if(b==="bak"){closeSheet();saveBackup()}else if(b==="res")restoreSheet();else if(b==="close")closeSheet()}}
@@ -2008,7 +2473,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["leer","Ohne 17,5-Modell (leerer Kalender)","leer",
      "Arbeitest du nicht im 17,5-Modell? Unter ☰ → <b>🔁 Schichtplan</b> tippst du unten auf <b>„17,5-Modell entfernen (leerer Kalender)“</b> und bestätigst mit einem zweiten Tippen. Dann ist der Kalender leer und du legst auf derselben Seite dein eigenes Schichtmodell an. Deine Einträge bleiben erhalten. Mit „17,5-Modell wieder einschalten“ machst du es rückgängig. Das gilt nur für dein Handy, bei anderen ändert sich nichts."],
     ["einstellungen","Einstellungen","einstellungen",
-     "Animation und Sound an- und ausschalten, Lautstärke, Urlaubsanspruch, Stunden pro Ausgleichstag und Überstunden-Übertrag, Routinen und der Start deines 17,5-Rhythmus (ein Montag, an dem dein Spät-Block beginnt)."],
+     "Sprache (Deutsch, English, Türkçe, Română), Animation und Sound an- und ausschalten, Lautstärke, Urlaubsanspruch, Stunden pro Ausgleichstag und Überstunden-Übertrag, Routinen und der Start deines 17,5-Rhythmus (ein Montag, an dem dein Spät-Block beginnt)."],
     ["farben","Farben ändern","farben",
      "Tippe auf ein Farbfeld, um die Farbe für Früh, Spät, Nacht, Urlaub, TZ, Ausgleich, Krank, Sonderurlaub, Überstunden, Feiertage oder das Wochenend-Band zu ändern. „Farben zurücksetzen“ stellt alles auf Standard."],
     ["sicherung","Sicherung","sicherung",
@@ -2024,6 +2489,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["impressum","Impressum",null,"Unter ☰ Menü → Impressum steht, wer die App erdacht und gebaut hat, und wie mit deinen Daten umgegangen wird."],
     ["kachel","Als Kachel aufs Handy und teilen",null,
      "Öffne den Schichtplaner im Browser (Android: ⋮ → „Zum Startbildschirm hinzufügen“, iPhone: Teilen → „Zum Home-Bildschirm“). Deine Kollegen bekommen den Link per WhatsApp. Jeder speichert seine eigenen Einträge, und unter Einstellungen kann jeder seinen Rhythmus einstellen."]];
+  if(LANG!=="de")HELP.forEach(h=>{const t=I18N_HELP[LANG][h[0]];if(t){h[1]=t[0];h[3]=t[1]}});
   const hv=document.getElementById("helpView");
   function openHelp(){
     hv.innerHTML='<div class="yvbar"><strong class="st" style="text-align:left">Anleitung</strong><button type="button" class="iconbtn" data-h="x">Schließen</button></div>'+
@@ -2040,6 +2506,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   // ---------- Impressum ----------
   function openImpressum(){
+    if(LANG!=="de"){openSheet('<h3>'+I18N_IMPR[LANG][0]+'</h3><div class="impr">'+I18N_IMPR[LANG][1]+'<p class="smeta">© '+fromDn(TODAY).y+' Hans-Jürgen Schlichting</p></div><button class="btn" data-a="close">Schließen</button>');sheet.onclick=ev=>{if(ev.target.closest("[data-a]")?.dataset.a==="close")closeSheet()};return}
     openSheet('<h3>Impressum</h3>'+
       '<div class="impr"><p class="impapp">📅 <b>Schichtplaner</b><br><span>Persönlicher Schichtkalender für Schichtarbeit: Schichten, Urlaub, Überstunden, Notizen, Routinen und Geburtstage auf einen Blick</span></p>'+
       '<h4>Idee und Konzept</h4><p><b>Hans-Jürgen Schlichting</b></p>'+
@@ -2057,6 +2524,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   document.getElementById("setBtn").onclick=()=>{
     const cyc=PATTERN.map(p=>'<i class="'+p+'"></i>').join("");
     openSheet('<h3>Schichtplaner</h3>'+
+      '<h4 class="nt">🌐 Sprache · Language · Dil · Limbă</h4><div class="langs nt">'+[["de","🇩🇪","Deutsch"],["en","🇬🇧","English"],["tr","🇹🇷","Türkçe"],["ro","🇷🇴","Română"]].map(([c,f,n])=>'<button type="button" class="langb'+(LANG===c?' on':'')+'" data-lang="'+c+'"><span>'+f+'</span>'+n+'</button>').join("")+'</div>'+
       '<button class="mtile helptile" data-a="help"><span>📖</span>Anleitung<small>Alle Funktionen mit Bildern erklärt</small></button>'+
       '<button class="mtile helptile" data-a="impressum"><span>ℹ️</span>Impressum<small>Idee: Hans-Jürgen Schlichting · Umsetzung: Claude</small></button>'+
       '<button class="btn" data-a="year">Jahresübersicht '+viewYear+' (A4) <small>ganzes Jahr auf einer Seite</small></button>'+
@@ -2169,10 +2637,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
   // ---------- Geburtstage: Liste und Bearbeiten ----------
-  const MON=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
-  const bdDate=b=>{const [m,d]=b.d.split("-").map(Number);return d+". "+MON[m-1]};
+  const MON=MONTHS;
+  const bdDate=b=>{const [m,d]=b.d.split("-").map(Number);return dayMon(d,m-1)};
   function bdGcal(b){const n=bdNext(b,TODAY),f=x=>iso(x).replace(/-/g,"");
-    return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("🎂 Geburtstag "+b.name)+"&dates="+f(n)+"/"+f(n+1)+"&recur="+encodeURIComponent("RRULE:FREQ=YEARLY")+"&details="+encodeURIComponent("(aus dem Schichtplaner)")}
+    return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("🎂 "+L("Geburtstag ","Birthday ","Doğum günü: ","Zi de naștere: ")+b.name)+"&dates="+f(n)+"/"+f(n+1)+"&recur="+encodeURIComponent("RRULE:FREQ=YEARLY")+"&details="+encodeURIComponent(L("(aus dem Schichtplaner)","(from Schichtplaner)","(Schichtplaner'dan)","(din Schichtplaner)"))}
   const bv=document.getElementById("bdaysView");
   function bdaysSheet(){ renderBdays(); if(bv.hidden)openOverlay(bv); closeSheet() }
   function renderBdays(){
@@ -2301,7 +2769,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<input class="pvinp" id="pvPaste" placeholder="Empfangenen Link hier einfügen"><button class="btn" data-a="paste">Link übernehmen</button>'+
       '<button class="btn" data-a="close">Schließen</button>');
     const name=()=>{const v=(document.getElementById("pvMy").value||"").trim();if(!v){document.getElementById("pvErr").textContent="Bitte zuerst deinen Namen eintragen.";document.getElementById("pvMy").focus();return null}store.set("sp_myname",v);return v};
-    const text=(n,l)=>"📅 Mein Schichtplan von "+n+"\nZum Öffnen antippen. Der Plan wird in deiner Schichtplaner-App gespeichert:\n"+l;
+    const text=(n,l)=>L("📅 Mein Schichtplan von "+n+"\nZum Öffnen antippen. Der Plan wird in deiner Schichtplaner-App gespeichert:\n",
+      "📅 Shift plan of "+n+"\nTap to open. The plan is saved in your Schichtplaner app:\n","📅 "+n+" vardiya planı\nAçmak için dokun. Plan Schichtplaner uygulamana kaydedilir:\n",
+      "📅 Planul de ture al lui "+n+"\nAtinge pentru a deschide. Planul se salvează în aplicația ta Schichtplaner:\n")+l;
     sheet.onclick=async e=>{
       const pv=e.target.closest("[data-pv]"),pd=e.target.closest("[data-pd]"),a=e.target.closest("[data-a]")?.dataset.a;
       if(pv)return showPartner(partners[+pv.dataset.pv]);
@@ -2314,8 +2784,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(!["wa","share","qr","copy"].includes(a))return;
       const n=name();if(!n)return; const link=await makeLink(n);
       if(a==="wa"){location.href="https://wa.me/?text="+encodeURIComponent(text(n,link));return}
-      if(a==="share"){try{await navigator.share({title:"Schichtplan von "+n,text:text(n,link)})}catch(err){}return}
-      if(a==="copy"){try{await navigator.clipboard.writeText(link);toast("Link kopiert")}catch(err){prompt("Link kopieren:",link)}return}
+      if(a==="share"){try{await navigator.share({title:trS("Schichtplan von "+n),text:text(n,link)})}catch(err){}return}
+      if(a==="copy"){try{await navigator.clipboard.writeText(link);toast("Link kopiert")}catch(err){prompt(trS("Link kopieren:"),link)}return}
       if(a==="qr"){let svg="";try{const q=qrcode(0,"L");q.addData(link,"Byte");q.make();svg=q.createSvgTag({cellSize:4,margin:4,scalable:true})}catch(err){}
         openSheet('<h3>QR-Code</h3>'+(svg?'<div class="pvqr">'+svg+'</div><p class="pvnote">Dein Partner öffnet die Kamera-App, hält sie auf den Code und tippt auf den Link, der erscheint.</p>':'<p>Der Plan ist zu groß für einen QR-Code. Bitte den Link per WhatsApp schicken.</p>')+
           '<button class="btn" data-a="bk">Zurück</button>');

@@ -31,6 +31,20 @@ Sicherung (JSON) enthält alles; Laden über Menü → Sicherung.
 ## Funktionen (alle vorhanden)
 Endlos-Kalender (ganze Seite scrollt, Kopf sticky), Wochentage in Kacheln, Wochenend-Band (Standardfarbe Orange #ff8000, einstellbar), Feiertagssymbole (Emoji), Tag antippen → Urlaub/TZ/Ausgleich/Krank (dunkelrot, 🌡️)/Sonderurlaub (hellrosa), ein Tag oder Zeitraum mit Mini-Kalender, „Nur Notiz hinzufügen“ + danach Angebot Google-Kalender-Link, Überstunden mit Von/Bis/Pause, Statistik-Seite, Meine Einträge (ändern/löschen/springen), Notizen-Seite, Telefonbuch (früher Teamleiter; „Wer ist das?“ mit Schnellwahl Teamleiter/Kollege/Familie/Arzt/Notfall/Sonstige, sortiert), Jahresübersicht (nur Schichten + Feiertage) mit „Als PDF speichern und drucken“ (jsPDF von cdnjs) und **„🖨️ Schwarz-Weiß-PDF“** (`savePdf(y,true)`, Datei `…-sw.pdf`: F weiß, S hellgrau, N dunkel/weiße Schrift, frei weiß mit grauem „frei“, Feiertag dicker schwarzer Rahmen + „FT“, keine Emojis, Wochenende sehr hellgrau; auch auf der Statistik-Seite). Statistik → unter dem Jahreskalender: **Jahreskalender mit Einträgen** als PDF in Farbe oder Schwarz-Weiß (`savePdf(y,bw,true)`, Datei `Jahreskalender-JJJJ(-sw).pdf`; Einträge U/TZ/AG/K/SU in Farbe bzw. s/w weiß mit gestricheltem Rahmen + Kürzel; zweite Legendenzeile und Zeile mit Urlaub/TZ/AG/K/SU-Zahlen), Excel/CSV-Export, Sicherung, Farben einstellbar, Schichtmodell-Editor, Anleitung mit Bildern, Impressum, Hinweis 14 Tage vor Zeitumstellung. Schwebender Knopf **„‹ Kalender“** (`#backFab`) erscheint auf allen Vollbild-Seiten (Jahresübersicht, Statistik, Notizen, Anleitung, Einträge, Telefonbuch, Geburtstage) und schließt sie von überall.
 
+## Sprachen (Deutsch, English, Türkçe, Română)
+- Auswahl: Menü → 🌐 „Sprache · Language“ oder Einstellungen oben. Speichert `sp_lang` ("de" Standard | "en" | "tr" | "ro") und lädt die Seite neu. Ohne Schlüssel = Deutsch (bestehende Nutzer unverändert).
+- Technik (am Anfang des Haupt-Scripts): `LANG`, `LI` (0/1/2), `L(de,en,tr,ro)`. **Der Code bleibt deutsch**; ein MutationObserver (`startI18n`/`trNode`) übersetzt jeden sichtbaren Text und die Attribute placeholder/aria-label/title/alt über `trS()`:
+  1. `I18N_D` = Wörterbuch „deutscher Text → [en, tr, ro]“ (exakter, getrimmter Text),
+  2. `I18N_P` = Muster für Texte mit Zahlen/Namen (`$1` = roh, `%1` = übersetzt),
+  3. allgemeine Regeln: Symbol-Präfix, Teile an „ · “, „: “, Klammern, Zahl am Ende, Sätze, Kommas.
+- Neue deutsche Texte in der App **immer auch in `I18N_D` (oder als Muster) eintragen**, sonst bleiben sie in den anderen Sprachen deutsch. Prüfen: Crawler-Test in allen Sprachen, Texte suchen, die gleich geblieben sind.
+- Direkt lokalisiert (nicht über das Wörterbuch): `MONTHS`, `WD`, `WDL`, `WDH` (Ein-Buchstaben-Wochentage), `fmt`/`fmtS`/`dayMon`/`bdDate`, WhatsApp-Text, Google-Kalender-Text, Zeitraum-Hinweis.
+- Anleitung: `I18N_HELP[lang][id] = [Titel, HTML]` ersetzt die Kapitel von `HELP`; Bilder bleiben deutsch. Impressum: `I18N_IMPR`.
+- PDF: `doc.text`/`getTextWidth` laufen durch `trS` + `pdfTxt` (ersetzt ş ğ ı ș ț ă durch s g i s t a, weil die PDF-Standardschrift sie nicht kennt). CSV-Zellen ebenfalls übersetzt.
+- Nutzerdaten (Namen, Notizen) werden nicht übersetzt, außer sie gleichen zufällig einem Wörterbuch-Eintrag. Elemente mit Klasse `nt` werden nie übersetzt.
+- Schichtbuchstaben F/S/N und Kürzel U/TZ/AG/K/SU/FT/ÜS bleiben in allen Sprachen gleich.
+- Sicherung vor Einbau: Branch `sicherung-vor-sprachen` auf GitHub.
+
 ## 17,5-Modell ausschalten
 - Menü → **🔁 Schichtplan** (früher „Schichtmodelle“) → unten „17,5-Modell entfernen (leerer Kalender)“ (zweimal tippen). Nicht mehr in den Einstellungen (Wunsch des Nutzers). Setzt nur `sp_base="none"` auf diesem Gerät; ohne den Schlüssel gilt weiter das 17,5-Modell (bestehende Nutzer unverändert). `rawShift()` liefert dann „X“, außer ein eigenes Schichtmodell gilt. Einträge bleiben erhalten. Rückgängig über „17,5-Modell wieder einschalten“.
 
