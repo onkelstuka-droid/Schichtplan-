@@ -14,7 +14,7 @@ from PIL import Image
 U = "http://localhost:8765/index.html"
 W, H, DPR = 375, 760, 1.5
 OUTW, OUTH = 560, 1134
-LOCALE = {"de": "de-DE", "en": "en-GB", "tr": "tr-TR", "ro": "ro-RO"}
+LOCALE = {"de": "de-DE", "en": "en-GB", "tr": "tr-TR", "ro": "ro-RO", "ru": "ru-RU", "pl": "pl-PL"}
 # Beispieltexte je Sprache (Nutzerdaten werden in der App nicht übersetzt)
 TXT = {
  "de": dict(n1="Urlaub genehmigt von Herrn Maier", n2="Zahnarzt 10 Uhr", n3="Elternabend 19 Uhr", ot="Inventur", rt="Hausordnung", ra="HO",
@@ -25,6 +25,10 @@ TXT = {
             c1="Monika Schlichting", c2="Thomas Huber", c2i="Vardiya grubu B", opa="Dede Karl", me="Hans-Jürgen", model="Vardiya modelim 1", wife="Eşim"),
  "ro": dict(n1="Concediu aprobat de dl Maier", n2="Dentist la ora 10", n3="Ședința cu părinții la 19", ot="Inventar", rt="Curățenie scară", ra="CS",
             c1="Monika Schlichting", c2="Thomas Huber", c2i="Grupa de tură B", opa="Bunicul Karl", me="Hans-Jürgen", model="Modelul meu 1", wife="Soția"),
+ "ru": dict(n1="Отпуск одобрил г-н Майер", n2="Стоматолог в 10:00", n3="Родительское собрание в 19:00", ot="Инвентаризация", rt="Уборка подъезда", ra="УП",
+            c1="Monika Schlichting", c2="Thomas Huber", c2i="Смена B", opa="Дедушка Карл", me="Hans-Jürgen", model="Моя модель смен 1", wife="Жена"),
+ "pl": dict(n1="Urlop zatwierdził pan Maier", n2="Dentysta o 10:00", n3="Zebranie rodziców o 19:00", ot="Inwentaryzacja", rt="Sprzątanie klatki", ra="SK",
+            c1="Monika Schlichting", c2="Thomas Huber", c2i="Grupa zmianowa B", opa="Dziadek Karl", me="Hans-Jürgen", model="Mój model zmian 1", wife="Żona"),
 }
 
 def dn(y, m, d):  # Tagnummer wie in der App (Monat 1–12)

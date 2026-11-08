@@ -40,22 +40,22 @@ Endlos-Kalender (ganze Seite scrollt, Kopf sticky), Wochentage in Kacheln, Woche
 - **Familien-Übersicht** `#famView` (`openFam`/`renderFam`): 7 Tage ab heute, ‹ › wochenweise; Erwachsene (Ich, Zusatz-Personen, Partner) mit Schicht + Uhrzeit, Kinder mit Schule/Kita-Zeit; „Bringen/Abholen: ✓ frei sind …“ = keine Schicht zu dieser Uhrzeit (Nachtschicht vom Vortag bis Schichtende zählt mit, Krank = nicht verfügbar, Grenzen inklusive). Rechnen mit fremden Kalendern über `withCal()`.
 - Partner-Link enthält jetzt die Schichtzeiten (`z`) und teilt immer den eigenen Plan, auch wenn ein anderer Reiter aktiv ist.
 - Sicherung enthält `cals`, `calData` (alle `sp_c_*`), `shT`.
-- **Versionen:** `APP_VERSION` + `CHANGES` (je Version Datum und Punkte in de/en/tr/ro), Seite über Menü „🆕 Was ist neu“ (`openChanges`), Version auch im Impressum. **Bei jeder neuen Version dort einen Eintrag ergänzen und `APP_VERSION` erhöhen.**
+- **Versionen:** `APP_VERSION` + `CHANGES` (je Version Datum und Punkte in de/en/tr/ro/ru/pl), Seite über Menü „🆕 Was ist neu“ (`openChanges`), Version auch im Impressum. **Bei jeder neuen Version dort einen Eintrag ergänzen und `APP_VERSION` erhöhen.**
 
-## Sprachen (Deutsch, English, Türkçe, Română)
-- Auswahl: Menü → 🌐 „Sprache · Language“ oder Einstellungen oben. Speichert `sp_lang` ("de" Standard | "en" | "tr" | "ro") und lädt die Seite neu. Ohne Schlüssel = Deutsch (bestehende Nutzer unverändert).
-- Technik (am Anfang des Haupt-Scripts): `LANG`, `LI` (0/1/2), `L(de,en,tr,ro)`. **Der Code bleibt deutsch**; ein MutationObserver (`startI18n`/`trNode`) übersetzt jeden sichtbaren Text und die Attribute placeholder/aria-label/title/alt über `trS()`:
-  1. `I18N_D` = Wörterbuch „deutscher Text → [en, tr, ro]“ (exakter, getrimmter Text),
-  2. `I18N_P` = Muster für Texte mit Zahlen/Namen (`$1` = roh, `%1` = übersetzt),
+## Sprachen (Deutsch, English, Türkçe, Română, Русский, Polski)
+- Auswahl: Menü → 🌐 „Sprache · Language“ oder Einstellungen oben. Speichert `sp_lang` ("de" Standard | "en" | "tr" | "ro" | "ru" | "pl") und lädt die Seite neu. Ohne Schlüssel = Deutsch (bestehende Nutzer unverändert).
+- Technik (am Anfang des Haupt-Scripts): `LANG`, `LI` (0–4 = en/tr/ro/ru/pl), `L(de,en,tr,ro,ru,pl)`. **Der Code bleibt deutsch**; ein MutationObserver (`startI18n`/`trNode`) übersetzt jeden sichtbaren Text und die Attribute placeholder/aria-label/title/alt über `trS()`:
+  1. `I18N_D` = Wörterbuch „deutscher Text → [en, tr, ro, ru, pl]“ (exakter, getrimmter Text),
+  2. `I18N_P` = Muster für Texte mit Zahlen/Namen (`$1` = roh, `%1` = übersetzt, `{$1:день|дня|дней}` = russische/polnische Mehrzahl nach Zahl in Gruppe 1, Funktion `plF`),
   3. allgemeine Regeln: Symbol-Präfix, Teile an „ · “, „: “, Klammern, Zahl am Ende, Sätze, Kommas.
 - Neue deutsche Texte in der App **immer auch in `I18N_D` (oder als Muster) eintragen**, sonst bleiben sie in den anderen Sprachen deutsch. Prüfen: Crawler-Test in allen Sprachen, Texte suchen, die gleich geblieben sind.
 - Direkt lokalisiert (nicht über das Wörterbuch): `MONTHS`, `WD`, `WDL`, `WDH` (Ein-Buchstaben-Wochentage), `fmt`/`fmtS`/`dayMon`/`bdDate`, WhatsApp-Text, Google-Kalender-Text, Zeitraum-Hinweis.
-- Anleitung: `I18N_HELP[lang][id] = [Titel, HTML]` ersetzt die Kapitel von `HELP`. Bilder je Sprache in `help/en/`, `help/tr/`, `help/ro/` (deutsch: `help/*.jpg`); fehlt ein Bild, wird das deutsche gezeigt. Offline vorab gespeichert werden nur die deutschen Bilder, die anderen beim ersten Ansehen. Impressum: `I18N_IMPR`.
-- **Bilder neu erzeugen:** `python3 -m http.server 8765` starten, dann `python3 tools/help_bilder.py en tr ro` (oder `de`, überschreibt die deutschen). Das Skript stellt alle 27 Szenen mit Beispieldaten nach (Datum fest 3.11.2026). Bei neuen Funktionen/Kapiteln dort eine Szene ergänzen.
-- PDF: `doc.text`/`getTextWidth` laufen durch `trS` + `pdfTxt` (ersetzt ş ğ ı ș ț ă durch s g i s t a, weil die PDF-Standardschrift sie nicht kennt). CSV-Zellen ebenfalls übersetzt.
+- Anleitung: `I18N_HELP[lang][id] = [Titel, HTML]` ersetzt die Kapitel von `HELP`. Bilder je Sprache in `help/en/`, `help/tr/`, `help/ro/`, `help/ru/`, `help/pl/` (deutsch: `help/*.jpg`); fehlt ein Bild, wird das deutsche gezeigt. Offline vorab gespeichert werden nur die deutschen Bilder, die anderen beim ersten Ansehen. Impressum: `I18N_IMPR`.
+- **Bilder neu erzeugen:** `python3 -m http.server 8765` starten, dann `python3 tools/help_bilder.py en tr ro ru pl` (oder `de`, überschreibt die deutschen). Das Skript stellt alle 27 Szenen mit Beispieldaten nach (Datum fest 3.11.2026). Bei neuen Funktionen/Kapiteln dort eine Szene ergänzen.
+- PDF: `doc.text`/`getTextWidth` laufen durch `trS` + `pdfTxt` (TR/RO: ersetzt ş ğ ı ș ț ă durch s g i s t a, weil die PDF-Standardschrift sie nicht kennt). **RU/PL:** `pdfFont()` lädt `fonts/SPSans-Regular.ttf`/`-Bold.ttf` (verkleinerte, umbenannte Liberation Sans, SIL OFL, Lizenz in `fonts/OFL.txt`) und leitet `setFont("helvetica")` darauf um; klappt das Laden nicht, Umschrift ohne Sonderzeichen (`deAcc`). Russisch: freie Tage im PDF als „вых.“. Datum RU/PL mit Genitiv-Monat (`MONTHS_G`). Überschriften: Barlow hat kein Kyrillisch, bei RU wird Roboto Condensed von Google Fonts nachgeladen. CSV-Zellen ebenfalls übersetzt.
 - Nutzerdaten (Namen, Notizen) werden nicht übersetzt, außer sie gleichen zufällig einem Wörterbuch-Eintrag. Elemente mit Klasse `nt` werden nie übersetzt.
 - Schichtbuchstaben F/S/N und Kürzel U/TZ/AG/K/SU/FT/ÜS bleiben in allen Sprachen gleich.
-- Sicherung vor Einbau: Branch `sicherung-vor-sprachen` auf GitHub.
+- Sicherung vor Einbau: Branch `sicherung-vor-sprachen` auf GitHub (vor Russisch/Polnisch: `sicherung-vor-ru-pl`).
 
 ## 17,5-Modell ausschalten
 - Menü → **🔁 Schichtplan** (früher „Schichtmodelle“) → unten „17,5-Modell entfernen (leerer Kalender)“ (zweimal tippen). Nicht mehr in den Einstellungen (Wunsch des Nutzers). Setzt nur `sp_base="none"` auf diesem Gerät; ohne den Schlüssel gilt weiter das 17,5-Modell (bestehende Nutzer unverändert). `rawShift()` liefert dann „X“, außer ein eigenes Schichtmodell gilt. Einträge bleiben erhalten. Rückgängig über „17,5-Modell wieder einschalten“.
