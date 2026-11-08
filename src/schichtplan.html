@@ -333,6 +333,25 @@ body.pv .budget{display:none}
 .langs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
 .langb{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:12px;padding:11px 12px;font:600 15px var(--f-body);cursor:pointer;text-align:left}
 .langb span{font-size:20px}.langb.on{border-color:var(--fg);box-shadow:inset 0 0 0 2px var(--fg)}
+.ctabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:1px 2px;margin:0 -2px}.ctabs::-webkit-scrollbar{display:none}
+.ctab{flex:none;display:flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:5px 11px;font:600 13.5px var(--f-body);cursor:pointer;max-width:48vw}
+.ctab b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ctab.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.ctab.ctool{background:transparent;color:var(--muted)}
+body.wk .budget{display:none}
+.day.kw.ks{background:var(--kc);color:#fff}.day.kw.ks .w{opacity:.9}
+.day.kw .s{display:flex;flex-direction:column;align-items:center;padding-bottom:4px}.day.kw .s i{display:block;font:700 10.5px/1.12 var(--f-body);font-style:normal}
+.day.kw.kf{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--kc) 24%,transparent) 0 6px,transparent 6px 12px),var(--frei)}.day.kw.kf .s{font-size:10.5px;color:var(--fg);font-weight:600}
+.day.kw.kx{box-shadow:inset 0 0 0 2px var(--kc)}
+.ferli b{color:#1c7ed6!important}
+.calfor{margin:6px 0;padding:8px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--line);font-size:14px}
+.famday{border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:10px 0;background:var(--surface)}.famday.today{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}.famday h4{margin:0 0 6px;font-size:15px}
+.famrow{display:grid;grid-template-columns:24px minmax(0,6.5em) 26px 1fr;gap:6px;align-items:center;padding:3px 0;font-size:14px}.famrow b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fch{display:inline-grid;place-items:center;width:24px;height:20px;border-radius:6px;font:700 12px var(--f-display);background:var(--frei);color:var(--muted)}
+.fch.F{background:var(--frueh);color:var(--frueh-ink)}.fch.S{background:var(--spaet);color:var(--spaet-ink)}.fch.N{background:var(--nacht);color:var(--nacht-ink)}
+.famhint{margin:1px 0 6px 30px;font-size:13px;color:var(--muted);line-height:1.5}.famhint .ok{color:#2f9e44;font-weight:600}.famhint .no{color:var(--feiertag);font-weight:600}
+.colb{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer}.colb.on{border-color:var(--fg)}
+.chipf.on{background:var(--fg);color:var(--bg)}
+.wkrows{display:grid;gap:6px}.wkrow{display:grid;grid-template-columns:1fr 96px 96px;gap:6px;align-items:center}.wkrow .inp{padding:8px 6px}.wkrow .chk{margin:0}
+.verbox{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}.verbox.cur{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}.verbox ul{margin:6px 0 0;padding-left:18px}.verbox li{margin:3px 0}
 .backfab{z-index:12;background:var(--nacht);color:var(--nacht-ink)}
 .day .rt{position:absolute;right:2px;top:3px;max-width:calc(55% - 4px);overflow:hidden;white-space:nowrap;font:800 9.5px/1.3 var(--f-body);letter-spacing:.02em;padding:0 2px;border-radius:3px;background:rgba(255,255,255,.88);color:#1d1f24;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
 .day[data-ic] .rt{top:18px}
@@ -375,6 +394,7 @@ a.btn{text-decoration:none;justify-content:center}
 <canvas id="seasonFront" aria-hidden="true"></canvas>
 <div class="wrap">
   <header>
+    <div class="ctabs" id="calTabs" role="tablist" aria-label="Kalender"></div>
     <div class="top">
       <div class="todaycard" id="todayCard"></div>
       <button class="iconbtn sq" id="sndBtn" aria-label="Sound an"></button>
@@ -422,6 +442,7 @@ a.btn{text-decoration:none;justify-content:center}
 <div class="yearview" id="entriesView" hidden></div>
 <div class="yearview" id="contactsView" hidden></div>
 <div class="yearview" id="bdaysView" hidden></div>
+<div class="yearview" id="famView" hidden></div>
 <div class="toast" id="toast" hidden role="status"></div>
 <div class="scrim" id="scrim" hidden></div>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"></div>
@@ -635,6 +656,33 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   "Jahr und Alter leer lassen, wenn du sie nicht weißt. Dann wird kein Alter angezeigt.":["Leave year and age empty if you don't know them. Then no age is shown.","Bilmiyorsan yılı ve yaşı boş bırak. O zaman yaş gösterilmez.","Lasă anul și vârsta goale dacă nu le știi. Atunci nu se afișează vârsta."],
   "Bitte Tag und Monat wählen.":["Please choose day and month.","Lütfen gün ve ay seç.","Te rog alege ziua și luna."],"Diesen Tag gibt es in dem Monat nicht.":["This day doesn't exist in that month.","Bu ayda böyle bir gün yok.","Această zi nu există în luna respectivă."],
   "letzte im Block":["last in block","bloktaki son","ultima din bloc"],
+  "Ich":["Me","Ben","Eu"],"Übersicht":["Overview","Genel bakış","Prezentare"],"Kalender":["Calendar","Takvim","Calendar"],"Kalender bearbeiten":["Edit calendar","Takvimi düzenle","Editează calendarul"],
+  "Neuer Kalender":["New calendar","Yeni takvim","Calendar nou"],"Für wen soll der Kalender sein? Jeder Kalender bleibt getrennt, nichts wird überschrieben.":["Who is the calendar for? Each calendar is kept separately, nothing is overwritten.","Takvim kimin için? Her takvim ayrı tutulur, hiçbir şeyin üzerine yazılmaz.","Pentru cine este calendarul? Fiecare calendar rămâne separat, nimic nu se suprascrie."],
+  "Person mit Schichten":["Person with shifts","Vardiyalı kişi","Persoană cu ture"],"z. B. Frau oder Mann ohne eigene App":["e.g. wife or husband without their own app","ör. kendi uygulaması olmayan eş","de ex. soția sau soțul fără aplicație proprie"],
+  "Schule":["School","Okul","Școală"],"Kindergarten":["Kindergarten","Anaokulu","Grădiniță"],
+  "Unterrichtszeiten pro Wochentag, bayerische Ferien automatisch":["Lesson times per weekday, Bavarian holidays automatically","Hafta günlerine göre ders saatleri, Bavyera tatilleri otomatik","Orele de curs pe zile, vacanțele din Bavaria automat"],
+  "Betreuungszeiten pro Wochentag, Schließtage selbst eintragen":["Care times per weekday, enter closing days yourself","Hafta günlerine göre bakım saatleri, kapalı günleri kendin gir","Orele de program pe zile, zilele închise le introduci tu"],
+  "Hat dein Partner die App selbst? Dann schickt er dir seinen Plan über ☰ → Partner. Er erscheint dann automatisch als Reiter.":["Does your partner have the app? Then they send you their plan via ☰ → Partner. It then appears automatically as a tab.","Partnerinde uygulama var mı? O zaman planını ☰ → Partner üzerinden gönderir. Plan otomatik olarak bir sekme olarak görünür.","Partenerul are aplicația? Atunci îți trimite planul prin ☰ → Partener. Apare automat ca filă."],
+  "z. B. Kind 2 Kindergarten":["e.g. child 2 kindergarten","ör. 2. çocuk anaokulu","de ex. copil 2 grădiniță"],"z. B. Kind 1 Schule":["e.g. child 1 school","ör. 1. çocuk okul","de ex. copil 1 școală"],"z. B. Frau":["e.g. wife","ör. eşim","de ex. soția"],
+  "Symbol":["Symbol","Simge","Simbol"],"Farbe":["Colour","Renk","Culoare"],"Betreuungszeiten":["Care times","Bakım saatleri","Orele de program"],"Unterrichtszeiten":["Lesson times","Ders saatleri","Orele de curs"],
+  "Bayerische Schulferien automatisch frei":["Bavarian school holidays automatically off","Bavyera okul tatilleri otomatik boş","Vacanțele școlare din Bavaria automat libere"],
+  "Feiertage sind immer frei. Einzelne freie Tage oder andere Zeiten trägst du direkt im Kalender ein: Tag antippen.":["Public holidays are always off. Single days off or other times are entered directly in the calendar: tap the day.","Resmî tatiller her zaman boştur. Tek tek boş günleri veya başka saatleri doğrudan takvime girersin: güne dokun.","Sărbătorile legale sunt mereu libere. Zile libere sau alte ore le introduci direct în calendar: atinge ziua."],
+  "Den Schichtrhythmus dieser Person stellst du ein, wenn ihr Reiter gewählt ist: ☰ → Einstellungen (Start-Montag, Schichtzeiten) oder ☰ → Schichtplan (eigenes Modell). Urlaub usw. trägst du wie bei dir im Kalender ein.":["You set this person's shift rhythm when their tab is selected: ☰ → Settings (start Monday, shift times) or ☰ → Shift plan (own model). Vacation etc. are entered in the calendar just like yours.","Bu kişinin vardiya ritmini, sekmesi seçiliyken ayarlarsın: ☰ → Ayarlar (başlangıç pazartesi, vardiya saatleri) veya ☰ → Vardiya planı (kendi model). İzin vb. kendi takviminde olduğu gibi girilir.","Ritmul de ture al acestei persoane îl setezi când fila ei este selectată: ☰ → Setări (luni de start, orele turelor) sau ☰ → Plan de ture (model propriu). Concediul etc. îl introduci în calendar ca la tine."],
+  "Kalender löschen":["Delete calendar","Takvimi sil","Șterge calendarul"],"Kalender gelöscht":["Calendar deleted","Takvim silindi","Calendar șters"],"Rhythmus einstellen: ☰ → Einstellungen":["Set the rhythm: ☰ → Settings","Ritmi ayarla: ☰ → Ayarlar","Setează ritmul: ☰ → Setări"],
+  "Ferien":["Holidays","Tatil","Vacanță"],"Sommerferien":["Summer holidays","Yaz tatili","Vacanța de vară"],"Herbstferien":["Autumn holidays","Sonbahar tatili","Vacanța de toamnă"],"Buß- und Bettag":["Day of Repentance","Tövbe ve Dua Günü","Ziua Pocăinței"],
+  "Weihnachtsferien":["Christmas holidays","Noel tatili","Vacanța de Crăciun"],"Frühjahrsferien":["Spring holidays","Bahar tatili","Vacanța de primăvară"],"Osterferien":["Easter holidays","Paskalya tatili","Vacanța de Paște"],"Pfingstferien":["Whitsun holidays","Pentekost tatili","Vacanța de Rusalii"],
+  "nächster Schultag":["next school day","sonraki okul günü","următoarea zi de școală"],"nächster Kita-Tag":["next kindergarten day","sonraki anaokulu günü","următoarea zi de grădiniță"],
+  "Wie im Wochenplan":["As in the weekly plan","Haftalık plandaki gibi","Ca în programul săptămânal"],"Frei an diesem Tag":["Off on this day","Bu gün boş","Liber în această zi"],"z. B. krank, Ausflug, Schließtag":["e.g. sick, trip, closing day","ör. hasta, gezi, kapalı gün","de ex. bolnav, excursie, zi închisă"],
+  "Andere Uhrzeit an diesem Tag":["Different time on this day","Bu gün başka saat","Altă oră în această zi"],"Andere Uhrzeit":["Different time","Başka saat","Altă oră"],"Notiz hinzufügen":["Add note","Not ekle","Adaugă notiță"],"Wochenplan ändern":["Change weekly plan","Haftalık planı değiştir","Modifică programul săptămânal"],
+  "Grund (optional)":["Reason (optional)","Sebep (isteğe bağlı)","Motiv (opțional)"],"Bis einschließlich (leer = nur dieser Tag)":["Up to and including (empty = this day only)","Bu gün dahil bitiş (boş = sadece bu gün)","Până la inclusiv (gol = doar această zi)"],
+  "z. B. Turnbeutel mitgeben, Elternabend":["e.g. pack PE kit, parents' evening","ör. spor çantası ver, veli toplantısı","de ex. echipament de sport, ședință cu părinții"],
+  "Vorherige Woche":["Previous week","Önceki hafta","Săptămâna anterioară"],"Nächste Woche":["Next week","Sonraki hafta","Săptămâna următoare"],
+  "Lege oben über „＋ Kalender“ weitere Kalender an (z. B. Frau, Kind 1 Schule, Kind 2 Kindergarten). Dann siehst du hier, wer an welchem Tag was hat.":["Create more calendars at the top with “＋ Calendar” (e.g. wife, child 1 school, child 2 kindergarten). Then you see here who has what on which day.","Üstte “＋ Takvim” ile başka takvimler oluştur (ör. eşim, 1. çocuk okul, 2. çocuk anaokulu). O zaman burada kimin hangi gün ne yaptığını görürsün.","Creează sus cu „＋ Calendar” alte calendare (de ex. soția, copil 1 școală, copil 2 grădiniță). Apoi vezi aici cine ce are în fiecare zi."],
+  "Bringen":["Drop off","Bırakma","Dus"],"Abholen":["Pick up","Alma","Adus"],"niemand frei":["nobody free","kimse boş değil","nimeni liber"],
+  "„Frei“ heißt: zu dieser Uhrzeit keine Schicht. Schichtzeiten änderst du unter ☰ → Einstellungen (für den gewählten Reiter). Krank zählt als nicht verfügbar.":["“Free” means: no shift at that time. Change shift times under ☰ → Settings (for the selected tab). Sick counts as not available.","“Boş” şu demek: o saatte vardiya yok. Vardiya saatlerini ☰ → Ayarlar altında değiştirirsin (seçili sekme için). Hasta, müsait değil sayılır.","„Liber” înseamnă: la ora aceea nu e tură. Orele turelor le schimbi la ☰ → Setări (pentru fila selectată). Bolnav contează ca indisponibil."],
+  "Familie: wer hat wann was":["family: who has what when","aile: kim ne zaman ne yapıyor","familie: cine ce are și când"],"Was ist neu":["What's new","Yenilikler","Ce e nou"],
+  "Gilt für den Kalender":["Applies to the calendar","Şu takvim için geçerli:","Se aplică pentru calendarul"],"Schichtzeiten":["Shift times","Vardiya saatleri","Orele turelor"],
+  "Für die Familien-Übersicht (wer kann bringen und abholen).":["For the family overview (who can drop off and pick up).","Aile görünümü için (kim bırakıp alabilir).","Pentru prezentarea de familie (cine poate duce și aduce)."],
   "Weitere Person":["Add another person","Başka kişi ekle","Adaugă altă persoană"],"Person entfernen":["Remove person","Kişiyi kaldır","Elimină persoana"],
   "Geburtstage eintragen":["Add birthdays","Doğum günleri ekle","Adaugă zile de naștere"],"Alle speichern":["Save all","Tümünü kaydet","Salvează tot"],
   "Geburtstag hinzufügen":["Add birthday","Doğum günü ekle","Adaugă zi de naștere"],"Als Nächstes":["Coming up","Sıradakiler","Urmează"],"Hinweis vorher":["Reminder in advance","Önceden hatırlatma","Aviz înainte"],
@@ -748,6 +796,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   ["^(\\d+) (.+)-Tage werden gezählt, dann (\\d+) in (\\d{4})$","$1 %2 days will be counted, then $3 in $4","$1 %2 günü sayılacak, sonra $4 yılında $3","Se numără $1 zile de %2, apoi $3 în $4"],
   ["^(\\d+) Tag\\(e\\) mit (.+) werden ersetzt \\(der Urlaub wird dir gutgeschrieben\\)\\.$","$1 day(s) with %2 will be replaced (the vacation is credited back to you).","%2 olan $1 gün değiştirilecek (izin sana geri yazılır).","$1 zi(le) cu %2 vor fi înlocuite (concediul îți este creditat înapoi)."],
   ["^(\\d+) Tag\\(e\\) mit (.+) werden ersetzt\\.$","$1 day(s) with %2 will be replaced.","%2 olan $1 gün değiştirilecek.","$1 zi(le) cu %2 vor fi înlocuite."],
+  ["^Kalender „(.+)“ gespeichert$","Calendar “$1” saved","“$1” takvimi kaydedildi","Calendarul „$1” a fost salvat"],
+  ["^(\\d+) Schultage$","$1 school days","$1 okul günü","$1 zile de școală"],["^(\\d+) Kita-Tage$","$1 kindergarten days","$1 anaokulu günü","$1 zile de grădiniță"],
+  ["^bis (\\d+\\.\\d+\\.)$","until $1","$1 tarihine kadar","până la $1"],
+  ["^(Schule|Kindergarten) (\\d.*)$","%1 $2","%1 $2","%1 $2"],["^(Frühschicht|Spätschicht|Nachtschicht) (\\d.*)$","%1 $2","%1 $2","%1 $2"],
   ["^Person (\\d+)$","Person $1","$1. kişi","Persoana $1"],
   ["^(\\d+) Geburtstage gespeichert$","$1 birthdays saved","$1 doğum günü kaydedildi","$1 zile de naștere salvate"],
   ["^Geburtstag (.+)$","Birthday $1","Doğum günü $1","Zi de naștere $1"],
@@ -809,10 +861,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     tag:["Tap a day","Tap a day to enter <b>vacation, TZ leave, compensation day, sick leave or special leave</b>. Then choose “Just this one day” or “Several days”. On a day with an entry you can change the type or delete the entry. Days off and public holidays don't use up any leave."],
     zeitraum:["Choose a period","For several days a small calendar opens. The day you tapped is the start, tap the last day. Below it you see exactly how many days are deducted and how many are left afterwards. Nothing is saved until you tap “add”."],
     notiz:["Notes","With <b>📝 Add note only</b> you can write a note for any day, even without leave. When you enter leave and the like, the app also offers to add a note. Days with a note have a dark corner at the bottom left."],
+    reiter:["Calendar tabs","Above the today card there are tabs: <b>👤 yourself</b>, more calendars and received partner plans (👀). One tap switches the calendar; each one is stored separately, nothing is overwritten. <b>＋ Calendar</b> creates a new one: <b>person with shifts</b> (e.g. wife or husband without their own app), <b>school</b> or <b>kindergarten</b>. For a person with shifts you set the rhythm while their tab is selected: ☰ → Settings. Vacation, notes etc. are entered as usual. <b>⚙️</b> next to the tabs edits or deletes the selected calendar."],
+    kinder:["Children's calendars (school, kindergarten)","A children's calendar has a <b>weekly plan</b> with times for each weekday. The calendar shows the times in the day, e.g. 8:00 and 13:00. For school the <b>Bavarian school holidays</b> are automatically off (hatched), public holidays are always off. Tap a day: <b>Off on this day</b> (e.g. sick, trip, closing day, also several days), <b>Different time</b>, <b>Note</b> (e.g. PE kit) or back <b>as in the weekly plan</b>."],
+    kinder2:["Set up the weekly plan","Choose name, symbol and colour, then the times: tick each day with lessons or care and enter from and to. You can switch “Bavarian school holidays automatically off” on and off. For kindergarten you enter closing days directly in the calendar. You can change everything later via <b>⚙️</b> next to the tabs."],
+    uebersicht:["Family overview","With the <b>👨‍👩‍👧 Overview</b> tab (or ☰ → Overview) you see for each day of a week what everyone has: shifts with times, vacation, school, kindergarten. Below each child it shows who is free to <b>drop off</b> and <b>pick up</b>, i.e. has no shift at that time. If it says “nobody free”, you need to sort something out. ‹ › moves week by week. Change the shift times (default 6–14, 14–22, 22–6) under ☰ → Settings."],
+    versionen:["What's new","Under ☰ → <b>🆕 What's new</b> you see the current version of the app and what changed when in which version. The version number is also shown in the legal notice."],
     kalendereintrag:["Into your phone calendar","After saving a note you can transfer it with <b>📅 Add to Google Calendar</b>. Google Calendar opens with the event ready, you only need to tap Save."],
     ueberstunden:["Overtime","Tap a day → <b>⏱ Add overtime</b>. Enter from, to and break, the hours are calculated automatically, even past midnight. Days with overtime have a turquoise bar at the top. You can see the balance at the top under <b>ÜS</b>."],
     feiertage:["Public holidays and special days","All public holidays in Bavaria as well as Christmas Eve and New Year's Eve are <b>red and off</b>, each with its own symbol. Under each month you find the holidays and special days such as St Nicholas or Mother's Day. 🕑 marks the clock change, a notice appears at the top 14 days before."],
-    menue:["The menu ☰","Via ☰ at the top right you reach all pages: statistics, my entries, notes, phone book, year overview, partner, shift plan, birthdays, routines, settings, backup and this guide. On each of these pages the blue <b>‹ Calendar</b> button floats at the bottom right. It takes you straight back to the calendar from anywhere, without scrolling to the top."],
+    menue:["The menu ☰","Via ☰ at the top right you reach all pages: statistics, my entries, notes, phone book, year overview, partner, shift plan, overview, birthdays, routines, settings, what's new, backup and this guide. On each of these pages the blue <b>‹ Calendar</b> button floats at the bottom right. It takes you straight back to the calendar from anywhere, without scrolling to the top."],
     statistik:["Statistics","All counters of a year at a glance, plus your overtime per month as bars. Use ‹ › to change the year."],
     statistik2:["Year calendar and saving","Further down: the compact year calendar with your entries. Below it you can save it as a <b>📄 colour PDF</b> or in <b>🖨️ black and white</b> (entries with a dashed frame and the codes U, TZ, AG, K, SU). After that come all entries by type and the save buttons for <b>PDF</b>, <b>Excel table</b> and <b>backup</b>."],
     eintraege:["My entries","Everything you have entered is listed here. At the top you filter by type. Tapping jumps to the day, <b>✎</b> edits, <b>🗑</b> deletes (tap twice)."],
@@ -841,10 +898,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     tag:["Bir güne dokun","<b>Yıllık izin, TZ izni, telafi günü, hastalık veya özel izin</b> girmek için bir güne dokun. Sonra “Sadece bu gün” veya “Birden fazla gün” seç. Kayıtlı bir günde türü değiştirebilir veya kaydı silebilirsin. Boş günler ve resmî tatiller izinden düşmez."],
     zeitraum:["Zaman aralığı seç","Birden fazla gün için küçük bir takvim açılır. Dokunduğun gün başlangıçtır, son güne dokun. Altında kaç günün düşüleceği ve sonra ne kadar kalacağı tam olarak yazar. Ancak “ekle”ye dokunduğunda kaydedilir."],
     notiz:["Notlar","<b>📝 Sadece not ekle</b> ile her güne, izin olmadan da bir not yazabilirsin. İzin vb. girerken uygulama da not eklemek isteyip istemediğini sorar. Notlu günlerin sol alt köşesi koyudur."],
+    reiter:["Takvim sekmeleri","Bugün kartının üstünde sekmeler vardır: <b>👤 sen</b>, diğer takvimler ve alınan partner planları (👀). Bir dokunuş takvimi değiştirir; her biri ayrı saklanır, hiçbir şeyin üzerine yazılmaz. <b>＋ Takvim</b> ile yeni bir takvim oluşturursun: <b>vardiyalı kişi</b> (ör. kendi uygulaması olmayan eş), <b>okul</b> veya <b>anaokulu</b>. Vardiyalı bir kişi için ritmi, sekmesi seçiliyken ayarlarsın: ☰ → Ayarlar. İzin, notlar vb. her zamanki gibi girilir. Sekmelerin yanındaki <b>⚙️</b> seçili takvimi düzenler veya siler."],
+    kinder:["Çocuk takvimleri (okul, anaokulu)","Çocuk takviminde her hafta günü için saatleri olan bir <b>haftalık plan</b> vardır. Takvimde saatler günün içinde yazar, ör. 8:00 ve 13:00. Okulda <b>Bavyera okul tatilleri</b> otomatik olarak boştur (taralı), resmî tatiller her zaman boştur. Bir güne dokun: <b>Bu gün boş</b> (ör. hasta, gezi, kapalı gün, birden fazla gün de olur), <b>Başka saat</b>, <b>Not</b> (ör. spor çantası) veya <b>haftalık plandaki gibi</b> geri dön."],
+    kinder2:["Haftalık planı ayarla","Ad, simge ve renk seç, sonra saatleri: ders veya bakım olan her güne işaret koy, başlangıç ve bitişi gir. “Bavyera okul tatilleri otomatik boş” seçeneğini açıp kapatabilirsin. Anaokulunda kapalı günleri doğrudan takvime girersin. Her şeyi daha sonra sekmelerin yanındaki <b>⚙️</b> ile değiştirebilirsin."],
+    uebersicht:["Aile görünümü","<b>👨‍👩‍👧 Genel bakış</b> sekmesiyle (veya ☰ → Genel bakış) bir haftanın her günü için herkesin ne yaptığını alt alta görürsün: saatli vardiyalar, izin, okul, anaokulu. Her çocuğun altında kimin <b>bırakmak</b> ve <b>almak</b> için boş olduğu, yani o saatte vardiyası olmadığı yazar. “Kimse boş değil” yazıyorsa bir çözüm bulmanız gerekir. ‹ › ile haftalar arasında gezinirsin. Vardiya saatlerini (varsayılan 6–14, 14–22, 22–6) ☰ → Ayarlar altında değiştirirsin."],
+    versionen:["Yenilikler","☰ → <b>🆕 Yenilikler</b> altında uygulamanın güncel sürümünü ve hangi sürümde ne zaman neyin değiştiğini görürsün. Sürüm numarası künyede de yazar."],
     kalendereintrag:["Telefon takvimine","Bir notu kaydettikten sonra <b>📅 Google Takvim'e ekle</b> ile aktarabilirsin. Google Takvim hazır etkinlikle açılır, sadece Kaydet'e dokunman yeterlidir."],
     ueberstunden:["Fazla mesai","Bir güne dokun → <b>⏱ Fazla mesai ekle</b>. Başlangıç, bitiş ve molayı gir, saatler gece yarısını geçse bile otomatik hesaplanır. Fazla mesaili günlerin üstünde turkuaz bir çubuk vardır. Bakiyeyi üstte <b>ÜS</b> altında görürsün."],
     feiertage:["Resmî tatiller ve özel günler","Bavyera'daki tüm resmî tatiller ile Noel arifesi ve yılbaşı gecesi kendi simgeleriyle <b>kırmızı ve boş</b> gösterilir. Her ayın altında resmî tatiller ve Aziz Nikolaus veya Anneler Günü gibi özel günler yazar. 🕑 saat değişikliğini gösterir, 14 gün önce üstte bir uyarı çıkar."],
-    menue:["Menü ☰","Sağ üstteki ☰ ile tüm sayfalara ulaşırsın: istatistik, kayıtlarım, notlar, telefon rehberi, yıllık görünüm, partner, vardiya planı, doğum günleri, rutinler, ayarlar, yedekleme ve bu kılavuz. Bu sayfaların her birinde sağ altta mavi <b>‹ Takvim</b> düğmesi durur. Onunla, yukarı kaydırmana gerek kalmadan her yerden hemen takvime dönersin."],
+    menue:["Menü ☰","Sağ üstteki ☰ ile tüm sayfalara ulaşırsın: istatistik, kayıtlarım, notlar, telefon rehberi, yıllık görünüm, partner, vardiya planı, genel bakış, doğum günleri, rutinler, ayarlar, yenilikler, yedekleme ve bu kılavuz. Bu sayfaların her birinde sağ altta mavi <b>‹ Takvim</b> düğmesi durur. Onunla, yukarı kaydırmana gerek kalmadan her yerden hemen takvime dönersin."],
     statistik:["İstatistik","Bir yılın tüm sayaçları bir bakışta, ayrıca aylık fazla mesain çubuk olarak. ‹ › ile yılı değiştirirsin."],
     statistik2:["Yıllık takvim ve kaydetme","Daha aşağıda: kayıtlarınla birlikte kompakt yıllık takvim. Altında onu <b>📄 renkli PDF</b> veya <b>🖨️ siyah-beyaz</b> olarak kaydedersin (kayıtlar kesikli çerçeve ve U, TZ, AG, K, SU kısaltmalarıyla). Ardından türe göre tüm kayıtlar ve <b>PDF</b>, <b>Excel tablosu</b> ve <b>yedek</b> için kaydetme düğmeleri gelir."],
     eintraege:["Kayıtlarım","Girdiğin her şey burada listelenir. Üstte türe göre filtrelersin. Dokunmak güne atlar, <b>✎</b> değiştirir, <b>🗑</b> siler (iki kez dokun)."],
@@ -873,10 +935,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     tag:["Atinge o zi","Atinge o zi pentru a introduce <b>concediu, concediu TZ, zi compensatorie, boală sau concediu special</b>. Apoi alegi „Doar această zi” sau „Mai multe zile”. La o zi cu înregistrare poți schimba tipul sau poți șterge înregistrarea. Zilele libere și sărbătorile legale nu consumă concediu."],
     zeitraum:["Alege o perioadă","Pentru mai multe zile se deschide un calendar mic. Ziua atinsă este începutul, atinge ultima zi. Dedesubt scrie exact câte zile se scad și cât rămâne după aceea. Se salvează abia când atingi „adaugă”."],
     notiz:["Notițe","Cu <b>📝 Doar notă</b> scrii o notiță pentru orice zi, chiar și fără concediu. Când introduci concediu și altele, aplicația te întreabă de asemenea dacă vrei o notiță. Zilele cu notiță au un colț închis la culoare în stânga jos."],
+    reiter:["File de calendar","Deasupra cardului de azi sunt file: <b>👤 tu</b>, alte calendare și planurile primite de la parteneri (👀). O atingere schimbă calendarul; fiecare se salvează separat, nimic nu se suprascrie. Cu <b>＋ Calendar</b> creezi unul nou: <b>persoană cu ture</b> (de ex. soția sau soțul fără aplicație proprie), <b>școală</b> sau <b>grădiniță</b>. Pentru o persoană cu ture setezi ritmul când fila ei este selectată: ☰ → Setări. Concediul, notițele etc. le introduci ca de obicei. <b>⚙️</b> lângă file modifică sau șterge calendarul selectat."],
+    kinder:["Calendare pentru copii (școală, grădiniță)","Un calendar pentru copii are un <b>program săptămânal</b> cu ore pentru fiecare zi. În calendar orele apar în zi, de ex. 8:00 și 13:00. La școală, <b>vacanțele școlare din Bavaria</b> sunt automat libere (hașurate), sărbătorile legale sunt mereu libere. Atinge o zi: <b>Liber în această zi</b> (de ex. bolnav, excursie, zi închisă, și pentru mai multe zile), <b>Altă oră</b>, <b>Notiță</b> (de ex. echipament de sport) sau înapoi <b>ca în programul săptămânal</b>."],
+    kinder2:["Setează programul săptămânal","Alege numele, simbolul și culoarea, apoi orele: bifează fiecare zi cu curs sau program și introdu de la și până la. Opțiunea „Vacanțele școlare din Bavaria automat libere” se poate porni și opri. La grădiniță introduci zilele închise direct în calendar. Poți schimba totul mai târziu prin <b>⚙️</b> lângă file."],
+    uebersicht:["Prezentarea familiei","Cu fila <b>👨‍👩‍👧 Prezentare</b> (sau ☰ → Prezentare) vezi pentru fiecare zi a unei săptămâni ce are fiecare: ture cu ore, concediu, școală, grădiniță. Sub fiecare copil scrie cine e liber să-l <b>ducă</b> și să-l <b>aducă</b>, adică nu are tură la ora aceea. Dacă scrie „nimeni liber”, trebuie să găsiți o soluție. Cu ‹ › treci de la o săptămână la alta. Orele turelor (implicit 6–14, 14–22, 22–6) le schimbi la ☰ → Setări."],
+    versionen:["Ce e nou","La ☰ → <b>🆕 Ce e nou</b> vezi versiunea actuală a aplicației și ce s-a schimbat și când, în fiecare versiune. Numărul versiunii apare și la informațiile legale."],
     kalendereintrag:["În calendarul telefonului","După ce salvezi o notiță, o poți transfera cu <b>📅 Adaugă în Google Calendar</b>. Google Calendar se deschide cu evenimentul gata făcut, trebuie doar să atingi Salvează."],
     ueberstunden:["Ore suplimentare","Atinge o zi → <b>⏱ Adaugă ore suplimentare</b>. Introdu de la, până la și pauza, orele se calculează automat, chiar și peste miezul nopții. Zilele cu ore suplimentare au sus o bară turcoaz. Soldul îl vezi sus la <b>ÜS</b>."],
     feiertage:["Sărbători legale și zile speciale","Toate sărbătorile legale din Bavaria, precum și Ajunul Crăciunului și Revelionul sunt <b>roșii și libere</b>, fiecare cu simbolul său. Sub fiecare lună sunt sărbătorile și zilele speciale precum Sfântul Nicolae sau Ziua Mamei. 🕑 marchează schimbarea orei, cu 14 zile înainte apare sus un aviz."],
-    menue:["Meniul ☰","Prin ☰ din dreapta sus ajungi la toate paginile: statistici, înregistrările mele, notițe, agendă telefonică, prezentare anuală, partener, plan de ture, zile de naștere, rutine, setări, copie de siguranță și acest ghid. Pe fiecare dintre aceste pagini, în dreapta jos plutește butonul albastru <b>‹ Calendar</b>. Cu el te întorci imediat la calendar de oriunde, fără să derulezi în sus."],
+    menue:["Meniul ☰","Prin ☰ din dreapta sus ajungi la toate paginile: statistici, înregistrările mele, notițe, agendă telefonică, prezentare anuală, partener, plan de ture, prezentare, zile de naștere, rutine, setări, ce e nou, copie de siguranță și acest ghid. Pe fiecare dintre aceste pagini, în dreapta jos plutește butonul albastru <b>‹ Calendar</b>. Cu el te întorci imediat la calendar de oriunde, fără să derulezi în sus."],
     statistik:["Statistici","Toate contoarele unui an dintr-o privire, plus orele suplimentare pe lună sub formă de bare. Cu ‹ › schimbi anul."],
     statistik2:["Calendar anual și salvare","Mai jos: calendarul anual compact cu înregistrările tale. Dedesubt îl salvezi ca <b>📄 PDF color</b> sau <b>🖨️ alb-negru</b> (înregistrări cu chenar punctat și codurile U, TZ, AG, K, SU). Urmează apoi toate înregistrările pe tipuri și butoanele de salvare pentru <b>PDF</b>, <b>tabel Excel</b> și <b>copie de siguranță</b>."],
     eintraege:["Înregistrările mele","Aici apare tot ce ai introdus. Sus filtrezi după tip. Atingerea sare la zi, <b>✎</b> modifică, <b>🗑</b> șterge (atinge de două ori)."],
@@ -919,9 +986,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   const dayMon=(d,m)=>LANG==="de"?d+". "+MONTHS[m]:LANG==="ro"?d+" "+MONTHS[m].toLowerCase():d+" "+MONTHS[m];
   let PV=null; // gerade angezeigter Partner-Plan (nur lesen)
   const PVKEYS=["sp_vac2","sp_models","sp_notes","sp_ot","sp_quota","sp_anchor2","sp_base","sp_routines","sp_bdays"];
+  let TAB="me", WK=null; // aktiver Reiter; WK = aktiver Kinder-Wochenplan
+  let CUR=null; // id des aktiven Zusatzkalenders (Person mit Schichten), null = eigener Kalender
+  const CALK=["sp_anchor2","sp_vac2","sp_quota","sp_notes","sp_ot","sp_otcfg","sp_models","sp_base","sp_shtimes"];
+  const ck=k=>CUR&&CALK.includes(k)?"sp_c_"+CUR+"_"+k:k;
   const store = {
-    get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
-    set(k,v){if(PV&&PVKEYS.includes(k))return;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+    get(k,d){try{const v=localStorage.getItem(ck(k));return v==null?d:JSON.parse(v)}catch(e){return d}},
+    set(k,v){if(PV&&PVKEYS.includes(k))return;try{localStorage.setItem(ck(k),JSON.stringify(v))}catch(e){}}
   };
 
   const dn = (y,m,d)=>Math.round(Date.UTC(y,m,d)/864e5);
@@ -955,6 +1026,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   let mCache=null;
   function modelFor(n){ if(!mCache)mCache=models.map(m=>{const pat=[];m.blocks.forEach(([t,c])=>{for(let i=0;i<c;i++)pat.push(t)});return {m,a:parseIso(m.from),b:parseIso(m.to),pat}});
     for(let i=mCache.length-1;i>=0;i--){const c=mCache[i];if(n>=c.a&&n<=c.b&&c.pat.length)return c}return null}
+  const SHT0={F:["06:00","14:00"],S:["14:00","22:00"],N:["22:00","06:00"]};
+  let shT=Object.assign({},SHT0,store.get("sp_shtimes",{})); // Uhrzeiten je Schicht (für die Familien-Übersicht)
   let base=store.get("sp_base","175"); // "175" = 17,5-Modell als Grundlage, "none" = leerer Kalender (nur eigene Modelle)
   const rawShift = n=>{const c=modelFor(n);return c?c.pat[(n-c.a)%c.pat.length]:base==="none"?"X":PATTERN[((n-anchor)%28+28)%28]};
   // ---------- Routinen (z. B. Hausordnung jeden 2. Samstag) ----------
@@ -1045,6 +1118,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     return sec;
   }
   function paint(el){
+    if(WK)return paintWeek(el);
     const n=+el.dataset.d, s=shift(n), t=vt(n), ft=holiday(n);
     el.className="day "+(t||s)+(ft?" ft":"")+(n===TODAY?" today":"")+(n<TODAY?" past":"")+(pickStart===n?" pick":"");
     el.querySelector(".s").textContent = t?TYPE[t].short:SHORT[s];
@@ -1056,6 +1130,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     el.setAttribute("aria-label",fmt(n)+(ft?" ("+ft+")":special(n)?" ("+special(n)+")":"")+": "+label(n)+routinesOn(n).map(r=>", "+r.name).join("")+bdOn(n).map(b=>", Geburtstag "+b.name).join(""));
   }
   function statMonth(sec){
+    if(WK)return statWeek(sec);
     const c={F:0,S:0,N:0,U:0,TZ:0,AG:0,K:0,SU:0}, hs=[];
     sec.querySelectorAll("[data-d]").forEach(e=>{const n=+e.dataset.d,s=shift(n),t=vt(n);
       if(t){if(s!=="X"&&!holiday(n))c[t]++}else if(s!=="X")c[s]++;
@@ -1122,7 +1197,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     else { let i=0; while(shift(TODAY+i+1)===s && !vt(TODAY+i+1)) i++; next = i? "noch "+i : "letzte im Block"; }
     const bg=t?TYPE[t].col:{F:"var(--frueh)",S:"var(--spaet)",N:"var(--nacht)",X:"var(--frei)"}[s];
     const ink=t?TYPE[t].ink:{F:"var(--frueh-ink)",S:"var(--spaet-ink)",N:"var(--nacht-ink)",X:"var(--muted)"}[s];
-    document.getElementById("todayCard").innerHTML=
+    if(WK)todayWeek(); else document.getElementById("todayCard").innerHTML=
       '<div class="badge" style="background:'+bg+';color:'+ink+'">'+(t?TYPE[t].short:s==="X"?"–":s)+'</div>'+
       '<div style="min-width:0"><div class="t1">Heute · '+fmtS(TODAY)+(holiday(TODAY)?' · '+holiday(TODAY):'')+'</div><div class="t2">'+label(TODAY)+' <span>· '+next+'</span></div></div>';
     const dn2=[dstDay(fromDn(TODAY).y,2),dstDay(fromDn(TODAY).y,9),dstDay(fromDn(TODAY).y+1,2)].find(d=>d>=TODAY&&d-TODAY<=14), bar=document.getElementById("dstBar");
@@ -1403,6 +1478,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const el=e.target.closest("[data-d]"); if(!el)return;
     const n=+el.dataset.d;
     if(PV){pvDay(n);return}
+    if(WK){weekDaySheet(n);return}
     dayMenu(n);
   });
 
@@ -1574,7 +1650,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       const ta=document.getElementById("cpTxt");
       navigator.clipboard?.writeText(ta.value).then(()=>toast("Kopiert"),()=>{ta.select();toast("Text markiert, jetzt kopieren")}) ?? (ta.select(),toast("Text markiert, jetzt kopieren"));};
   }
-  function backupData(){return {app:"schichtplan-17-5",version:1,saved:todayIso(),anchor:iso(anchor),quota,vac,colors,anim:animOn,notes,contacts,ot,otCfg,models,partners:store.get("sp_partners",[]),routines,base,bdays,bdLead}}
+  function backupData(){return {app:"schichtplan-17-5",version:1,saved:todayIso(),anchor:iso(anchor),quota,vac,colors,anim:animOn,notes,contacts,ot,otCfg,models,partners:store.get("sp_partners",[]),routines,base,bdays,bdLead,shT:store.get("sp_shtimes",null),cals,calData:(()=>{const o={};Object.keys(localStorage).filter(k=>k.startsWith("sp_c_")).forEach(k=>{try{o[k]=JSON.parse(localStorage.getItem(k))}catch(e){}});return o})()}}
   function saveBackup(){const j=JSON.stringify(backupData()); saveFile("Schichtplaner-Sicherung-"+todayIso()+".json",j,j)}
   function parseBackup(txt){
     let d; try{d=JSON.parse(txt)}catch(e){return null}
@@ -1609,6 +1685,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         if(Array.isArray(d.models)){models=d.models;saveModels()}
         if(d.otCfg){otCfg=Object.assign({agHours:8,carry:0},d.otCfg);store.set("sp_otcfg",otCfg)}
         if(Array.isArray(d.contacts)){contacts=d.contacts.filter(c=>c&&c.name&&c.tel);saveContacts()}
+        if(Array.isArray(d.cals)){cals=d.cals;saveCals();Object.keys(localStorage).filter(k=>k.startsWith("sp_c_")).forEach(k=>localStorage.removeItem(k));
+          if(d.calData)for(const k in d.calData)if(k.startsWith("sp_c_"))try{localStorage.setItem(k,JSON.stringify(d.calData[k]))}catch(e){}}
+        if(d.shT){try{localStorage.setItem("sp_shtimes",JSON.stringify(d.shT))}catch(e){}}
         if(Array.isArray(d.bdays)){bdays=d.bdays.filter(x=>x&&x.name&&/^\d\d-\d\d$/.test(x.d));saveBdays()}
         if(d.bdLead>=0){bdLead=+d.bdLead;store.set("sp_bdlead",bdLead)}
         if(Array.isArray(d.routines)){routines=d.routines.filter(x=>x&&x.name&&x.start);saveRoutines()}
@@ -1978,11 +2057,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<button class="mtile" data-m="year"><span>🗓️</span>Jahresübersicht<small>ganzes Jahr, A4</small></button>'+
       '<button class="mtile" data-m="partner"><span>👥</span>Partner<small>Plan teilen per Link oder QR</small></button>'+
       '<button class="mtile" data-m="models"><span>🔁</span>Schichtplan<small>'+(base==="none"?'17,5 aus · ':'17,5-Modell · ')+(models.length?models.length+' eigene':'eigenes anlegen')+'</small></button>'+
+      '<button class="mtile" data-m="fam"><span>👨‍👩‍👧</span>Übersicht<small>Familie: wer hat wann was</small></button>'+
       '<button class="mtile" data-m="bdays"><span>🎂</span>Geburtstage<small>'+(bdays.length?bdays.length+' eingetragen':'eintragen, Hinweis vorher')+'</small></button>'+
       '<button class="mtile" data-m="routines"><span>🧹</span>Routinen<small>'+(routines.length?routines.length+' Routine'+(routines.length===1?'':'n'):'z. B. Hausordnung')+'</small></button>'+
       '<button class="mtile" data-m="settings"><span>⚙️</span>Einstellungen<small>Farben, Urlaub, Rhythmus</small></button>'+
       '<button class="mtile" data-m="help"><span>📖</span>Anleitung<small>alle Funktionen mit Bildern</small></button>'+
       '<button class="mtile" data-m="impressum"><span>ℹ️</span>Impressum<small>Idee, Umsetzung, Datenschutz</small></button>'+
+      '<button class="mtile" data-m="news"><span>🆕</span>Was ist neu<small class="nt">Version '+APP_VERSION+'</small></button>'+
       '<button class="mtile nt" data-m="lang"><span>🌐</span>Sprache · Language<small>Deutsch · English · Türkçe · Română</small></button>'+
       '<button class="mtile" data-m="backup"><span>💾</span>Sicherung<small>speichern oder laden</small></button></div>'+
       '<button class="btn" data-a="close">Schließen</button>');
@@ -1998,6 +2079,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(m==="models")modelsSheet();
       if(m==="routines")routinesSheet();
       if(m==="bdays")bdaysSheet();
+      if(m==="fam"){closeSheet();openFam()}
+      if(m==="news")openChanges();
       if(m==="help")openHelp();
       if(m==="impressum")openImpressum();
       if(m==="lang"){openSheet('<h3 class="nt">🌐 Sprache · Language · Dil · Limbă</h3><div class="langs nt">'+[["de","🇩🇪","Deutsch"],["en","🇬🇧","English"],["tr","🇹🇷","Türkçe"],["ro","🇷🇴","Română"]].map(([c,f,n])=>'<button type="button" class="langb'+(LANG===c?' on':'')+'" data-lang="'+c+'"><span>'+f+'</span>'+n+'</button>').join("")+'</div><button class="btn" data-a="close">Schließen</button>');sheet.onclick=ev=>{if(ev.target.closest("[data-a]"))closeSheet()}}
@@ -2458,6 +2541,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
      "Jeder Tag zeigt Wochentag, Datum und deine Schicht: <b>F</b> Früh (gelb), <b>S</b> Spät (orange), <b>N</b> Nacht (blau), grau = frei. Samstag und Sonntag liegen auf einem farbigen Band. Wische nach oben und unten, der Kalender lädt endlos weiter. Der Knopf <b>Heute</b> unten rechts bringt dich zurück zum aktuellen Tag."],
     ["kopf","Oben: Heute und Zähler","kopf",
      "Die Heute-Karte zeigt deine heutige Schicht und wie viele Schichten im Block noch kommen. Darunter die Zähler für das Jahr, durch das du gerade scrollst: <b>U</b> und <b>TZ</b> übriger Urlaub, <b>AG</b> Ausgleichstage, <b>ÜS</b> Überstunden-Saldo, <b>K</b> Krankheitstage, <b>SU</b> Sonderurlaub, <b>FT</b> Feiertage, die auf einen Schichttag fallen. Daneben der Lautsprecher-Knopf und das Menü ☰."],
+    ["reiter","Kalender-Reiter","reiter",
+     "Oben über der Heute-Karte stehen Reiter: <b>👤 du selbst</b>, weitere Kalender und empfangene Partner-Pläne (👀). Ein Tipp wechselt den Kalender, jeder bleibt getrennt gespeichert, nichts wird überschrieben. Mit <b>＋ Kalender</b> legst du einen neuen an: <b>Person mit Schichten</b> (z. B. Frau oder Mann ohne eigene App), <b>Schule</b> oder <b>Kindergarten</b>. Bei einer Person mit Schichten stellst du den Rhythmus ein, wenn ihr Reiter gewählt ist: ☰ → Einstellungen. Urlaub, Notizen usw. trägst du wie gewohnt ein. <b>⚙️</b> neben den Reitern ändert oder löscht den gewählten Kalender."],
     ["tag","Tag antippen","tag",
      "Tippe auf einen Tag, um <b>Urlaub, TZ-Urlaub, Ausgleich, Krank oder Sonderurlaub</b> einzutragen. Danach wählst du „Nur dieser eine Tag“ oder „Mehrere Tage“. Bei einem eingetragenen Tag kannst du die Art ändern oder den Eintrag löschen. Freie Tage und Feiertage kosten keinen Urlaub."],
     ["zeitraum","Zeitraum wählen","zeitraum",
@@ -2471,7 +2556,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["feiertage","Feiertage und besondere Tage","feiertage",
      "Alle Feiertage in Bayern sowie Heiligabend und Silvester sind <b>rot und frei</b>, mit eigenem Symbol. Unter jedem Monat stehen die Feiertage und besonderen Tage wie Nikolaus oder Muttertag. 🕑 markiert die Zeitumstellung, 14 Tage vorher erscheint oben ein Hinweis."],
     ["menue","Das Menü ☰","menue",
-     "Über ☰ oben rechts erreichst du alle Seiten: Statistik, Meine Einträge, Notizen, Telefonbuch, Jahresübersicht, Partner, Schichtplan, Geburtstage, Routinen, Einstellungen, Sicherung und diese Anleitung. Auf jeder dieser Seiten schwebt unten rechts der blaue Knopf <b>‹ Kalender</b>. Damit kommst du von überall sofort zurück zum Kalender, ohne nach oben scrollen zu müssen."],
+     "Über ☰ oben rechts erreichst du alle Seiten: Statistik, Meine Einträge, Notizen, Telefonbuch, Jahresübersicht, Partner, Schichtplan, Übersicht, Geburtstage, Routinen, Einstellungen, Was ist neu, Sicherung und diese Anleitung. Auf jeder dieser Seiten schwebt unten rechts der blaue Knopf <b>‹ Kalender</b>. Damit kommst du von überall sofort zurück zum Kalender, ohne nach oben scrollen zu müssen."],
     ["statistik","Statistik","statistik",
      "Alle Zähler eines Jahres auf einen Blick, dazu deine Überstunden pro Monat als Balken. Mit ‹ › wechselst du das Jahr."],
     ["statistik2","Jahreskalender und Speichern","statistik2",
@@ -2508,8 +2593,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
      "Dein Partner tippt auf den Link oder scannt den QR-Code und wählt <b>Speichern und ansehen</b>. Sein eigener Plan bleibt unverändert. <b>iPhone:</b> Wird die App vom Home-Bildschirm benutzt, den Link in WhatsApp lange drücken, „Kopieren“ wählen und in der App unter ☰ → Partner → <b>Link übernehmen</b> einfügen."],
     ["partner3","Partner-Plan ansehen","partner3",
      "Oben erscheint eine blaue Leiste <b>👀 Plan von …</b>. Der Plan lässt sich nur ansehen, nicht ändern. Mit <b>Zurück zu meinem Plan</b> kommst du zu deinem Kalender. Später öffnest du ihn wieder über ☰ → Partner → <b>Ansehen</b>. Auch mehrere Pläne, zum Beispiel von Kollegen, sind möglich."],
+    ["kinder","Kinder-Kalender (Schule, Kindergarten)","kinder",
+     "Ein Kinder-Kalender hat einen <b>Wochenplan</b> mit Uhrzeiten für jeden Wochentag. Im Kalender stehen die Zeiten im Tag, z. B. 8:00 und 13:00. Bei der Schule sind die <b>bayerischen Schulferien</b> automatisch frei (schraffiert), Feiertage sind immer frei. Tag antippen: <b>Frei an diesem Tag</b> (z. B. krank, Ausflug, Schließtag, auch mehrere Tage), <b>Andere Uhrzeit</b>, <b>Notiz</b> (z. B. Turnbeutel) oder zurück <b>wie im Wochenplan</b>."],
+    ["kinder2","Wochenplan einstellen","kinder2",
+     "Name, Symbol und Farbe wählen, dann die Zeiten: Haken bei jedem Tag mit Unterricht bzw. Betreuung, dazu von und bis. Den Haken „Bayerische Schulferien automatisch frei“ kannst du ein- und ausschalten. Beim Kindergarten trägst du Schließtage direkt im Kalender ein. Ändern kannst du alles später über <b>⚙️</b> neben den Reitern."],
+    ["uebersicht","Familien-Übersicht","uebersicht",
+     "Über den Reiter <b>👨‍👩‍👧 Übersicht</b> (oder ☰ → Übersicht) siehst du für jeden Tag einer Woche untereinander, was jeder hat: Schichten mit Uhrzeit, Urlaub, Schule, Kindergarten. Unter jedem Kind steht, wer zum <b>Bringen</b> und <b>Abholen</b> frei ist, also zu dieser Uhrzeit keine Schicht hat. Steht dort „niemand frei“, müsst ihr euch etwas überlegen. Mit ‹ › blätterst du wochenweise. Die Schichtzeiten (Standard 6–14, 14–22, 22–6 Uhr) änderst du unter ☰ → Einstellungen."],
     ["sound","Animation und Sound",null,
      "Der Hintergrund wechselt mit der Jahreszeit: Schnee, Blüten, Sonne, Laub und im Herbst ab und zu ein Gewitter. Figuren wie Enten, Osterhase, Weihnachtsmann oder Laternen passen zum Monat. Antippen lässt kleine Wirbel aufsteigen. Mit dem <b>Lautsprecher-Knopf</b> schaltest du Naturgeräusche ein. An Feiertagen gibt es eigene Klänge, wenn du den Tag antippst oder der Tag heute ist. Vom 20. bis 31.12. laufen Weihnachtslieder, an Silvester startet ein Feuerwerk, wenn der 31.12. in der Bildschirmmitte steht."],
+    ["versionen","Was ist neu","versionen",
+     "Unter ☰ → <b>🆕 Was ist neu</b> siehst du die aktuelle Version der App und was sich wann in welcher Version geändert hat. Die Versionsnummer steht auch im Impressum."],
     ["impressum","Impressum",null,"Unter ☰ Menü → Impressum steht, wer die App erdacht und gebaut hat, und wie mit deinen Daten umgegangen wird."],
     ["kachel","Als Kachel aufs Handy und teilen",null,
      "Öffne den Schichtplaner im Browser (Android: ⋮ → „Zum Startbildschirm hinzufügen“, iPhone: Teilen → „Zum Home-Bildschirm“). Deine Kollegen bekommen den Link per WhatsApp. Jeder speichert seine eigenen Einträge, und unter Einstellungen kann jeder seinen Rhythmus einstellen."]];
@@ -2530,7 +2623,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   // ---------- Impressum ----------
   function openImpressum(){
-    if(LANG!=="de"){openSheet('<h3>'+I18N_IMPR[LANG][0]+'</h3><div class="impr">'+I18N_IMPR[LANG][1]+'<p class="smeta">© '+fromDn(TODAY).y+' Hans-Jürgen Schlichting</p></div><button class="btn" data-a="close">Schließen</button>');sheet.onclick=ev=>{if(ev.target.closest("[data-a]")?.dataset.a==="close")closeSheet()};return}
+    if(LANG!=="de"){openSheet('<h3>'+I18N_IMPR[LANG][0]+'</h3><div class="impr">'+I18N_IMPR[LANG][1]+'<p class="smeta">© '+fromDn(TODAY).y+' Hans-Jürgen Schlichting · Version '+APP_VERSION+'</p></div><button class="btn" data-a="close">Schließen</button>');sheet.onclick=ev=>{if(ev.target.closest("[data-a]")?.dataset.a==="close")closeSheet()};return}
     openSheet('<h3>Impressum</h3>'+
       '<div class="impr"><p class="impapp">📅 <b>Schichtplaner</b><br><span>Persönlicher Schichtkalender für Schichtarbeit: Schichten, Urlaub, Überstunden, Notizen, Routinen und Geburtstage auf einen Blick</span></p>'+
       '<h4>Idee und Konzept</h4><p><b>Hans-Jürgen Schlichting</b></p>'+
@@ -2539,7 +2632,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<h4>Datenschutz</h4><p>Alle deine Daten (Schichten, Einträge, Notizen, Überstunden, Routinen, Geburtstage und Telefonnummern) werden <b>nur auf deinem Gerät</b> gespeichert. Es gibt kein Benutzerkonto und keinen Server, der deine Daten sammelt.</p>'+
       '<p>Nur wenn du es selbst antippst, verlassen Daten dein Gerät: beim <b>Teilen mit dem Partner</b> (Schichten, Urlaub, TZ, Ausgleich, Sonderurlaub stecken im Link, den du verschickst), beim Speichern von PDF, Tabelle oder Sicherung und bei „In Google Kalender eintragen“. Schriftarten werden von Google Fonts geladen, die PDF-Erstellung von cdnjs.</p>'+
       '<h4>Bilder, Klänge, Musik</h4><p>Animationen und Klänge werden in der App selbst erzeugt. Die Weihnachtslieder sind gemeinfrei. Symbole sind die Emojis deines Geräts. QR-Codes: qrcode-generator, © Kazuhiko Arase, MIT-Lizenz.</p>'+
-      '<p class="smeta">© '+fromDn(TODAY).y+' Hans-Jürgen Schlichting</p></div>'+
+      '<p class="smeta">© '+fromDn(TODAY).y+' Hans-Jürgen Schlichting · Version '+APP_VERSION+'</p></div>'+
       '<button class="btn" data-a="close">Schließen</button>');
     sheet.onclick=ev=>{if(ev.target.closest("[data-a]")?.dataset.a==="close")closeSheet()};
   }
@@ -2569,6 +2662,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<p>Saldo = Übertrag + eingetragene Überstunden − Ausgleichstage × Stunden.</p>'+
       '<h4>Schichtplan</h4><button class="btn" data-a="models">Schichtmodelle und 17,5-Modell <small>'+(models.length?models.length+' eigene':base==="none"?'noch keins':'nur 17,5-Modell')+'</small></button>'+
       '<h4>Routinen</h4><button class="btn" data-a="routines">Routinen verwalten <small>'+(routines.length?routines.length+' Routine'+(routines.length===1?'':'n'):'z. B. Hausordnung')+'</small></button>'+
+      (CUR?'<p class="calfor">✏️ <span>Gilt für den Kalender</span> <b class="nt">'+esc((calById(CUR)||{}).name||"")+'</b></p>':'')+
+      '<h4>Schichtzeiten</h4><div class="wkrows">'+["F","S","N"].map(k=>'<div class="wkrow"><span>'+NAMES[k]+'</span><input type="time" class="inp" data-sht="'+k+':0" value="'+shT[k][0]+'"><input type="time" class="inp" data-sht="'+k+':1" value="'+shT[k][1]+'"></div>').join("")+'</div>'+
+      '<p class="smeta">Für die Familien-Übersicht (wer kann bringen und abholen).</p>'+
       '<h4>Schichtrhythmus (17,5-Modell)</h4>'+
 
       '<p>28-Tage-Zyklus: 6× Spät (Mo–Sa), So frei, 6× Früh (Mo–Sa), 6× Nacht (So–Fr), dann 9 Tage frei.</p>'+
@@ -2580,6 +2676,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     document.getElementById("animChk").onchange=e=>setAnim(e.target.checked);
     document.getElementById("sndChk").onchange=e=>setSound(e.target.checked);
     document.getElementById("sndVol").oninput=e=>{SND.vol=+e.target.value;store.set("sp_vol",SND.vol);if(SND.E&&SND.on)SND.E.master.gain.setTargetAtTime(SND.vol*2.2,SND.E.ctx.currentTime,.1)};
+    sheet.querySelectorAll("[data-sht]").forEach(inp=>inp.onchange=()=>{const [k,i]=inp.dataset.sht.split(":");if(!inp.value)return;shT[k]=shT[k].slice();shT[k][+i]=inp.value;store.set("sp_shtimes",shT)});
     sheet.querySelectorAll("[data-ck]").forEach(inp=>inp.oninput=()=>{colors[inp.dataset.ck]=inp.value;store.set("sp_colors",colors);applyColors();renderToday();renderBudget()});
     sheet.onclick=ev=>{
       const a=ev.target.closest("[data-a]")?.dataset.a; if(!a)return;
@@ -2757,7 +2854,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   document.getElementById("bdBar").onclick=e=>{const g=+e.currentTarget.dataset.go;if(g)jumpTo(g)};
   // ---------- Schwebender Knopf: von jeder Seite zurück zum Kalender ----------
-  { const OV=["yearView","statsView","notesView","helpView","entriesView","contactsView","bdaysView"].map(id=>document.getElementById(id)), bf=document.getElementById("backFab");
+  { const OV=["yearView","statsView","notesView","helpView","entriesView","contactsView","bdaysView","famView"].map(id=>document.getElementById(id)), bf=document.getElementById("backFab");
     const upd=()=>{bf.hidden=!OV.some(o=>!o.hidden)};
     const mo=new MutationObserver(upd); OV.forEach(o=>mo.observe(o,{attributes:true,attributeFilter:["hidden"]}));
     bf.onclick=()=>{OV.forEach(o=>o.hidden=true);closeSheet();document.body.style.overflow="";upd()}; }
@@ -2776,8 +2873,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     return out.join(",")}
   function unpackVac(s){const v={};(s||"").split(",").forEach(x=>{const m=/^(U|TZ|AG|SU)(\d+)(?:\.(\d+))?$/.exec(x);if(!m)return;for(let i=0;i<(+m[3]||1);i++)v[+m[2]+i]=m[1]});return v}
   async function makeLink(name){
-    const src=own||{anchor,vac,models,quota,base};
-    const d={v:1,n:name,b:src.base==="none"?0:1,a:iso(src.anchor),m:src.models.map(m=>({name:m.name,from:m.from,to:m.to,blocks:m.blocks})),e:packVac(src.vac),q:src.quota,t:Date.now()};
+    const src=own||(CUR||WK?withCal("me",()=>({anchor,vac,models,quota,base,shT})):{anchor,vac,models,quota,base,shT});
+    const d={v:1,n:name,z:src.shT,b:src.base==="none"?0:1,a:iso(src.anchor),m:src.models.map(m=>({name:m.name,from:m.from,to:m.to,blocks:m.blocks})),e:packVac(src.vac),q:src.quota,t:Date.now()};
     const raw=new TextEncoder().encode(JSON.stringify(d));
     let code; try{code="1"+b64u.enc(await zip(raw,true))}catch(e){code="0"+b64u.enc(raw)}
     return APPURL+"#p="+code}
@@ -2786,20 +2883,22 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     try{let u=b64u.dec(m[2]); if(m[1]==="1")u=await zip(u,false);
       const d=JSON.parse(new TextDecoder().decode(u));
       if(!d||d.v!==1||!d.n||!/^\d{4}-\d\d-\d\d$/.test(d.a))return null;
-      return {n:String(d.n).slice(0,40),a:d.a,m:Array.isArray(d.m)?d.m:[],e:d.e||"",q:Object.assign({U:30,TZ:8},d.q||{}),b:d.b===0?"none":"175",t:+d.t||Date.now()}}catch(e){return null}}
+      return {n:String(d.n).slice(0,40),a:d.a,m:Array.isArray(d.m)?d.m:[],e:d.e||"",q:Object.assign({U:30,TZ:8},d.q||{}),b:d.b===0?"none":"175",z:d.z&&d.z.F?d.z:null,t:+d.t||Date.now()}}catch(e){return null}}
   const stand=t=>{const d=new Date(t);return d.getDate()+"."+(d.getMonth()+1)+"."+d.getFullYear()+", "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+" Uhr"};
 
   function showPartner(p){
+    if(!PV&&(CUR||WK)){CUR=null;WK=null;document.body.classList.remove("wk");loadCal()}
+    TAB="p:"+partners.indexOf(p);
     if(!PV)own={anchor,vac,models,notes,ot,quota,base,routines,bdays};
     PV=p; base=p.b||"175"; routines=[]; bdays=[]; anchor=parseIso(p.a); vac=unpackVac(p.e); models=p.m; notes={}; ot=[]; quota=p.q; mCache=null;
     document.body.classList.add("pv"); document.getElementById("pvBar").hidden=false;
     document.getElementById("pvName").textContent="👀 Plan von "+p.n;
-    closeSheet(); repaintAll(); scrollToToday(false); toast("Du siehst jetzt den Plan von "+p.n);
+    closeSheet(); repaintAll(); scrollToToday(false); renderTabs(); toast("Du siehst jetzt den Plan von "+p.n);
   }
-  function showOwn(){ if(!PV)return;
+  function showOwn(){ if(!PV)return; TAB="me";
     PV=null; ({anchor,vac,models,notes,ot,quota,base,routines,bdays}=own); own=null; mCache=null;
     document.body.classList.remove("pv"); document.getElementById("pvBar").hidden=true;
-    closeSheet(); if(!yv.hidden){yv.hidden=true;document.body.style.overflow=""} repaintAll(); scrollToToday(false);
+    closeSheet(); if(!yv.hidden){yv.hidden=true;document.body.style.overflow=""} repaintAll(); scrollToToday(false); renderTabs();
   }
   document.getElementById("pvBack").onclick=showOwn;
   function pvDay(n){
@@ -2810,7 +2909,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<button class="btn primary" data-a="back">Zurück zu meinem Plan</button><button class="btn" data-a="close">Schließen</button>');
     sheet.onclick=e=>{const a=e.target.closest("[data-a]")?.dataset.a;if(a==="back")showOwn();if(a==="close")closeSheet()};
   }
-  function savePartner(p){const i=partners.findIndex(x=>x.n===p.n);if(i>=0)partners[i]=p;else partners.push(p);savePartners()}
+  function savePartner(p){const i=partners.findIndex(x=>x.n===p.n);if(i>=0)partners[i]=p;else partners.push(p);savePartners();renderTabs()}
 
   function partnerSheet(){
     const my=store.get("sp_myname","");
@@ -2836,7 +2935,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       const pv=e.target.closest("[data-pv]"),pd=e.target.closest("[data-pd]"),a=e.target.closest("[data-a]")?.dataset.a;
       if(pv)return showPartner(partners[+pv.dataset.pv]);
       if(pd){const i=+pd.dataset.pd;if(pd.dataset.sure!=="1"){pd.dataset.sure="1";pd.textContent="Sicher?";return}
-        const nm=partners[i].n;partners.splice(i,1);savePartners();if(PV&&PV.n===nm)showOwn();partnerSheet();toast("Plan von "+nm+" gelöscht");return}
+        const nm=partners[i].n;partners.splice(i,1);savePartners();if(PV&&PV.n===nm)showOwn();renderTabs();partnerSheet();toast("Plan von "+nm+" gelöscht");return}
       if(a==="close")return closeSheet();
       if(a==="back")return showOwn();
       if(a==="year"){closeSheet();return openYear(viewYear)}
@@ -2866,6 +2965,272 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   if(/#p=/.test(location.hash)){const h=location.hash;history.replaceState(null,"",location.pathname+location.search);
     readLink(h).then(p=>{if(p)setTimeout(()=>receive(p),400);else toast("Der Link ist unvollständig. Bitte noch einmal schicken lassen.")})}
+
+  // =====================================================================
+  // Mehrere Kalender (Reiter), Kinder-Wochenpläne, Familien-Übersicht, Versionen
+  // =====================================================================
+  // Kalender-Arten in cals: {id,name,icon,type:"shift"}  -> Daten unter sp_c_<id>_<schlüssel> (CALK)
+  //                         {id,name,icon,type:"week",kind:"schule"|"kita",col,week:{w:[von,bis]},ferien:bool,exc:{tag:{off,why}|{from,to}},notes:{tag:text}}
+  let cals=store.get("sp_cals",[]); const saveCals=()=>store.set("sp_cals",cals);
+  const calById=id=>cals.find(c=>c.id===id);
+  const FER_BY=[ // Schulferien Bayern (Kultusministerium, erster–letzter Ferientag)
+    ["2025-08-01","2025-09-15","Sommerferien"],["2025-11-03","2025-11-07","Herbstferien"],["2025-11-19","2025-11-19","Buß- und Bettag"],["2025-12-22","2026-01-05","Weihnachtsferien"],
+    ["2026-02-16","2026-02-20","Frühjahrsferien"],["2026-03-30","2026-04-10","Osterferien"],["2026-05-26","2026-06-05","Pfingstferien"],["2026-08-03","2026-09-14","Sommerferien"],
+    ["2026-11-02","2026-11-06","Herbstferien"],["2026-11-18","2026-11-18","Buß- und Bettag"],["2026-12-24","2027-01-08","Weihnachtsferien"],
+    ["2027-02-08","2027-02-12","Frühjahrsferien"],["2027-03-22","2027-04-02","Osterferien"],["2027-05-18","2027-05-28","Pfingstferien"],["2027-08-02","2027-09-13","Sommerferien"],
+    ["2027-11-02","2027-11-05","Herbstferien"],["2027-11-17","2027-11-17","Buß- und Bettag"],["2027-12-24","2028-01-07","Weihnachtsferien"],
+    ["2028-02-28","2028-03-03","Frühjahrsferien"],["2028-04-10","2028-04-21","Osterferien"],["2028-06-06","2028-06-16","Pfingstferien"],["2028-07-31","2028-09-11","Sommerferien"],
+    ["2028-10-30","2028-11-03","Herbstferien"],["2028-11-22","2028-11-22","Buß- und Bettag"],["2028-12-23","2029-01-05","Weihnachtsferien"],
+    ["2029-02-12","2029-02-16","Frühjahrsferien"],["2029-03-26","2029-04-06","Osterferien"],["2029-05-22","2029-06-01","Pfingstferien"],["2029-07-30","2029-09-10","Sommerferien"],
+    ["2029-10-29","2029-11-02","Herbstferien"],["2029-11-21","2029-11-21","Buß- und Bettag"],["2029-12-24","2030-01-04","Weihnachtsferien"],
+    ["2030-03-04","2030-03-08","Frühjahrsferien"],["2030-04-15","2030-04-26","Osterferien"],["2030-06-11","2030-06-21","Pfingstferien"],["2030-07-29","2030-09-09","Sommerferien"]
+  ].map(([a,b,n])=>[parseIso(a),parseIso(b),n]);
+  const ferienOn=n=>{for(const [a,b,nm] of FER_BY)if(n>=a&&n<=b)return nm;return null};
+  const KCOL=["#7c5cff","#00a3a3","#e8590c","#d6336c","#2f9e44","#1c7ed6"];
+  const ICONS_P=["👩","👨","👵","👴","🧑","⭐"], ICONS_K=["🎒","🧸","👧","👦","🧒","👶","🏫","⚽"];
+  const t2m=t=>{const [h,m]=String(t||"0:0").split(":").map(Number);return h*60+(m||0)};
+  const tShort=t=>{const [h,m]=String(t).split(":");return (+h)+":"+m};
+
+  // ---- Kalender wechseln: Daten des aktiven Kalenders laden ----
+  function loadCal(){
+    anchor=parseIso(store.get("sp_anchor2","2026-12-21")); vac=store.get("sp_vac2",{})||{};
+    quota=Object.assign({U:30,TZ:8},store.get("sp_quota",{})); notes=store.get("sp_notes",{}); ot=store.get("sp_ot",[]);
+    otCfg=Object.assign({agHours:8,carry:0},store.get("sp_otcfg",{})); models=store.get("sp_models",[]); base=store.get("sp_base","175");
+    shT=Object.assign({},SHT0,store.get("sp_shtimes",{})); mCache=null;
+  }
+  function leavePV(){ if(!PV)return; PV=null; own=null; document.body.classList.remove("pv"); document.getElementById("pvBar").hidden=true; }
+  function switchTab(t,quiet){
+    if(t==="ov")return openFam();
+    leavePV(); WK=null; document.body.classList.remove("wk"); CUR=null;
+    if(t.startsWith("c:")){const c=calById(t.slice(2)); if(!c)t="me"; else if(c.type==="week"){WK=c;document.body.classList.add("wk")} else CUR=c.id}
+    loadCal(); TAB=t;
+    if(t.startsWith("p:")){const p=partners[+t.slice(2)]; if(p){showPartner(p);TAB=t;renderTabs();return} TAB="me"}
+    closeSheet(); repaintAll(); renderTabs(); if(!quiet)scrollToToday(false);
+  }
+  function tabsList(){
+    const l=[{t:"me",ic:"👤",n:store.get("sp_myname","")||"Ich"}];
+    cals.forEach(c=>l.push({t:"c:"+c.id,ic:c.icon,n:c.name}));
+    partners.forEach((p,i)=>l.push({t:"p:"+i,ic:"👀",n:p.n}));
+    return l;
+  }
+  function renderTabs(){
+    const el=document.getElementById("calTabs"); if(!el)return;
+    const l=tabsList();
+    el.innerHTML=l.map(x=>'<button type="button" class="ctab'+(TAB===x.t?' on':'')+'" data-tab="'+x.t+'"><span>'+x.ic+'</span><b class="nt">'+escEarly(x.n)+'</b></button>').join("")+
+      (TAB!=="me"&&!TAB.startsWith("p:")?'<button type="button" class="ctab ctool" data-tabed="1" aria-label="Kalender bearbeiten">⚙️</button>':'')+
+      (l.length>1?'<button type="button" class="ctab ctool" data-tab="ov"><span>👨‍👩‍👧</span><b>Übersicht</b></button>':'')+
+      '<button type="button" class="ctab ctool" data-tabnew="1"><span>＋</span><b>Kalender</b></button>';
+    const on=el.querySelector(".on"); if(on&&on.scrollIntoView)on.scrollIntoView({block:"nearest",inline:"nearest"});
+  }
+  document.getElementById("calTabs").addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b)return;
+    if(b.dataset.tabnew)return calNew();
+    if(b.dataset.tabed)return TAB.startsWith("c:")&&calEditor(calById(TAB.slice(2)));
+    if(b.dataset.tab&&b.dataset.tab!==TAB)switchTab(b.dataset.tab); else if(b.dataset.tab==="ov")openFam();
+  });
+
+  // ---- Wochenplan (Schule/Kindergarten) ----
+  function kidDay(c,n){
+    const e=c.exc&&c.exc[n], w=fromDn(n).w, h=holiday(n);
+    if(e&&e.off)return {st:"off",lab:e.why||"frei",exc:1};
+    if(e&&e.from)return {st:"in",from:e.from,to:e.to,exc:1};
+    if(h)return {st:"hol",lab:h};
+    const f=c.ferien&&ferienOn(n); if(f)return {st:"fer",lab:f};
+    const p=c.week&&c.week[w]; if(p)return {st:"in",from:p[0],to:p[1]};
+    return {st:"off",lab:"frei"};
+  }
+  const kidWhat=c=>c.kind==="kita"?"Kindergarten":"Schule";
+  function kidText(c,n){const k=kidDay(c,n);
+    return k.st==="in"?kidWhat(c)+" "+tShort(k.from)+"–"+tShort(k.to):k.st==="fer"?"Ferien ("+k.lab+")":k.st==="hol"?"frei ("+k.lab+")":k.exc?"frei: "+k.lab:"frei"}
+  function paintWeek(el){
+    const n=+el.dataset.d, c=WK, k=kidDay(c,n), ft=holiday(n);
+    el.className="day kw "+(k.st==="in"?"ks":k.st==="fer"?"kf":"X")+(ft?" ft":"")+(k.exc?" kx":"")+(n===TODAY?" today":"")+(n<TODAY?" past":"");
+    el.style.setProperty("--kc",c.col||KCOL[0]);
+    const s=el.querySelector(".s");
+    if(k.st==="in")s.innerHTML='<i>'+tShort(k.from)+'</i><i>'+tShort(k.to)+'</i>'; else s.textContent=k.st==="fer"?"Ferien":"frei";
+    delete el.dataset.orig; const ic=icon(n)||(k.exc&&k.st==="off"?"🚫":""); if(ic)el.dataset.ic=ic; else delete el.dataset.ic; el.classList.remove("ic2","ot");
+    el.querySelector(".nm").hidden=!(c.notes&&c.notes[n]); el.querySelector(".rt").hidden=true;
+    el.setAttribute("aria-label",fmt(n)+": "+kidText(c,n));
+  }
+  function statWeek(sec){
+    const c=WK, hs=[]; let cnt=0;
+    sec.querySelectorAll("[data-d]").forEach(e=>{const n=+e.dataset.d,k=kidDay(c,n),o=fromDn(n),dd=o.d+'.'+(o.m+1)+'.';
+      if(k.st==="in")cnt++;
+      const h=holiday(n); if(h)hs.push('<li><span class="ic">'+(icon(n)||"🎉")+'</span><b>'+dd+'</b><span>'+h+'</span></li>');
+      if(c.ferien){const f=ferienOn(n); if(f&&(ferienOn(n-1)!==f||o.d===1)){let z=n;while(ferienOn(z+1)===f)z++;const oz=fromDn(z);
+        hs.push('<li class="ferli"><span class="ic">🏖️</span><b>'+dd+'</b><span>'+f+(z>n?' <span>bis '+oz.d+'.'+(oz.m+1)+'.</span>':'')+'</span></li>')}}
+      const ex=c.exc&&c.exc[n]; if(ex)hs.push('<li><span class="ic">'+(ex.off?'🚫':'🕐')+'</span><b>'+dd+'</b><span>'+(ex.off?'<span>frei</span>'+(ex.why?': <span class="nt">'+escEarly(ex.why)+'</span>':''):tShort(ex.from)+'–'+tShort(ex.to))+'</span></li>');
+      if(c.notes&&c.notes[n])hs.push('<li><span class="ic">📝</span><b>'+dd+'</b><span class="nt">'+escEarly(c.notes[n])+'</span></li>');
+    });
+    sec.querySelector(".mstat").textContent=cnt+(c.kind==="kita"?" Kita-Tage":" Schultage");
+    const ul=sec.querySelector(".hol"); ul.innerHTML=hs.join(""); ul.hidden=!hs.length;
+  }
+  function todayWeek(){
+    const c=WK,k=kidDay(c,TODAY); let next="";
+    for(let i=1;i<120;i++){if(kidDay(c,TODAY+i).st==="in"){next="nächster "+(c.kind==="kita"?"Kita-Tag":"Schultag")+": "+fmtS(TODAY+i);break}}
+    document.getElementById("todayCard").innerHTML='<div class="badge" style="background:'+(c.col||KCOL[0])+';color:#fff">'+c.icon+'</div>'+
+      '<div style="min-width:0"><div class="t1">Heute · '+fmtS(TODAY)+'</div><div class="t2">'+kidText(c,TODAY)+(k.st==="in"?'':' <span>· '+next+'</span>')+'</div></div>';
+  }
+  function weekDaySheet(n){
+    const c=WK, k=kidDay(c,n), e=c.exc&&c.exc[n];
+    openSheet('<h3>'+fmt(n)+'</h3><p><b>'+c.icon+' <span class="nt">'+esc(c.name)+'</span>:</b> '+kidText(c,n)+'</p>'+
+      (c.notes&&c.notes[n]?'<div class="nbox"><b>📝 Notiz</b><p>'+esc(c.notes[n])+'</p></div>':'')+
+      (e?'<button class="btn primary" data-a="kreset">↩︎ Wie im Wochenplan</button>':'')+
+      '<button class="btn" data-a="koff">🚫 Frei an diesem Tag <small>z. B. krank, Ausflug, Schließtag</small></button>'+
+      '<button class="btn" data-a="ktime">🕐 Andere Uhrzeit an diesem Tag</button>'+
+      '<button class="btn" data-a="knote">📝 '+(c.notes&&c.notes[n]?'Notiz bearbeiten':'Notiz hinzufügen')+'</button>'+
+      '<button class="btn" data-a="kplan">⚙️ Wochenplan ändern</button>'+
+      '<button class="btn" data-a="close">Schließen</button>');
+    sheet.onclick=ev=>{const a=ev.target.closest("[data-a]")?.dataset.a;if(!a)return;
+      if(a==="close")return closeSheet();
+      if(a==="kplan")return calEditor(c);
+      if(a==="kreset"){delete c.exc[n];saveCals();repaintAll();return closeSheet()}
+      if(a==="knote"){openSheet('<h3>📝 Notiz</h3><p>'+fmt(n)+'</p><textarea id="kNote" class="inp" rows="3" maxlength="300" placeholder="z. B. Turnbeutel mitgeben, Elternabend">'+esc((c.notes&&c.notes[n])||"")+'</textarea>'+
+          '<button class="btn primary" data-a="ksave">Speichern</button><button class="btn" data-a="close">Abbrechen</button>');
+        sheet.onclick=e2=>{const b=e2.target.closest("[data-a]")?.dataset.a;if(b==="close")return closeSheet();if(b==="ksave"){const v=document.getElementById("kNote").value.trim();c.notes=c.notes||{};if(v)c.notes[n]=v;else delete c.notes[n];saveCals();repaintAll();closeSheet();toast(v?"Notiz gespeichert":"Notiz gelöscht")}};return}
+      if(a==="koff"){openSheet('<h3>🚫 Frei</h3><p>Ab '+fmt(n)+'</p><label class="f" for="kWhy">Grund (optional)<input id="kWhy" class="inp" maxlength="40" placeholder="z. B. krank, Ausflug, Schließtag"></label>'+
+          '<label class="f" for="kTo">Bis einschließlich (leer = nur dieser Tag)<input type="date" id="kTo" class="inp" min="'+iso(n)+'"></label>'+
+          '<button class="btn primary" data-a="ksave">Speichern</button><button class="btn" data-a="close">Abbrechen</button>');
+        sheet.onclick=e2=>{const b=e2.target.closest("[data-a]")?.dataset.a;if(b==="close")return closeSheet();
+          if(b==="ksave"){const why=document.getElementById("kWhy").value.trim(),tv=document.getElementById("kTo").value,z=tv?Math.max(n,parseIso(tv)):n;c.exc=c.exc||{};
+            for(let i=n;i<=z&&i<n+366;i++)c.exc[i]={off:1,why};saveCals();repaintAll();closeSheet();toast("Gespeichert")}};return}
+      if(a==="ktime"){const p=k.st==="in"?[k.from,k.to]:(c.week&&(c.week[1]||c.week[fromDn(n).w]))||["08:00","13:00"];
+        openSheet('<h3>🕐 Andere Uhrzeit</h3><p>'+fmt(n)+'</p><div class="bdgrid"><label class="f" for="kFrom">Von<input type="time" id="kFrom" class="inp" value="'+p[0]+'"></label><label class="f" for="kTo2">Bis<input type="time" id="kTo2" class="inp" value="'+p[1]+'"></label></div>'+
+          '<button class="btn primary" data-a="ksave">Speichern</button><button class="btn" data-a="close">Abbrechen</button>');
+        sheet.onclick=e2=>{const b=e2.target.closest("[data-a]")?.dataset.a;if(b==="close")return closeSheet();
+          if(b==="ksave"){const f=document.getElementById("kFrom").value,t=document.getElementById("kTo2").value;if(!f||!t)return;c.exc=c.exc||{};c.exc[n]={from:f,to:t};saveCals();repaintAll();closeSheet();toast("Gespeichert")}};return}
+    };
+  }
+
+  // ---- Kalender anlegen / bearbeiten ----
+  function calNew(){
+    openSheet('<h3>Neuer Kalender</h3><p>Für wen soll der Kalender sein? Jeder Kalender bleibt getrennt, nichts wird überschrieben.</p>'+
+      '<button class="btn" data-k="shift"><span class="bdrow"><span class="bdi">👩</span><span><b>Person mit Schichten</b><br><small>z. B. Frau oder Mann ohne eigene App</small></span></span></button>'+
+      '<button class="btn" data-k="schule"><span class="bdrow"><span class="bdi">🎒</span><span><b>Schule</b><br><small>Unterrichtszeiten pro Wochentag, bayerische Ferien automatisch</small></span></span></button>'+
+      '<button class="btn" data-k="kita"><span class="bdrow"><span class="bdi">🧸</span><span><b>Kindergarten</b><br><small>Betreuungszeiten pro Wochentag, Schließtage selbst eintragen</small></span></span></button>'+
+      '<p class="smeta">Hat dein Partner die App selbst? Dann schickt er dir seinen Plan über ☰ → Partner. Er erscheint dann automatisch als Reiter.</p>'+
+      '<button class="btn" data-a="close">Abbrechen</button>');
+    sheet.onclick=ev=>{const k=ev.target.closest("[data-k]")?.dataset.k;if(ev.target.closest("[data-a]"))return closeSheet();if(!k)return;
+      let id;do{id=Date.now().toString(36)+Math.random().toString(36).slice(2,6)}while(calById(id));
+      const c=k==="shift"?{id,name:"",icon:"👩",type:"shift"}:
+        {id,name:"",icon:k==="kita"?"🧸":"🎒",type:"week",kind:k,col:KCOL[cals.filter(x=>x.type==="week").length%KCOL.length],ferien:k==="schule",
+         week:k==="kita"?{1:["07:30","14:00"],2:["07:30","14:00"],3:["07:30","14:00"],4:["07:30","14:00"],5:["07:30","13:00"]}:{1:["08:00","13:00"],2:["08:00","13:00"],3:["08:00","13:00"],4:["08:00","13:00"],5:["08:00","12:15"]},exc:{},notes:{}};
+      calEditor(c,true)};
+  }
+  function calEditor(c,isNew){
+    if(!c)return; const w=JSON.parse(JSON.stringify(c)); let sure=false;
+    const icons=c.type==="week"?ICONS_K:ICONS_P;
+    function render(){
+      const wk=w.type==="week";
+      sheet.innerHTML='<div class="grab"></div><h3>'+(isNew?'Neuer Kalender':'Kalender bearbeiten')+'</h3>'+
+        '<label class="f" for="cName">Name<input type="text" id="cName" class="inp" maxlength="24" placeholder="'+(wk?(w.kind==="kita"?'z. B. Kind 2 Kindergarten':'z. B. Kind 1 Schule'):'z. B. Frau')+'" value="'+esc(w.name)+'"></label>'+
+        '<h4>Symbol</h4><div class="cwhos">'+icons.map(i=>'<button type="button" class="chipf'+(w.icon===i?' on':'')+'" data-ic="'+i+'" style="font-size:20px">'+i+'</button>').join("")+'</div>'+
+        (wk?'<h4>Farbe</h4><div class="cwhos">'+KCOL.map(k=>'<button type="button" class="colb'+(w.col===k?' on':'')+'" data-col="'+k+'" style="background:'+k+'" aria-label="Farbe"></button>').join("")+'</div>'+
+          '<h4>'+(w.kind==="kita"?'Betreuungszeiten':'Unterrichtszeiten')+'</h4><div class="wkrows">'+[1,2,3,4,5,6,0].map(d=>{const p=w.week[d];
+            return '<div class="wkrow"><label class="chk"><input type="checkbox" data-wd="'+d+'"'+(p?' checked':'')+'> '+WDL[d]+'</label>'+
+              '<input type="time" class="inp" data-wf="'+d+'" value="'+(p?p[0]:"08:00")+'"'+(p?'':' disabled')+'><input type="time" class="inp" data-wt="'+d+'" value="'+(p?p[1]:"13:00")+'"'+(p?'':' disabled')+'></div>'}).join("")+'</div>'+
+          '<label class="chk" for="cFer"><input type="checkbox" id="cFer"'+(w.ferien?' checked':'')+'> Bayerische Schulferien automatisch frei</label>'+
+          '<p class="smeta">Feiertage sind immer frei. Einzelne freie Tage oder andere Zeiten trägst du direkt im Kalender ein: Tag antippen.</p>'
+        :'<p class="smeta">Den Schichtrhythmus dieser Person stellst du ein, wenn ihr Reiter gewählt ist: ☰ → Einstellungen (Start-Montag, Schichtzeiten) oder ☰ → Schichtplan (eigenes Modell). Urlaub usw. trägst du wie bei dir im Kalender ein.</p>')+
+        '<div class="err" id="cErr"></div><button class="btn primary" data-a="csave2">Speichern</button>'+
+        (isNew?'':'<button class="btn danger" data-a="cdel2">'+(sure?'Wirklich löschen? Nochmal tippen':'Kalender löschen')+'</button>')+
+        '<button class="btn" data-a="close">Abbrechen</button>';
+      sheet.querySelectorAll("[data-wd]").forEach(cb=>cb.onchange=()=>{const d=cb.dataset.wd;sheet.querySelector('[data-wf="'+d+'"]').disabled=!cb.checked;sheet.querySelector('[data-wt="'+d+'"]').disabled=!cb.checked});
+    }
+    const read=()=>{w.name=document.getElementById("cName").value.trim();
+      if(w.type==="week"){const wk={};sheet.querySelectorAll("[data-wd]").forEach(cb=>{const d=cb.dataset.wd;if(cb.checked)wk[d]=[sheet.querySelector('[data-wf="'+d+'"]').value||"08:00",sheet.querySelector('[data-wt="'+d+'"]').value||"13:00"]});w.week=wk;w.ferien=document.getElementById("cFer").checked}};
+    sheet.hidden=false;scrim.hidden=false;render();
+    sheet.onclick=ev=>{const t=ev.target,ic=t.closest("[data-ic]"),col=t.closest("[data-col]"),a=t.closest("[data-a]")?.dataset.a;
+      if(ic){read();w.icon=ic.dataset.ic;return render()}
+      if(col){read();w.col=col.dataset.col;return render()}
+      if(a==="close")return closeSheet();
+      if(a==="cdel2"){if(!sure){read();sure=true;return render()}
+        const i=cals.findIndex(x=>x.id===c.id);if(i>=0)cals.splice(i,1);saveCals();
+        Object.keys(localStorage).filter(k=>k.startsWith("sp_c_"+c.id+"_")).forEach(k=>localStorage.removeItem(k));
+        toast("Kalender gelöscht");return switchTab("me")}
+      if(a==="csave2"){read();if(!w.name){document.getElementById("cErr").textContent="Bitte einen Namen eintragen.";return}
+        const i=cals.findIndex(x=>x.id===w.id);if(i>=0)cals[i]=w;else cals.push(w);saveCals();
+        toast("Kalender „"+w.name+"“ gespeichert");switchTab("c:"+w.id);
+        if(isNew&&w.type==="shift")setTimeout(()=>toast("Rhythmus einstellen: ☰ → Einstellungen"),2200)}
+    };
+  }
+
+  // ---- Familien-Übersicht ----
+  const famV=document.getElementById("famView"); let famStart=TODAY;
+  function withCal(t,fn){ // rechnet kurz mit den Daten eines anderen Kalenders
+    const sv={anchor,vac,quota,notes,ot,otCfg,models,base,shT,CUR,mCache,PV};
+    try{ PV=null; mCache=null;
+      if(t.startsWith("p:")){const p=partners[+t.slice(2)];CUR=null;anchor=parseIso(p.a);vac=unpackVac(p.e);models=p.m||[];base=p.b||"175";notes={};ot=[];shT=Object.assign({},SHT0,p.z||{})}
+      else {CUR=t.startsWith("c:")?t.slice(2):null;loadCal()}
+      return fn() }
+    finally{ ({anchor,vac,quota,notes,ot,otCfg,models,base,shT,CUR,mCache,PV}=sv) }
+  }
+  function adultDay(t,n){ return withCal(t,()=>{const s=shift(n),ty=vt(n),ps=shift(n-1),pt=vt(n-1);
+    const busy=[]; if(!ty&&s!=="X"){const a=t2m(shT[s][0]),b=t2m(shT[s][1]);busy.push(b>a?[a,b]:[a,1440])}
+    if(!pt&&ps!=="X"){const a=t2m(shT[ps][0]),b=t2m(shT[ps][1]);if(b<=a)busy.push([0,b])}
+    return {s,ty,busy,lab:ty?TYPE[ty].name:s==="X"?(holiday(n)?"frei ("+holiday(n)+")":"frei"):NAMES[s]+" "+shT[s][0]+"–"+shT[s][1]}}) }
+  function openFam(){ famStart=TODAY; renderFam(); openOverlay(famV); }
+  function renderFam(){
+    const adults=[{t:"me",ic:"👤",n:store.get("sp_myname","")||"Ich"}].concat(cals.filter(c=>c.type==="shift").map(c=>({t:"c:"+c.id,ic:c.icon,n:c.name})),partners.map((p,i)=>({t:"p:"+i,ic:"👀",n:p.n})));
+    const kids=cals.filter(c=>c.type==="week");
+    let h='<div class="yvbar"><button type="button" class="iconbtn sq" data-fv="-7" aria-label="Vorherige Woche">‹</button><strong class="st">👨‍👩‍👧 Übersicht</strong><button type="button" class="iconbtn sq" data-fv="7" aria-label="Nächste Woche">›</button><button type="button" class="iconbtn" data-fv="x">Schließen</button></div><div class="sbody">';
+    if(adults.length+kids.length<2)h+='<p class="smeta">Lege oben über „＋ Kalender“ weitere Kalender an (z. B. Frau, Kind 1 Schule, Kind 2 Kindergarten). Dann siehst du hier, wer an welchem Tag was hat.</p>';
+    for(let n=famStart;n<famStart+7;n++){
+      const ad=adults.map(a=>Object.assign({},a,adultDay(a.t,n)));
+      h+='<div class="famday'+(n===TODAY?' today':'')+'"><h4>'+(n===TODAY?'Heute · ':n===TODAY+1?'Morgen · ':'')+fmtS(n)+(holiday(n)?' · '+holiday(n):'')+'</h4>';
+      ad.forEach(a=>{const k=a.ty||a.s;const st=a.ty?'style="background:'+TYPE[a.ty].col+';color:'+TYPE[a.ty].ink+'"':'';
+        h+='<div class="famrow"><span class="fic">'+a.ic+'</span><b class="nt">'+escEarly(a.n)+'</b><span class="fch '+(a.ty?'':k)+'" '+st+'>'+(a.ty?TYPE[a.ty].short:k==="X"?"–":k)+'</span><span>'+a.lab+'</span></div>'});
+      kids.forEach(c=>{const kd=kidDay(c,n);
+        h+='<div class="famrow"><span class="fic">'+c.icon+'</span><b class="nt">'+escEarly(c.name)+'</b><span class="fch kid" style="background:'+(kd.st==="in"?c.col:"var(--frei)")+'"></span><span>'+kidText(c,n)+'</span></div>';
+        if(kd.st==="in"&&ad.length){const pick=tm=>{const m=t2m(tm);const fr=ad.filter(a=>a.ty!=="K"&&!a.busy.some(([x,y])=>m>=x&&m<=y));return fr.length?'<span class="ok">✓ '+fr.map(a=>'<span class="nt">'+escEarly(a.n)+'</span>').join(", ")+'</span>':'<span class="no">⚠️ <span>niemand frei</span></span>'};
+          h+='<div class="famhint">🚸 <span>Bringen</span> '+tShort(kd.from)+': '+pick(kd.from)+'<br>🏠 <span>Abholen</span> '+tShort(kd.to)+': '+pick(kd.to)+'</div>'}
+        if(c.notes&&c.notes[n])h+='<div class="famhint">📝 <span class="nt">'+escEarly(c.notes[n])+'</span></div>'});
+      h+='</div>';
+    }
+    h+='<p class="smeta">„Frei“ heißt: zu dieser Uhrzeit keine Schicht. Schichtzeiten änderst du unter ☰ → Einstellungen (für den gewählten Reiter). Krank zählt als nicht verfügbar.</p></div>';
+    famV.innerHTML=h;
+  }
+  famV.onclick=e=>{const b=e.target.closest("[data-fv]");if(!b)return;if(b.dataset.fv==="x")return closeOverlay(famV);famStart+=+b.dataset.fv;renderFam();famV.scrollTop=0};
+
+  // ---- Versionen ----
+  const APP_VERSION="2.0";
+  const CHANGES=[
+    ["2.0","8.11.2026",["Mehrere Kalender mit Reitern: eigene Zusatzkalender für Personen mit Schichten, Schule und Kindergarten","Kinder-Kalender mit Wochenplan, bayerischen Schulferien und Ausnahmen pro Tag","Familien-Übersicht: wer hat wann was, wer kann bringen und abholen","Schichtzeiten einstellbar (Standard 6–14, 14–22, 22–6 Uhr)","Seite „Was ist neu“ mit allen Versionen"],
+     ["Several calendars with tabs: extra calendars for people with shifts, school and kindergarten","Children's calendars with weekly plan, Bavarian school holidays and exceptions per day","Family overview: who has what and when, who can drop off and pick up","Shift times adjustable (default 6–14, 14–22, 22–6)","“What's new” page with all versions"],
+     ["Sekmeli birden fazla takvim: vardiyalı kişiler, okul ve anaokulu için ek takvimler","Haftalık plan, Bavyera okul tatilleri ve günlük istisnalarla çocuk takvimleri","Aile görünümü: kim ne zaman ne yapıyor, kim bırakıp alabilir","Ayarlanabilir vardiya saatleri (varsayılan 6–14, 14–22, 22–6)","Tüm sürümlerle “Yenilikler” sayfası"],
+     ["Mai multe calendare cu file: calendare suplimentare pentru persoane cu ture, școală și grădiniță","Calendare pentru copii cu program săptămânal, vacanțe școlare din Bavaria și excepții pe zile","Prezentare de familie: cine ce are și când, cine poate duce și aduce copiii","Orele turelor reglabile (implicit 6–14, 14–22, 22–6)","Pagina „Ce e nou” cu toate versiunile"]],
+    ["1.4","6.11.2026",["Sprachen: Deutsch, Englisch, Türkisch, Rumänisch","Geburtstage: mehrere Personen auf einmal, Alter oder Geburtsjahr, in der Monatsliste","Anleitungsbilder in allen Sprachen"],
+     ["Languages: German, English, Turkish, Romanian","Birthdays: several people at once, age or year of birth, in the month list","Guide pictures in all languages"],
+     ["Diller: Almanca, İngilizce, Türkçe, Rumence","Doğum günleri: aynı anda birden fazla kişi, yaş veya doğum yılı, ay listesinde","Tüm dillerde kılavuz resimleri"],
+     ["Limbi: germană, engleză, turcă, română","Zile de naștere: mai multe persoane deodată, vârstă sau an al nașterii, în lista lunii","Imaginile ghidului în toate limbile"]],
+    ["1.3","5.11.2026",["Geburtstage mit Hinweis vorher und eigener Seite","Telefonbuch statt Teamleiter","Schwebender Knopf „‹ Kalender“","Jahresplan und Jahreskalender als Schwarz-Weiß-PDF","Neuer Name: Schichtplaner, allgemeines Impressum"],
+     ["Birthdays with advance reminder and their own page","Phone book instead of team leaders","Floating “‹ Calendar” button","Year plan and year calendar as black-and-white PDF","New name: Schichtplaner, general legal notice"],
+     ["Önceden hatırlatmalı ve kendi sayfası olan doğum günleri","Ekip liderleri yerine telefon rehberi","Yüzen “‹ Takvim” düğmesi","Siyah-beyaz PDF olarak yıllık plan ve yıllık takvim","Yeni ad: Schichtplaner, genel künye"],
+     ["Zile de naștere cu aviz înainte și pagină proprie","Agendă telefonică în loc de șefi de echipă","Buton plutitor „‹ Calendar”","Plan anual și calendar anual ca PDF alb-negru","Nume nou: Schichtplaner, informații legale generale"]],
+    ["1.2","4.11.2026",["Routinen wie Hausordnung mit eigenem Kürzel","17,5-Modell abschaltbar für einen leeren Kalender"],
+     ["Routines such as cleaning duty with your own abbreviation","17.5 model can be switched off for an empty calendar"],
+     ["Kendi kısaltmasıyla bina temizliği gibi rutinler","Boş bir takvim için 17,5 modeli kapatılabilir"],
+     ["Rutine precum curățenia, cu prescurtare proprie","Modelul 17,5 poate fi dezactivat pentru un calendar gol"]],
+    ["1.1","3.11.2026",["Partner-Funktion: Plan per WhatsApp, Link oder QR-Code teilen","Jahresübersicht: freie Tage dunkelgrau mit „Frei“","PDF lässt sich auf Android öffnen"],
+     ["Partner feature: share your plan via WhatsApp, link or QR code","Year overview: days off dark grey with “Off”","PDF opens on Android"],
+     ["Partner özelliği: planı WhatsApp, bağlantı veya QR kod ile paylaş","Yıllık görünüm: boş günler koyu gri ve “Boş” yazılı","PDF Android'de açılıyor"],
+     ["Funcția partener: partajează planul prin WhatsApp, link sau cod QR","Prezentare anuală: zilele libere gri închis cu „Liber”","PDF-ul se deschide pe Android"]],
+    ["1.0","3.11.2026",["Erste Version als App: Schichtkalender 17,5-Modell, Urlaub, TZ, Ausgleich, Krank, Sonderurlaub, Überstunden, Notizen, Statistik, Jahresübersicht, Sicherung, Anleitung, Jahreszeiten-Animation und Klänge"],
+     ["First version as an app: shift calendar 17.5 model, vacation, TZ, compensation, sick, special leave, overtime, notes, statistics, year overview, backup, guide, seasonal animation and sounds"],
+     ["Uygulama olarak ilk sürüm: 17,5 modeli vardiya takvimi, izin, TZ, telafi, hastalık, özel izin, fazla mesai, notlar, istatistik, yıllık görünüm, yedekleme, kılavuz, mevsim animasyonu ve sesler"],
+     ["Prima versiune ca aplicație: calendar de ture modelul 17,5, concediu, TZ, compensare, boală, concediu special, ore suplimentare, notițe, statistici, prezentare anuală, copie de siguranță, ghid, animație și sunete de sezon"]]
+  ];
+  function openChanges(){
+    const li=LI==null?0:LI+1;
+    openSheet('<h3 class="nt">🆕 '+L("Was ist neu","What's new","Yenilikler","Ce e nou")+'</h3><p class="nt">'+L("Aktuelle Version","Current version","Güncel sürüm","Versiunea actuală")+': <b>'+APP_VERSION+'</b></p>'+
+      CHANGES.map(([v,d,...t])=>'<div class="verbox nt'+(v===APP_VERSION?' cur':'')+'"><b>Version '+v+'</b> <small>'+d+'</small><ul>'+t[li].map(x=>'<li>'+x+'</li>').join("")+'</ul></div>').join("")+
+      '<button class="btn" data-a="close">Schließen</button>');
+    sheet.scrollTop=0;
+    sheet.onclick=ev=>{if(ev.target.closest("[data-a]"))closeSheet()};
+  }
+
+  renderTabs();
+
 })();
 
 </script>

@@ -18,13 +18,13 @@ LOCALE = {"de": "de-DE", "en": "en-GB", "tr": "tr-TR", "ro": "ro-RO"}
 # Beispieltexte je Sprache (Nutzerdaten werden in der App nicht übersetzt)
 TXT = {
  "de": dict(n1="Urlaub genehmigt von Herrn Maier", n2="Zahnarzt 10 Uhr", n3="Elternabend 19 Uhr", ot="Inventur", rt="Hausordnung", ra="HO",
-            c1="Monika Schlichting", c2="Thomas Huber", c2i="Schichtgruppe B", opa="Opa Karl", me="Hans-Jürgen", model="Mein Schichtmodell 1"),
+            c1="Monika Schlichting", c2="Thomas Huber", c2i="Schichtgruppe B", opa="Opa Karl", me="Hans-Jürgen", model="Mein Schichtmodell 1", wife="Frau"),
  "en": dict(n1="Leave approved by Mr Maier", n2="Dentist 10 am", n3="Parents' evening 7 pm", ot="Stocktaking", rt="Cleaning duty", ra="CD",
-            c1="Monika Schlichting", c2="Thomas Huber", c2i="Shift group B", opa="Grandpa Karl", me="Hans-Jürgen", model="My shift model 1"),
+            c1="Monika Schlichting", c2="Thomas Huber", c2i="Shift group B", opa="Grandpa Karl", me="Hans-Jürgen", model="My shift model 1", wife="Wife"),
  "tr": dict(n1="İzni Bay Maier onayladı", n2="Diş hekimi saat 10", n3="Veli toplantısı saat 19", ot="Envanter", rt="Bina temizliği", ra="BT",
-            c1="Monika Schlichting", c2="Thomas Huber", c2i="Vardiya grubu B", opa="Dede Karl", me="Hans-Jürgen", model="Vardiya modelim 1"),
+            c1="Monika Schlichting", c2="Thomas Huber", c2i="Vardiya grubu B", opa="Dede Karl", me="Hans-Jürgen", model="Vardiya modelim 1", wife="Eşim"),
  "ro": dict(n1="Concediu aprobat de dl Maier", n2="Dentist la ora 10", n3="Ședința cu părinții la 19", ot="Inventar", rt="Curățenie scară", ra="CS",
-            c1="Monika Schlichting", c2="Thomas Huber", c2i="Grupa de tură B", opa="Bunicul Karl", me="Hans-Jürgen", model="Modelul meu 1"),
+            c1="Monika Schlichting", c2="Thomas Huber", c2i="Grupa de tură B", opa="Bunicul Karl", me="Hans-Jürgen", model="Modelul meu 1", wife="Soția"),
 }
 
 def dn(y, m, d):  # Tagnummer wie in der App (Monat 1–12)
@@ -43,7 +43,15 @@ def seed_js(lang):
              {"id": "c", "name": t["opa"], "d": "12-24", "y": 1940}, {"id": "d", "name": "Anna", "d": "01-09", "y": 2010},
              {"id": "e", "name": "Lisa", "d": "03-15", "y": None}, {"id": "f", "name": "Sabine", "d": "03-02", "y": 1968}]
     routines = [{"id": "r", "name": t["rt"], "ab": t["ra"], "start": "2026-11-07", "n": 2, "unit": "w", "end": ""}]
-    data = {"sp_vac2": vac, "sp_notes": notes, "sp_ot": ot, "sp_contacts": contacts, "sp_bdays": bdays, "sp_routines": routines,
+    wk = lambda a, b: {str(d): [a, b] for d in range(1, 6)}
+    cals = [{"id": "frau", "name": t["wife"], "icon": "👩", "type": "shift"},
+            {"id": "k1", "name": "Lena", "icon": "🎒", "type": "week", "kind": "schule", "col": "#7c5cff", "ferien": True,
+             "week": dict(wk("08:00", "13:00"), **{"5": ["08:00", "12:15"]}), "exc": {str(dn(2026, 11, 13)): {"off": 1, "why": ""}}, "notes": {str(dn(2026, 11, 12)): t["n2"]}},
+            {"id": "k2", "name": "Max", "icon": "🧸", "type": "week", "kind": "kita", "col": "#00a3a3", "ferien": False,
+             "week": dict(wk("07:30", "14:00"), **{"5": ["07:30", "13:00"]}), "exc": {}, "notes": {}}]
+    wvac = {str(dn(2026, 11, d)): "U" for d in (11, 12)}
+    data = {"sp_cals": cals, "sp_c_frau_sp_anchor2": "2026-11-09", "sp_c_frau_sp_vac2": wvac,
+            "sp_vac2": vac, "sp_notes": notes, "sp_ot": ot, "sp_contacts": contacts, "sp_bdays": bdays, "sp_routines": routines,
             "sp_anim": False, "sp_sound": False, "sp_lang": lang, "sp_myname": t["me"], "sp_otcfg": {"agHours": 8, "carry": 0}}
     return "()=>{localStorage.clear();" + "".join(f"localStorage.setItem({json.dumps(k)},{json.dumps(json.dumps(v))});" for k, v in data.items()) + "}"
 
@@ -52,7 +60,8 @@ def run(lang):
     os.makedirs(out, exist_ok=True)
     t = TXT[lang]
     with sync_playwright() as p:
-        b = p.chromium.launch()
+        loc = LOCALE[lang].replace("-", "_") + ".UTF-8"  # 24-Stunden-Uhrzeit in Zeitfeldern
+        b = p.chromium.launch(args=["--lang=" + LOCALE[lang]], env=dict(os.environ, LANG=loc, LC_ALL=loc))
         def ctx():
             c = b.new_context(viewport={"width": W, "height": H}, device_scale_factor=DPR, service_workers="block",
                               locale=LOCALE[lang], timezone_id="Europe/Berlin")
@@ -143,6 +152,16 @@ def run(lang):
             pg.fill("#rName", t["rt"]); pg.fill("#rAb", t["ra"]); pg.dispatch_event("#rAb", "input"); shot("routinen")
         @scene
         def routinen2(): fresh(); scroll_to_day(2026, 11, 30, -330); shot("routinen2")
+        @scene
+        def reiter(): fresh(); pg.click('[data-tab="c:frau"]'); pg.wait_for_timeout(500); scroll_to_month(2026, 11); shot("reiter")
+        @scene
+        def kinder(): fresh(); pg.click('[data-tab="c:k1"]'); pg.wait_for_timeout(500); scroll_to_month(2026, 11); shot("kinder")
+        @scene
+        def kinder2(): fresh(); pg.click('[data-tab="c:k1"]'); pg.wait_for_timeout(400); pg.click("[data-tabed]"); shot("kinder2")
+        @scene
+        def uebersicht(): fresh(); pg.click('[data-tab="ov"]'); pg.wait_for_timeout(400); pg.click('[data-fv="7"]'); shot("uebersicht")
+        @scene
+        def versionen(): fresh(); menu("news"); shot("versionen")
         @scene
         def teamleiter(): fresh(); menu("contacts"); shot("teamleiter")
         @scene
