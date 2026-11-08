@@ -3024,7 +3024,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     closeSheet(); repaintAll(); renderTabs(); if(!quiet)scrollToToday(false);
   }
   function tabsList(){
-    const l=[{t:"me",ic:"👤",n:store.get("sp_myname","")||"Ich"}];
+    const l=[{t:"me",ic:"👤",n:store.get("sp_myname","")||L("Ich","Me","Ben","Eu")}];
     cals.forEach(c=>l.push({t:"c:"+c.id,ic:c.icon,n:c.name}));
     partners.forEach((p,i)=>l.push({t:"p:"+i,ic:"👀",n:p.n}));
     return l;
@@ -3187,7 +3187,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     return {s,ty,busy,lab:ty?TYPE[ty].name:s==="X"?(holiday(n)?"frei ("+holiday(n)+")":"frei"):NAMES[s]+" "+shT[s][0]+"–"+shT[s][1]}}) }
   function openFam(){ famStart=TODAY; renderFam(); openOverlay(famV); }
   function renderFam(){
-    const adults=[{t:"me",ic:"👤",n:store.get("sp_myname","")||"Ich"}].concat(cals.filter(c=>c.type==="shift").map(c=>({t:"c:"+c.id,ic:c.icon,n:c.name})),partners.map((p,i)=>({t:"p:"+i,ic:"👀",n:p.n})));
+    const adults=[{t:"me",ic:"👤",n:store.get("sp_myname","")||L("Ich","Me","Ben","Eu")}].concat(cals.filter(c=>c.type==="shift").map(c=>({t:"c:"+c.id,ic:c.icon,n:c.name})),partners.map((p,i)=>({t:"p:"+i,ic:"👀",n:p.n})));
     const kids=cals.filter(c=>c.type==="week");
     let h='<div class="yvbar"><button type="button" class="iconbtn sq" data-fv="-7" aria-label="Vorherige Woche">‹</button><strong class="st">👨‍👩‍👧 Übersicht</strong><button type="button" class="iconbtn sq" data-fv="7" aria-label="Nächste Woche">›</button><button type="button" class="iconbtn" data-fv="x">Schließen</button></div><div class="sbody">';
     if(adults.length+kids.length<2)h+='<p class="smeta">Lege oben über „＋ Kalender“ weitere Kalender an (z. B. Frau, Kind 1 Schule, Kind 2 Kindergarten). Dann siehst du hier, wer an welchem Tag was hat.</p>';
