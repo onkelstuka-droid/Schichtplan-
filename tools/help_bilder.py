@@ -56,7 +56,7 @@ def seed_js(lang):
     wvac = {str(dn(2026, 11, d)): "U" for d in (11, 12)}
     data = {"sp_cals": cals, "sp_c_frau_sp_anchor2": "2026-11-09", "sp_c_frau_sp_vac2": wvac,
             "sp_vac2": vac, "sp_notes": notes, "sp_ot": ot, "sp_contacts": contacts, "sp_bdays": bdays, "sp_routines": routines,
-            "sp_anim": False, "sp_sound": False, "sp_lang": lang, "sp_myname": t["me"], "sp_otcfg": {"agHours": 8, "carry": 0}}
+            "sp_anim": False, "sp_sound": False, "sp_lastbak": 1793700000000, "sp_lang": lang, "sp_myname": t["me"], "sp_otcfg": {"agHours": 8, "carry": 0}}
     return "()=>{localStorage.clear();" + "".join(f"localStorage.setItem({json.dumps(k)},{json.dumps(json.dumps(v))});" for k, v in data.items()) + "}"
 
 def run(lang):
@@ -173,7 +173,7 @@ def run(lang):
         @scene
         def einstellungen(): fresh(); menu("settings"); sheet_scroll("#animChk", "start"); pg.evaluate("document.getElementById('sheet').scrollTop-=90"); shot("einstellungen")
         @scene
-        def farben(): fresh(); menu("settings"); sheet_scroll('[data-a="resetcol"]'); shot("farben")
+        def farben(): fresh(); menu("settings"); pg.click('[data-a="colors"]'); pg.wait_for_timeout(300); shot("farben")
         @scene
         def sicherung(): fresh(); menu("backup"); shot("sicherung")
         @scene

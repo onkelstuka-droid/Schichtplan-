@@ -242,6 +242,7 @@ textarea{font:13px/1.4 ui-monospace,Menlo,monospace;width:100%;padding:10px;bord
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mtile{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:14px;padding:12px;display:grid;gap:2px;text-align:left;font:600 16px var(--f-body);cursor:pointer}
 .mtile span{font-size:22px;line-height:1.1}
+.mgh{margin:12px 0 6px!important}.mgh:first-of-type{margin-top:2px!important}
 .mtile small{font-weight:500;font-size:12px;color:var(--muted)}
 .nlist,.clist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .nlist li{display:flex;gap:6px;align-items:stretch}
@@ -310,6 +311,7 @@ input[type=range]{width:100%;accent-color:var(--urlaub)}
 .weleg{display:inline-block;width:1.8em;height:1.4em;border-radius:.3em;background:color-mix(in srgb,var(--we) 42%,transparent);vertical-align:middle}
 .yd.X.hf{box-shadow:none}
 .pvbar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--nacht);color:var(--nacht-ink);border-radius:10px;padding:7px 10px;font:600 14px var(--f-body)}
+.pvwho{display:grid;min-width:0}.pvwho small{font-weight:500;font-size:12px;opacity:.85}
 .pvbar button{border:0;border-radius:8px;background:rgba(255,255,255,.92);color:#1d1f24;font:700 13px var(--f-body);padding:7px 10px;cursor:pointer;white-space:nowrap}
 body.pv .budget{display:none}
 .pvinp{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:12px;font:500 16px var(--f-body);background:var(--bg);color:var(--fg)}
@@ -321,6 +323,8 @@ body.pv .budget{display:none}
 .day.ic2::before,.day.ic2[data-ic].ot::before{font-size:10px;letter-spacing:-1px;right:1px}
 .hol .bdli b{color:#c2307f!important}
 .bdbar{box-shadow:inset 3px 0 0 #e0479e}
+.bakbar{display:flex;align-items:center;padding:0;cursor:default;box-shadow:inset 3px 0 0 var(--frueh)}
+.bakbar button{border:0;background:none;color:inherit;font:inherit;cursor:pointer;padding:6px 10px}.bakbar #bakGo{flex:1;text-align:left}.bakbar #bakGo span{color:var(--muted)}.bakbar #bakX{color:var(--muted);font-size:15px}
 .bdgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.bdrow1{display:grid;gap:8px}.bdhint{margin:0;min-height:1em;color:#c2307f}
 .bdrowedit{border:1px solid var(--line);border-radius:14px;padding:10px 12px 12px;display:grid;gap:8px;background:var(--bg)}
 .bdrh{display:flex;align-items:center;justify-content:space-between}.bdrh b{font-size:15px}
@@ -402,9 +406,10 @@ a.btn{text-decoration:none;justify-content:center}
       <button class="iconbtn sq" hidden id="statBtn" aria-label="Statistik und Speichern"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
       <button class="iconbtn sq" hidden id="setBtn" aria-label="Einstellungen und Legende"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     </div>
-    <div class="pvbar" id="pvBar" hidden><span id="pvName"></span><button type="button" id="pvBack">Zurück zu meinem Plan</button></div>
+    <div class="pvbar" id="pvBar" hidden><span class="pvwho"><span id="pvName"></span><small id="pvStand"></small></span><button type="button" id="pvBack">Zurück zu meinem Plan</button></div>
     <button type="button" class="dstbar" id="dstBar" hidden></button>
     <button type="button" class="dstbar bdbar" id="bdBar" hidden></button>
+    <div class="dstbar bakbar" id="bakBar" hidden><button type="button" id="bakGo"></button><button type="button" id="bakX" aria-label="Später erinnern">✕</button></div>
     <div class="budget" id="budget"></div>
     <div class="dow"><div><span class="lf">Montag</span><span class="sf">Mo</span></div><div><span class="lf">Dienstag</span><span class="sf">Di</span></div><div><span class="lf">Mittwoch</span><span class="sf">Mi</span></div><div><span class="lf">Donnerst.</span><span class="sf">Do</span></div><div><span class="lf">Freitag</span><span class="sf">Fr</span></div><div><span class="lf">Samstag</span><span class="sf">Sa</span></div><div><span class="lf">Sonntag</span><span class="sf">So</span></div></div>
   </header>
@@ -536,7 +541,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   "Pläne von anderen":["Plans from others", "Başkalarının planları", "Planurile altora", "Планы других", "Plany innych"],
   // Tag antippen
   "Was möchtest du eintragen?":["What would you like to enter?", "Ne girmek istiyorsun?", "Ce vrei să introduci?", "Что ты хочешь записать?", "Co chcesz wpisać?"],
-  "Plan:":["Plan:", "Plan:", "Plan:", "План:", "Plan:"],"Plan":["Plan","Plan","Plan","План","Plan"],"eingetragen als":["entered as", "şu şekilde kayıtlı:", "introdus ca", "записано как", "wpisane jako"],
+  "Plan:":["Plan:", "Plan:", "Plan:", "План:", "Plan:"],"Plan":["Plan","Plan","Plan","План","Plan"],
+"Familie und Kontakte":["Family and contacts", "Aile ve kişiler", "Familie și contacte", "Семья и контакты", "Rodzina i kontakty"],"App":["App", "Uygulama", "Aplicație", "Приложение", "Aplikacja"],"Farben und Legende":["Colours and legend", "Renkler ve açıklama", "Culori și legendă", "Цвета и легенда", "Kolory i legenda"],"Farben ändern, Zeichen erklärt":["Change colours, symbols explained", "Renkleri değiştir, işaretlerin anlamı", "Schimbă culorile, semne explicate", "Изменить цвета, значки объяснены", "Zmień kolory, objaśnienie znaków"],"Sprache, Sicherung, Routinen und Schichtplan findest du im Menü ☰.":["Language, backup, routines and shift plan are in the menu ☰.", "Dil, yedek, rutinler ve vardiya planı ☰ menüsündedir.", "Limba, copia de siguranță, rutinele și planul de ture sunt în meniul ☰.", "Язык, резервная копия, рутины и график смен находятся в меню ☰.", "Język, kopię zapasową, rutyny i grafik zmian znajdziesz w menu ☰."],"Zeit für eine Sicherung deiner Daten.":["Time to back up your data.", "Verilerini yedekleme zamanı.", "E timpul pentru o copie de siguranță a datelor tale.", "Пора сохранить резервную копию данных.", "Czas na kopię zapasową danych."],"Antippen zum Sichern":["Tap to back up", "Yedeklemek için dokun", "Atinge pentru a salva", "Нажми, чтобы сохранить", "Dotknij, aby zapisać"],"Später erinnern":["Remind me later", "Sonra hatırlat", "Amintește-mi mai târziu", "Напомнить позже", "Przypomnij później"],"Name in deiner Liste":["Name in your list", "Listendeki ad", "Numele în lista ta", "Имя в твоём списке", "Nazwa na twojej liście"],"Ist das eine andere Person mit gleichem Namen? Dann ändere oben den Namen, damit beide Pläne bleiben.":["Is this a different person with the same name? Then change the name above so both plans are kept.", "Bu aynı adlı başka biri mi? O zaman iki plan da kalsın diye yukarıdaki adı değiştir.", "Este altă persoană cu același nume? Atunci schimbă numele de mai sus, ca să rămână ambele planuri.", "Это другой человек с таким же именем? Тогда измени имя выше, чтобы остались оба плана.", "To inna osoba o tym samym imieniu? Zmień wtedy nazwę powyżej, aby zostały oba plany."],"eingetragen als":["entered as", "şu şekilde kayıtlı:", "introdus ca", "записано как", "wpisane jako"],
   "Nur dieser eine Tag":["Just this one day", "Sadece bu gün", "Doar această zi", "Только этот день", "Tylko ten jeden dzień"],"Mehrere Tage":["Several days", "Birden fazla gün", "Mai multe zile", "Несколько дней", "Kilka dni"],
   "von – bis im Kalender wählen":["choose from – to in the calendar", "takvimde başlangıç – bitiş seç", "alege de la – până la în calendar", "выбрать с – по в календаре", "wybierz od – do w kalendarzu"],
   "Nur Notiz hinzufügen":["Add note only", "Sadece not ekle", "Doar notă", "Только добавить заметку", "Dodaj tylko notatkę"],"Notiz":["Note", "Not", "Notiță", "Заметка", "Notatka"],
@@ -743,7 +749,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   "Geplante Schicht":["Planned shift", "Planlanan vardiya", "Tură planificată", "Запланированная смена", "Zaplanowana zmiana"],"Stunden":["Hours", "Saat", "Ore", "Часы", "Godziny"],"ja":["yes", "evet", "da", "да", "tak"],"nein":["no", "hayır", "nu", "нет", "nie"],
   "Saldo":["Balance", "Bakiye", "Sold", "Баланс", "Saldo"],"Übertrag":["Carried over", "Devreden", "Report", "Перенос", "Przeniesienie"],"Gruppe":["Group", "Grup", "Grupă", "Группа", "Grupa"]
   });
-  const I18N_P=[
+  const I18N_P=[["^Letzte Sicherung vor (\\d+) Tagen\\.$", "Last backup $1 days ago.", "Son yedek $1 gün önce.", "Ultima copie de siguranță acum $1 zile.", "Последняя копия $1 {$1:день|дня|дней} назад.", "Ostatnia kopia $1 dni temu."],["^Stand (\\d+\\.\\d+\\.\\d*)$", "as of $1", "durum: $1", "stare: $1", "от $1", "stan na $1"],
+  
   ["^1 Tag$", "1 day", "1 gün", "1 zi", "1 день", "1 dzień"],["^(\\d+) Tage$", "$1 days", "$1 gün", "$1 zile", "$1 {$1:день|дня|дней}", "$1 {$1:dzień|dni|dni}"],
   ["^1 Tag gezählt$", "1 day counted", "1 gün sayıldı", "1 zi numărată", "1 день учтён", "1 dzień policzony"],["^(\\d+) Tage gezählt$", "$1 days counted", "$1 gün sayıldı", "$1 zile numărate", "$1 {$1:день|дня|дней} учтено", "$1 {$1:dzień|dni|dni} policzono"],
   ["^1 Tage? in (\\d{4})$", "1 day in $1", "$1 yılında 1 gün", "1 zi în $1", "1 день в $1 г.", "1 dzień w $1"],
@@ -784,7 +791,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   ["^Du siehst jetzt den Plan von (.+)$", "You are now viewing the plan of $1", "Şu an $1 planını görüyorsun", "Acum vezi planul lui $1", "Сейчас ты смотришь план: $1", "Teraz oglądasz plan: $1"],
   ["^Dein eigener Plan bleibt unverändert\\. Der Plan von (.+) kommt als eigene Ansicht dazu\\.$", "Your own plan stays unchanged. The plan of $1 is added as a separate view.", "Kendi planın değişmez. $1 planı ayrı bir görünüm olarak eklenir.", "Planul tău rămâne neschimbat. Planul lui $1 se adaugă ca vizualizare separată.", "Твой собственный план не меняется. План ($1) добавляется отдельным видом.", "Twój własny plan pozostaje bez zmian. Plan ($1) zostanie dodany jako osobny widok."],
   ["^Den Plan von (.+) kannst du nur ansehen\\. Änderungen macht (.+) auf dem eigenen Handy und schickt dir einen neuen Link\\.$", "You can only view the plan of $1. $2 makes changes on their own phone and sends you a new link.", "$1 planını sadece görüntüleyebilirsin. Değişiklikleri $2 kendi telefonunda yapar ve sana yeni bir bağlantı gönderir.", "Planul lui $1 poate fi doar vizualizat. $2 face modificările pe telefonul propriu și îți trimite un link nou.", "План ($1) можно только смотреть. Изменения $2 делает на своём телефоне и присылает тебе новую ссылку.", "Plan ($1) możesz tylko oglądać. Zmiany $2 robi na własnym telefonie i wysyła ci nowy link."],
-  ["^Ersetzt den bisherigen Stand vom (.+)\\.$", "Replaces the previous version from $1.", "$1 tarihli önceki durumun yerini alır.", "Înlocuiește versiunea anterioară din $1.", "Заменяет прежнюю версию от $1.", "Zastępuje poprzednią wersję z $1."],
+  ["^Ersetzt den bisherigen Stand vom (.+?)(?: Uhr)?\\.$", "Replaces the previous version from $1.", "$1 tarihli önceki durumun yerini alır.", "Înlocuiește versiunea anterioară din $1.", "Заменяет прежнюю версию от $1.", "Zastępuje poprzednią wersję z $1."],
   ["^Geburtstag von (.+) gespeichert$", "Birthday of $1 saved", "$1 doğum günü kaydedildi", "Ziua de naștere a lui $1 a fost salvată", "День рождения ($1) сохранён", "Urodziny ($1) zapisane"],["^Geburtstag von (.+) gelöscht$", "Birthday of $1 deleted", "$1 doğum günü silindi", "Ziua de naștere a lui $1 a fost ștearsă", "День рождения ($1) удалён", "Urodziny ($1) usunięte"],
   ["^Bitte ein Geburtsjahr zwischen 1900 und (\\d{4}) oder ein Alter eintragen\\.$", "Please enter a year of birth between 1900 and $1 or an age.", "Lütfen 1900 ile $1 arasında bir doğum yılı veya bir yaş gir.", "Introdu un an al nașterii între 1900 și $1 sau o vârstă.", "Введи год рождения от 1900 до $1 или возраст.", "Wpisz rok urodzenia od 1900 do $1 lub wiek."],
   ["^Hat heute Geburtstag und wird (\\d+)$", "Birthday today, turns $1", "Bugün doğum günü, $1 yaşına giriyor", "Azi e ziua de naștere, împlinește $1 ani", "Сегодня день рождения, исполняется $1", "Dziś urodziny, kończy $1"],
@@ -877,7 +884,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     kalendereintrag:["Into your phone calendar","After saving a note you can transfer it with <b>📅 Add to Google Calendar</b>. Google Calendar opens with the event ready, you only need to tap Save."],
     ueberstunden:["Overtime","Tap a day → <b>⏱ Add overtime</b>. Enter from, to and break, the hours are calculated automatically, even past midnight. Days with overtime have a turquoise bar at the top. You can see the balance at the top under <b>ÜS</b>."],
     feiertage:["Public holidays and special days","All public holidays in Bavaria as well as Christmas Eve and New Year's Eve are <b>red and off</b>, each with its own symbol. Under each month you find the holidays and special days such as St Nicholas or Mother's Day. 🕑 marks the clock change, a notice appears at the top 14 days before."],
-    menue:["The menu ☰","Via ☰ at the top right you reach all pages: statistics, my entries, notes, phone book, year overview, partner, shift plan, overview, birthdays, routines, settings, what's new, backup and this guide. On each of these pages the blue <b>‹ Calendar</b> button floats at the bottom right. It takes you straight back to the calendar from anywhere, without scrolling to the top."],
+    menue:["The menu ☰","Via ☰ at the top right you reach all pages: statistics, my entries, notes, phone book, year overview, partner, shift plan, overview, birthdays, routines, settings, what's new, backup and this guide. On each of these pages the blue <b>‹ Calendar</b> button floats at the bottom right. It takes you straight back to the calendar from anywhere, without scrolling to the top. The menu is divided into three groups: <b>Calendar</b>, <b>Family and contacts</b> and <b>App</b>."],
     statistik:["Statistics","All counters of a year at a glance, plus your overtime per month as bars. Use ‹ › to change the year."],
     statistik2:["Year calendar and saving","Further down: the compact year calendar with your entries. Below it you can save it as a <b>📄 colour PDF</b> or in <b>🖨️ black and white</b> (entries with a dashed frame and the codes U, TZ, AG, K, SU). After that come all entries by type and the save buttons for <b>PDF</b>, <b>Excel table</b> and <b>backup</b>."],
     eintraege:["My entries","Everything you have entered is listed here. At the top you filter by type. Tapping jumps to the day, <b>✎</b> edits, <b>🗑</b> deletes (tap twice)."],
@@ -890,12 +897,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     routinen2:["Routines in the calendar","This is how it looks in the calendar: <b>HO</b> for cleaning duty every 2 weeks on Saturday, <b>M</b> for a weekly routine. Several routines on the same day show a <b>+</b>. Routines are <b>not</b> sent when you share your plan with your partner."],
     teamleiter:["Phone book","Under ☰ → <b>📞 Phone book</b> you save important numbers. Under <b>“Who is this?”</b> tap team leader, colleague, family, doctor, emergency, or type something yourself. Then enter the name and number. The list is sorted by that. <b>Call</b> opens the phone app, <b>Copy number</b> puts it on the clipboard."],
     leer:["Without the 17.5 model (empty calendar)","Don't you work in the 17.5 model? Under ☰ → <b>🔁 Shift plan</b> tap <b>“Remove 17.5 model (empty calendar)”</b> at the bottom and confirm with a second tap. The calendar is then empty and you create your own shift model on the same page. Your entries are kept. “Turn 17.5 model back on” undoes it. This only applies to your phone, nothing changes for anyone else."],
-    einstellungen:["Settings","Language, switching animation and sound on and off, volume, annual leave, hours per compensation day and overtime carried over, routines and the start of your 17.5 rhythm (a Monday on which your late block starts)."],
-    farben:["Change colours","Tap a colour field to change the colour for early, late, night, vacation, TZ, compensation, sick, special leave, overtime, public holidays or the weekend band. “Reset colours” sets everything back to default."],
-    sicherung:["Backup","Your entries are stored only on this phone. Save a <b>backup</b> from time to time. On a new phone you restore it with “Load backup”."],
+    einstellungen:["Settings","Switching animation and sound on and off, volume, annual leave, hours per compensation day and overtime carried over, shift times and the start of your 17.5 rhythm (a Monday on which your late block starts). At the very top you get to <b>🎨 Colours and legend</b>. Language, backup, routines and shift plan are directly in the menu ☰."],
+    farben:["Change colours","Under ☰ → Settings → <b>🎨 Colours and legend</b>: Tap a colour field to change the colour for early, late, night, vacation, TZ, compensation, sick, special leave, overtime, public holidays or the weekend band. “Reset colours” sets everything back to default. Below it is the legend with all symbols."],
+    sicherung:["Backup","Your entries are stored only on this phone. Save a <b>backup</b> from time to time. On a new phone you restore it with “Load backup”. If your last backup is more than 30 days old, a small bar below the Today card reminds you. Tapping it opens the backup, ✕ hides it for 30 days."],
     partner:["Share your plan with your partner","Under ☰ → <b>👥 Partner</b> you enter your name once. Then you send your plan with <b>💬 Send via WhatsApp</b>, via <b>Share</b>, or show a <b>🔳 QR code</b> that your partner scans with the camera. Shared are shifts, vacation, TZ, compensation days and special leave. <b>Sick days, notes and overtime stay private.</b> If you changed something, simply send the link again."],
-    partner2:["Receive a plan","Your partner taps the link or scans the QR code and chooses <b>Save and view</b>. Their own plan stays unchanged. <b>iPhone:</b> if the app is used from the home screen, long-press the link in WhatsApp, choose “Copy” and paste it in the app under ☰ → Partner → <b>Use link</b>."],
-    partner3:["View your partner's plan","A blue bar <b>👀 Plan of …</b> appears at the top. The plan can only be viewed, not changed. <b>Back to my plan</b> takes you to your own calendar. Later you open it again via ☰ → Partner → <b>View</b>. Several plans, for example from colleagues, are possible too."],
+    partner2:["Receive a plan","Your partner taps the link or scans the QR code and chooses <b>Save and view</b>. Their own plan stays unchanged. <b>iPhone:</b> if the app is used from the home screen, long-press the link in WhatsApp, choose “Copy” and paste it in the app under ☰ → Partner → <b>Use link</b>. Under <b>Name in your list</b> you can change the name, for example when two colleagues have the same name. The same name replaces the old version."],
+    partner3:["View your partner's plan","A blue bar <b>👀 Plan of …</b> appears at the top. The plan can only be viewed, not changed. <b>Back to my plan</b> takes you to your own calendar. Later you open it again via ☰ → Partner → <b>View</b>. Several plans, for example from colleagues, are possible too. The bar also shows the date of the plan."],
     sound:["Animation and sound","The background changes with the season: snow, blossoms, sun, leaves and now and then a thunderstorm in autumn. Figures such as ducks, the Easter bunny, Santa Claus or lanterns match the month. Tapping makes small swirls rise. With the <b>speaker button</b> you switch on nature sounds. Public holidays have their own sounds when you tap the day or when it is today. From 20 to 31 December Christmas songs play, and on New Year's Eve fireworks start when 31 December is in the middle of the screen."],
     impressum:["Legal notice","Under ☰ menu → Legal notice you find who came up with and built the app, and how your data is handled."],
     kachel:["Put it on your phone as an icon and share it","Open the Schichtplaner in the browser (Android: ⋮ → “Add to home screen”, iPhone: Share → “Add to Home Screen”). Your colleagues get the link via WhatsApp. Everyone saves their own entries, and everyone can set their own rhythm under settings."]
@@ -914,7 +921,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     kalendereintrag:["Telefon takvimine","Bir notu kaydettikten sonra <b>📅 Google Takvim'e ekle</b> ile aktarabilirsin. Google Takvim hazır etkinlikle açılır, sadece Kaydet'e dokunman yeterlidir."],
     ueberstunden:["Fazla mesai","Bir güne dokun → <b>⏱ Fazla mesai ekle</b>. Başlangıç, bitiş ve molayı gir, saatler gece yarısını geçse bile otomatik hesaplanır. Fazla mesaili günlerin üstünde turkuaz bir çubuk vardır. Bakiyeyi üstte <b>ÜS</b> altında görürsün."],
     feiertage:["Resmî tatiller ve özel günler","Bavyera'daki tüm resmî tatiller ile Noel arifesi ve yılbaşı gecesi kendi simgeleriyle <b>kırmızı ve boş</b> gösterilir. Her ayın altında resmî tatiller ve Aziz Nikolaus veya Anneler Günü gibi özel günler yazar. 🕑 saat değişikliğini gösterir, 14 gün önce üstte bir uyarı çıkar."],
-    menue:["Menü ☰","Sağ üstteki ☰ ile tüm sayfalara ulaşırsın: istatistik, kayıtlarım, notlar, telefon rehberi, yıllık görünüm, partner, vardiya planı, genel bakış, doğum günleri, rutinler, ayarlar, yenilikler, yedekleme ve bu kılavuz. Bu sayfaların her birinde sağ altta mavi <b>‹ Takvim</b> düğmesi durur. Onunla, yukarı kaydırmana gerek kalmadan her yerden hemen takvime dönersin."],
+    menue:["Menü ☰","Sağ üstteki ☰ ile tüm sayfalara ulaşırsın: istatistik, kayıtlarım, notlar, telefon rehberi, yıllık görünüm, partner, vardiya planı, genel bakış, doğum günleri, rutinler, ayarlar, yenilikler, yedekleme ve bu kılavuz. Bu sayfaların her birinde sağ altta mavi <b>‹ Takvim</b> düğmesi durur. Onunla, yukarı kaydırmana gerek kalmadan her yerden hemen takvime dönersin. Menü üç gruba ayrılır: <b>Takvim</b>, <b>Aile ve kişiler</b> ve <b>Uygulama</b>."],
     statistik:["İstatistik","Bir yılın tüm sayaçları bir bakışta, ayrıca aylık fazla mesain çubuk olarak. ‹ › ile yılı değiştirirsin."],
     statistik2:["Yıllık takvim ve kaydetme","Daha aşağıda: kayıtlarınla birlikte kompakt yıllık takvim. Altında onu <b>📄 renkli PDF</b> veya <b>🖨️ siyah-beyaz</b> olarak kaydedersin (kayıtlar kesikli çerçeve ve U, TZ, AG, K, SU kısaltmalarıyla). Ardından türe göre tüm kayıtlar ve <b>PDF</b>, <b>Excel tablosu</b> ve <b>yedek</b> için kaydetme düğmeleri gelir."],
     eintraege:["Kayıtlarım","Girdiğin her şey burada listelenir. Üstte türe göre filtrelersin. Dokunmak güne atlar, <b>✎</b> değiştirir, <b>🗑</b> siler (iki kez dokun)."],
@@ -927,12 +934,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     routinen2:["Takvimde rutinler","Takvimde şöyle görünür: 2 haftada bir cumartesi bina temizliği için <b>HO</b>, haftalık bir rutin için <b>M</b>. Aynı gündeki birden fazla rutin bir <b>+</b> gösterir. Rutinler partnerle paylaşırken <b>gönderilmez</b>."],
     teamleiter:["Telefon rehberi","☰ → <b>📞 Telefon rehberi</b> altında önemli numaraları kaydedersin. <b>“Bu kim?”</b> kısmında ekip lideri, iş arkadaşı, aile, doktor, acil durum seçeneğine dokun veya kendin bir şey yaz. Sonra adı ve numarayı gir. Liste buna göre sıralanır. <b>Ara</b> telefon uygulamasını açar, <b>Numarayı kopyala</b> numarayı panoya kopyalar."],
     leer:["17,5 modeli olmadan (boş takvim)","17,5 modelinde çalışmıyor musun? ☰ → <b>🔁 Vardiya planı</b> altında en aşağıda <b>“17,5 modelini kaldır (boş takvim)”</b>a dokun ve ikinci bir dokunuşla onayla. Takvim boş olur ve aynı sayfada kendi vardiya modelini oluşturursun. Kayıtların korunur. “17,5 modelini yeniden aç” ile geri alırsın. Bu sadece senin telefonun için geçerlidir, başkalarında hiçbir şey değişmez."],
-    einstellungen:["Ayarlar","Dil, animasyon ve sesi açıp kapatma, ses düzeyi, yıllık izin hakkı, telafi günü başına saat ve devreden fazla mesai, rutinler ve 17,5 ritminin başlangıcı (akşam bloğunun başladığı bir pazartesi)."],
-    farben:["Renkleri değiştir","Sabah, akşam, gece, yıllık izin, TZ, telafi, hastalık, özel izin, fazla mesai, resmî tatiller veya hafta sonu şeridinin rengini değiştirmek için bir renk alanına dokun. “Renkleri sıfırla” her şeyi varsayılana döndürür."],
-    sicherung:["Yedekleme","Kayıtların sadece bu telefonda saklanır. Arada bir <b>yedek</b> kaydet. Yeni bir telefonda “Yedeği yükle” ile geri yüklersin."],
+    einstellungen:["Ayarlar","Animasyon ve sesi açıp kapatma, ses düzeyi, yıllık izin hakkı, telafi günü başına saat ve devreden fazla mesai, vardiya saatleri ve 17,5 ritminin başlangıcı (akşam bloğunun başladığı bir pazartesi). En üstten <b>🎨 Renkler ve açıklama</b> sayfasına gidersin. Dil, yedek, rutinler ve vardiya planı doğrudan ☰ menüsündedir."],
+    farben:["Renkleri değiştir","☰ → Ayarlar → <b>🎨 Renkler ve açıklama</b>: Sabah, akşam, gece, yıllık izin, TZ, telafi, hastalık, özel izin, fazla mesai, resmî tatiller veya hafta sonu şeridinin rengini değiştirmek için bir renk alanına dokun. “Renkleri sıfırla” her şeyi varsayılana döndürür. Altında tüm işaretlerin açıklaması yer alır."],
+    sicherung:["Yedekleme","Kayıtların sadece bu telefonda saklanır. Arada bir <b>yedek</b> kaydet. Yeni bir telefonda “Yedeği yükle” ile geri yüklersin. Son yedeğin 30 günden eskiyse, Bugün kartının altındaki küçük bir şerit sana hatırlatır. Dokununca yedekleme açılır, ✕ şeridi 30 gün gizler."],
     partner:["Planı partnerle paylaş","☰ → <b>👥 Partner</b> altında adını bir kez girersin. Sonra planını <b>💬 WhatsApp ile gönder</b>, <b>Paylaş</b> ile gönderirsin veya partnerinin kamerayla taradığı bir <b>🔳 QR kod</b> gösterirsin. Vardiyalar, yıllık izin, TZ, telafi günleri ve özel izin paylaşılır. <b>Hastalık günleri, notlar ve fazla mesai gizli kalır.</b> Bir şey değiştirdiysen bağlantıyı tekrar göndermen yeterli."],
-    partner2:["Plan al","Partnerin bağlantıya dokunur veya QR kodu tarar ve <b>Kaydet ve görüntüle</b>'yi seçer. Kendi planı değişmeden kalır. <b>iPhone:</b> Uygulama ana ekrandan kullanılıyorsa, WhatsApp'taki bağlantıya uzun bas, “Kopyala”yı seç ve uygulamada ☰ → Partner → <b>Bağlantıyı al</b> altına yapıştır."],
-    partner3:["Partnerin planını görüntüle","Üstte mavi bir şerit çıkar: <b>👀 … planı</b>. Plan sadece görüntülenebilir, değiştirilemez. <b>Planıma dön</b> ile kendi takvimine dönersin. Daha sonra ☰ → Partner → <b>Görüntüle</b> ile tekrar açarsın. Örneğin iş arkadaşlarından birden fazla plan da mümkündür."],
+    partner2:["Plan al","Partnerin bağlantıya dokunur veya QR kodu tarar ve <b>Kaydet ve görüntüle</b>'yi seçer. Kendi planı değişmeden kalır. <b>iPhone:</b> Uygulama ana ekrandan kullanılıyorsa, WhatsApp'taki bağlantıya uzun bas, “Kopyala”yı seç ve uygulamada ☰ → Partner → <b>Bağlantıyı al</b> altına yapıştır. <b>Listendeki ad</b> alanında adı değiştirebilirsin, örneğin iki iş arkadaşının adı aynıysa. Aynı ad eski sürümün yerini alır."],
+    partner3:["Partnerin planını görüntüle","Üstte mavi bir şerit çıkar: <b>👀 … planı</b>. Plan sadece görüntülenebilir, değiştirilemez. <b>Planıma dön</b> ile kendi takvimine dönersin. Daha sonra ☰ → Partner → <b>Görüntüle</b> ile tekrar açarsın. Örneğin iş arkadaşlarından birden fazla plan da mümkündür. Şeritte planın hangi tarihli olduğu da yazar."],
     sound:["Animasyon ve ses","Arka plan mevsime göre değişir: kar, çiçekler, güneş, yapraklar ve sonbaharda ara sıra bir fırtına. Ördekler, Paskalya tavşanı, Noel Baba veya fenerler gibi figürler aya uygundur. Dokunmak küçük girdaplar çıkarır. <b>Hoparlör düğmesi</b> ile doğa seslerini açarsın. Resmî tatillerde, güne dokunduğunda veya o gün bugünse kendi sesleri vardır. 20–31 Aralık arası Noel şarkıları çalar, yılbaşı gecesi 31 Aralık ekranın ortasındayken havai fişek başlar."],
     impressum:["Künye","☰ menü → Künye altında uygulamayı kimin düşünüp yaptığı ve verilerinin nasıl ele alındığı yazar."],
     kachel:["Telefona simge olarak ekle ve paylaş","Schichtplaner'ı tarayıcıda aç (Android: ⋮ → “Ana ekrana ekle”, iPhone: Paylaş → “Ana Ekrana Ekle”). İş arkadaşların bağlantıyı WhatsApp ile alır. Herkes kendi kayıtlarını saklar ve herkes ayarlar altında kendi ritmini ayarlayabilir."]
@@ -951,7 +958,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     kalendereintrag:["În calendarul telefonului","După ce salvezi o notiță, o poți transfera cu <b>📅 Adaugă în Google Calendar</b>. Google Calendar se deschide cu evenimentul gata făcut, trebuie doar să atingi Salvează."],
     ueberstunden:["Ore suplimentare","Atinge o zi → <b>⏱ Adaugă ore suplimentare</b>. Introdu de la, până la și pauza, orele se calculează automat, chiar și peste miezul nopții. Zilele cu ore suplimentare au sus o bară turcoaz. Soldul îl vezi sus la <b>ÜS</b>."],
     feiertage:["Sărbători legale și zile speciale","Toate sărbătorile legale din Bavaria, precum și Ajunul Crăciunului și Revelionul sunt <b>roșii și libere</b>, fiecare cu simbolul său. Sub fiecare lună sunt sărbătorile și zilele speciale precum Sfântul Nicolae sau Ziua Mamei. 🕑 marchează schimbarea orei, cu 14 zile înainte apare sus un aviz."],
-    menue:["Meniul ☰","Prin ☰ din dreapta sus ajungi la toate paginile: statistici, înregistrările mele, notițe, agendă telefonică, prezentare anuală, partener, plan de ture, prezentare, zile de naștere, rutine, setări, ce e nou, copie de siguranță și acest ghid. Pe fiecare dintre aceste pagini, în dreapta jos plutește butonul albastru <b>‹ Calendar</b>. Cu el te întorci imediat la calendar de oriunde, fără să derulezi în sus."],
+    menue:["Meniul ☰","Prin ☰ din dreapta sus ajungi la toate paginile: statistici, înregistrările mele, notițe, agendă telefonică, prezentare anuală, partener, plan de ture, prezentare, zile de naștere, rutine, setări, ce e nou, copie de siguranță și acest ghid. Pe fiecare dintre aceste pagini, în dreapta jos plutește butonul albastru <b>‹ Calendar</b>. Cu el te întorci imediat la calendar de oriunde, fără să derulezi în sus. Meniul este împărțit în trei grupe: <b>Calendar</b>, <b>Familie și contacte</b> și <b>Aplicație</b>."],
     statistik:["Statistici","Toate contoarele unui an dintr-o privire, plus orele suplimentare pe lună sub formă de bare. Cu ‹ › schimbi anul."],
     statistik2:["Calendar anual și salvare","Mai jos: calendarul anual compact cu înregistrările tale. Dedesubt îl salvezi ca <b>📄 PDF color</b> sau <b>🖨️ alb-negru</b> (înregistrări cu chenar punctat și codurile U, TZ, AG, K, SU). Urmează apoi toate înregistrările pe tipuri și butoanele de salvare pentru <b>PDF</b>, <b>tabel Excel</b> și <b>copie de siguranță</b>."],
     eintraege:["Înregistrările mele","Aici apare tot ce ai introdus. Sus filtrezi după tip. Atingerea sare la zi, <b>✎</b> modifică, <b>🗑</b> șterge (atinge de două ori)."],
@@ -964,12 +971,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     routinen2:["Rutine în calendar","Așa arată în calendar: <b>HO</b> pentru curățenia scării la 2 săptămâni sâmbăta, <b>M</b> pentru o rutină săptămânală. Mai multe rutine în aceeași zi arată un <b>+</b>. Rutinele <b>nu</b> se trimit când partajezi planul cu partenerul."],
     teamleiter:["Agendă telefonică","La ☰ → <b>📞 Agendă telefonică</b> salvezi numere importante. La <b>„Cine este?”</b> atingi șef de echipă, coleg, familie, medic, urgență sau scrii tu ceva. Apoi introduci numele și numărul. Lista este sortată după asta. <b>Sună</b> deschide aplicația de telefon, <b>Copiază numărul</b> îl pune în clipboard."],
     leer:["Fără modelul 17,5 (calendar gol)","Nu lucrezi în modelul 17,5? La ☰ → <b>🔁 Plan de ture</b> atingi jos <b>„Elimină modelul 17,5 (calendar gol)”</b> și confirmi cu a doua atingere. Calendarul devine gol și îți creezi propriul model de ture pe aceeași pagină. Înregistrările tale rămân. Cu „Reactivează modelul 17,5” anulezi. Se aplică doar telefonului tău, la ceilalți nu se schimbă nimic."],
-    einstellungen:["Setări","Limba, pornirea și oprirea animației și a sunetului, volumul, dreptul la concediu, orele pe zi compensatorie și reportul de ore suplimentare, rutinele și începutul ritmului tău 17,5 (o zi de luni în care începe blocul tău de după-amiază)."],
-    farben:["Schimbă culorile","Atinge un câmp de culoare pentru a schimba culoarea pentru dimineață, după-amiază, noapte, concediu, TZ, compensare, boală, concediu special, ore suplimentare, sărbători legale sau banda de weekend. „Resetează culorile” readuce totul la valorile implicite."],
-    sicherung:["Copie de siguranță","Înregistrările tale sunt stocate doar pe acest telefon. Salvează din când în când o <b>copie de siguranță</b>. Pe un telefon nou o readuci cu „Încarcă copia”."],
+    einstellungen:["Setări","Pornirea și oprirea animației și a sunetului, volumul, dreptul la concediu, orele pe zi compensatorie și reportul de ore suplimentare, orele turelor și începutul ritmului tău 17,5 (o zi de luni în care începe blocul tău de după-amiază). Sus de tot ajungi la <b>🎨 Culori și legendă</b>. Limba, copia de siguranță, rutinele și planul de ture sunt direct în meniul ☰."],
+    farben:["Schimbă culorile","La ☰ → Setări → <b>🎨 Culori și legendă</b>: Atinge un câmp de culoare pentru a schimba culoarea pentru dimineață, după-amiază, noapte, concediu, TZ, compensare, boală, concediu special, ore suplimentare, sărbători legale sau banda de weekend. „Resetează culorile” readuce totul la valorile implicite. Dedesubt este legenda cu toate semnele."],
+    sicherung:["Copie de siguranță","Înregistrările tale sunt stocate doar pe acest telefon. Salvează din când în când o <b>copie de siguranță</b>. Pe un telefon nou o readuci cu „Încarcă copia”. Dacă ultima copie de siguranță este mai veche de 30 de zile, o bară mică sub cardul Azi îți amintește. Atingerea deschide copia de siguranță, ✕ o ascunde 30 de zile."],
     partner:["Partajează planul cu partenerul","La ☰ → <b>👥 Partener</b> îți introduci o dată numele. Apoi trimiți planul cu <b>💬 Trimite pe WhatsApp</b>, prin <b>Distribuie</b> sau arăți un <b>🔳 cod QR</b> pe care partenerul îl scanează cu camera. Se partajează turele, concediul, TZ, zilele compensatorii și concediul special. <b>Zilele de boală, notițele și orele suplimentare rămân private.</b> Dacă ai schimbat ceva, trimiți pur și simplu linkul din nou."],
-    partner2:["Primește un plan","Partenerul atinge linkul sau scanează codul QR și alege <b>Salvează și vezi</b>. Propriul lui plan rămâne neschimbat. <b>iPhone:</b> dacă aplicația este folosită de pe ecranul principal, apasă lung linkul în WhatsApp, alege „Copiază” și lipește-l în aplicație la ☰ → Partener → <b>Preia linkul</b>."],
-    partner3:["Vezi planul partenerului","Sus apare o bandă albastră <b>👀 Planul lui …</b>. Planul poate fi doar vizualizat, nu modificat. Cu <b>Înapoi la planul meu</b> ajungi la calendarul tău. Mai târziu îl deschizi din nou prin ☰ → Partener → <b>Vezi</b>. Sunt posibile și mai multe planuri, de exemplu de la colegi."],
+    partner2:["Primește un plan","Partenerul atinge linkul sau scanează codul QR și alege <b>Salvează și vezi</b>. Propriul lui plan rămâne neschimbat. <b>iPhone:</b> dacă aplicația este folosită de pe ecranul principal, apasă lung linkul în WhatsApp, alege „Copiază” și lipește-l în aplicație la ☰ → Partener → <b>Preia linkul</b>. La <b>Numele în lista ta</b> poți schimba numele, de exemplu când doi colegi au același nume. Același nume înlocuiește versiunea veche."],
+    partner3:["Vezi planul partenerului","Sus apare o bandă albastră <b>👀 Planul lui …</b>. Planul poate fi doar vizualizat, nu modificat. Cu <b>Înapoi la planul meu</b> ajungi la calendarul tău. Mai târziu îl deschizi din nou prin ☰ → Partener → <b>Vezi</b>. Sunt posibile și mai multe planuri, de exemplu de la colegi. În bară scrie și de când este planul."],
     sound:["Animație și sunet","Fundalul se schimbă după anotimp: zăpadă, flori, soare, frunze și toamna din când în când o furtună. Figuri precum rațe, iepurașul de Paște, Moș Crăciun sau felinare se potrivesc cu luna. Atingerea face să se ridice mici vârtejuri. Cu <b>butonul de difuzor</b> pornești sunetele naturii. Sărbătorile legale au sunete proprii când atingi ziua sau când ziua este azi. Între 20 și 31 decembrie se cântă colinde, iar de Revelion pornesc artificiile când 31 decembrie este în mijlocul ecranului."],
     impressum:["Informații legale","La ☰ meniu → Informații legale scrie cine a gândit și a construit aplicația și cum sunt tratate datele tale."],
     kachel:["Pune-l pe telefon ca pictogramă și partajează","Deschide Schichtplaner în browser (Android: ⋮ → „Adaugă pe ecranul de pornire”, iPhone: Distribuie → „Adaugă pe ecranul principal”). Colegii tăi primesc linkul pe WhatsApp. Fiecare își salvează propriile înregistrări și fiecare își poate seta ritmul la setări."]
@@ -988,7 +995,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     kalendereintrag:["В календарь телефона","После сохранения заметки её можно перенести кнопкой <b>📅 Внести в Google Календарь</b>. Google Календарь откроется с готовым событием, нужно только нажать «Сохранить»."],
     ueberstunden:["Сверхурочные","Нажми на день → <b>⏱ Записать сверхурочные</b>. Укажи начало, конец и перерыв, часы считаются автоматически, даже через полночь. У дней со сверхурочными бирюзовая полоска сверху. Баланс виден вверху под <b>ÜS</b>."],
     feiertage:["Праздники и особые дни","Все праздники Баварии, а также Сочельник и канун Нового года <b>красные и выходные</b>, у каждого свой значок. Под каждым месяцем перечислены праздники и особые дни, например День святого Николая или День матери. 🕑 отмечает перевод часов, за 14 дней вверху появляется напоминание."],
-    menue:["Меню ☰","Через ☰ вверху справа открываются все страницы: статистика, мои записи, заметки, телефонная книга, обзор года, партнёр, график смен, обзор, дни рождения, рутины, настройки, что нового, резервная копия и эта инструкция. На каждой из этих страниц внизу справа плавает синяя кнопка <b>‹ Календарь</b>. Она отовсюду сразу возвращает в календарь, без прокрутки наверх."],
+    menue:["Меню ☰","Через ☰ вверху справа открываются все страницы: статистика, мои записи, заметки, телефонная книга, обзор года, партнёр, график смен, обзор, дни рождения, рутины, настройки, что нового, резервная копия и эта инструкция. На каждой из этих страниц внизу справа плавает синяя кнопка <b>‹ Календарь</b>. Она отовсюду сразу возвращает в календарь, без прокрутки наверх. Меню разделено на три группы: <b>Календарь</b>, <b>Семья и контакты</b> и <b>Приложение</b>."],
     statistik:["Статистика","Все счётчики года с первого взгляда, плюс твои сверхурочные по месяцам в виде столбиков. ‹ › меняет год."],
     statistik2:["Годовой календарь и сохранение","Ниже: компактный годовой календарь с твоими записями. Под ним его можно сохранить как <b>📄 цветной PDF</b> или <b>🖨️ чёрно-белый</b> (записи с пунктирной рамкой и кодами U, TZ, AG, K, SU). Затем идут все записи по типам и кнопки сохранения для <b>PDF</b>, <b>таблицы Excel</b> и <b>резервной копии</b>."],
     eintraege:["Мои записи","Здесь перечислено всё, что ты записал. Вверху фильтр по типу. Нажатие переходит к дню, <b>✎</b> изменяет, <b>🗑</b> удаляет (нажать дважды)."],
@@ -1001,12 +1008,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     routinen2:["Рутины в календаре","Так это выглядит в календаре: <b>УП</b> — уборка каждые 2 недели в субботу, <b>M</b> — еженедельная рутина. Несколько рутин в один день показываются с <b>+</b>. Рутины <b>не</b> передаются, когда ты делишься планом с партнёром."],
     teamleiter:["Телефонная книга","В ☰ → <b>📞 Телефонная книга</b> сохраняешь важные номера. В <b>«Кто это?»</b> нажми бригадир, коллега, семья, врач, экстренный или впиши сам. Затем имя и номер. Список сортируется по этому. <b>Позвонить</b> открывает приложение телефона, <b>Скопировать номер</b> кладёт его в буфер обмена."],
     leer:["Без модели 17,5 (пустой календарь)","Ты работаешь не по модели 17,5? В ☰ → <b>🔁 График смен</b> внизу нажми <b>«Убрать модель 17,5 (пустой календарь)»</b> и подтверди вторым нажатием. Календарь станет пустым, и на той же странице ты создашь свою модель смен. Твои записи сохранятся. «Снова включить модель 17,5» отменяет это. Это касается только твоего телефона, у других ничего не меняется."],
-    einstellungen:["Настройки","Язык, включение и выключение анимации и звука, громкость, отпуск в год, часы за день отгула и перенос сверхурочных, рутины и начало твоего ритма 17,5 (понедельник, с которого начинается блок вечерних смен)."],
-    farben:["Изменить цвета","Нажми на цветное поле, чтобы изменить цвет ранней, вечерней, ночной смены, отпуска, TZ, отгула, больничного, особого отпуска, сверхурочных, праздников или полосы выходных. «Сбросить цвета» возвращает всё по умолчанию."],
-    sicherung:["Резервная копия","Твои записи хранятся только на этом телефоне. Время от времени сохраняй <b>резервную копию</b>. На новом телефоне восстанови её через «Загрузить копию»."],
+    einstellungen:["Настройки","Включение и выключение анимации и звука, громкость, отпуск в год, часы за день отгула и перенос сверхурочных, время смен и начало твоего ритма 17,5 (понедельник, с которого начинается блок вечерних смен). В самом верху — переход к <b>🎨 Цвета и легенда</b>. Язык, резервная копия, рутины и график смен находятся прямо в меню ☰."],
+    farben:["Изменить цвета","В ☰ → Настройки → <b>🎨 Цвета и легенда</b>: Нажми на цветное поле, чтобы изменить цвет ранней, вечерней, ночной смены, отпуска, TZ, отгула, больничного, особого отпуска, сверхурочных, праздников или полосы выходных. «Сбросить цвета» возвращает всё по умолчанию. Ниже — легенда со всеми значками."],
+    sicherung:["Резервная копия","Твои записи хранятся только на этом телефоне. Время от времени сохраняй <b>резервную копию</b>. На новом телефоне восстанови её через «Загрузить копию». Если последней копии больше 30 дней, под карточкой «Сегодня» появляется небольшая полоска-напоминание. Нажатие открывает резервную копию, ✕ скрывает её на 30 дней."],
     partner:["Поделиться планом с партнёром","В ☰ → <b>👥 Партнёр</b> один раз вводишь своё имя. Затем отправляешь план через <b>💬 Отправить в WhatsApp</b>, через <b>Поделиться</b> или показываешь <b>🔳 QR-код</b>, который партнёр сканирует камерой. Передаются смены, отпуск, TZ, отгулы и особый отпуск. <b>Больничные, заметки и сверхурочные остаются личными.</b> Если что-то изменил, просто отправь ссылку ещё раз."],
-    partner2:["Получить план","Партнёр нажимает на ссылку или сканирует QR-код и выбирает <b>Сохранить и посмотреть</b>. Его собственный план не меняется. <b>iPhone:</b> если приложение запущено с экрана «Домой», долго нажми на ссылку в WhatsApp, выбери «Скопировать» и вставь её в приложении в ☰ → Партнёр → <b>Принять ссылку</b>."],
-    partner3:["Смотреть план партнёра","Вверху появляется синяя полоса <b>👀 План: …</b>. План можно только смотреть, не изменять. <b>Назад к моему плану</b> возвращает в твой календарь. Позже открываешь его снова через ☰ → Партнёр → <b>Посмотреть</b>. Можно и несколько планов, например от коллег."],
+    partner2:["Получить план","Партнёр нажимает на ссылку или сканирует QR-код и выбирает <b>Сохранить и посмотреть</b>. Его собственный план не меняется. <b>iPhone:</b> если приложение запущено с экрана «Домой», долго нажми на ссылку в WhatsApp, выбери «Скопировать» и вставь её в приложении в ☰ → Партнёр → <b>Принять ссылку</b>. В поле <b>Имя в твоём списке</b> можно изменить имя, например если двух коллег зовут одинаково. То же имя заменяет старую версию."],
+    partner3:["Смотреть план партнёра","Вверху появляется синяя полоса <b>👀 План: …</b>. План можно только смотреть, не изменять. <b>Назад к моему плану</b> возвращает в твой календарь. Позже открываешь его снова через ☰ → Партнёр → <b>Посмотреть</b>. Можно и несколько планов, например от коллег. В полосе также указано, от какого числа план."],
     sound:["Анимация и звук","Фон меняется по временам года: снег, цветы, солнце, листья, а осенью иногда гроза. Фигурки, такие как утки, пасхальный заяц, Санта-Клаус или фонарики, подходят к месяцу. От касания поднимаются маленькие вихри. <b>Кнопкой звука</b> включаешь звуки природы. У праздников свои звуки, когда нажимаешь на день или когда он сегодня. С 20 по 31 декабря звучат рождественские песни, а в канун Нового года начинается салют, когда 31 декабря в середине экрана."],
     impressum:["Выходные данные","В меню ☰ → Выходные данные указано, кто придумал и сделал приложение и как обращаются с твоими данными."],
     kachel:["Значок на телефоне и передача коллегам","Открой Schichtplaner в браузере (Android: ⋮ → «Добавить на главный экран», iPhone: Поделиться → «На экран „Домой“»). Коллеги получают ссылку через WhatsApp. Каждый сохраняет свои записи, и каждый может настроить свой ритм в настройках."]
@@ -1025,7 +1032,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     kalendereintrag:["Do kalendarza w telefonie","Po zapisaniu notatki możesz ją przenieść przyciskiem <b>📅 Dodaj do Kalendarza Google</b>. Kalendarz Google otworzy się z gotowym wydarzeniem, wystarczy dotknąć „Zapisz”."],
     ueberstunden:["Nadgodziny","Dotknij dnia → <b>⏱ Wpisz nadgodziny</b>. Wpisz od, do i przerwę, godziny liczą się automatycznie, także przez północ. Dni z nadgodzinami mają turkusowy pasek u góry. Saldo widzisz u góry pod <b>ÜS</b>."],
     feiertage:["Święta i dni szczególne","Wszystkie święta w Bawarii oraz Wigilia i Sylwester są <b>czerwone i wolne</b>, każde z własnym symbolem. Pod każdym miesiącem znajdziesz święta i dni szczególne, takie jak Mikołajki czy Dzień Matki. 🕑 oznacza zmianę czasu, 14 dni wcześniej u góry pojawia się przypomnienie."],
-    menue:["Menu ☰","Przez ☰ u góry po prawej dojdziesz do wszystkich stron: statystyka, moje wpisy, notatki, książka telefoniczna, przegląd roku, partner, grafik zmian, przegląd, urodziny, rutyny, ustawienia, co nowego, kopia zapasowa i ta instrukcja. Na każdej z tych stron na dole po prawej unosi się niebieski przycisk <b>‹ Kalendarz</b>. Z każdego miejsca wraca od razu do kalendarza, bez przewijania do góry."],
+    menue:["Menu ☰","Przez ☰ u góry po prawej dojdziesz do wszystkich stron: statystyka, moje wpisy, notatki, książka telefoniczna, przegląd roku, partner, grafik zmian, przegląd, urodziny, rutyny, ustawienia, co nowego, kopia zapasowa i ta instrukcja. Na każdej z tych stron na dole po prawej unosi się niebieski przycisk <b>‹ Kalendarz</b>. Z każdego miejsca wraca od razu do kalendarza, bez przewijania do góry. Menu jest podzielone na trzy grupy: <b>Kalendarz</b>, <b>Rodzina i kontakty</b> oraz <b>Aplikacja</b>."],
     statistik:["Statystyka","Wszystkie liczniki roku na jeden rzut oka, do tego twoje nadgodziny w miesiącach jako słupki. ‹ › zmienia rok."],
     statistik2:["Kalendarz roczny i zapisywanie","Niżej: kompaktowy kalendarz roczny z twoimi wpisami. Pod nim możesz go zapisać jako <b>📄 kolorowy PDF</b> albo <b>🖨️ czarno-biały</b> (wpisy z przerywaną ramką i skrótami U, TZ, AG, K, SU). Dalej są wszystkie wpisy według rodzaju i przyciski zapisu dla <b>PDF</b>, <b>tabeli Excel</b> i <b>kopii zapasowej</b>."],
     eintraege:["Moje wpisy","Tu jest wszystko, co wpisałeś. U góry filtrujesz według rodzaju. Dotknięcie przechodzi do dnia, <b>✎</b> zmienia, <b>🗑</b> usuwa (dotknij dwa razy)."],
@@ -1038,12 +1045,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     routinen2:["Rutyny w kalendarzu","Tak to wygląda w kalendarzu: <b>SK</b> to sprzątanie co 2 tygodnie w sobotę, <b>M</b> to rutyna cotygodniowa. Kilka rutyn w tym samym dniu pokazuje <b>+</b>. Rutyny <b>nie</b> są wysyłane, gdy udostępniasz plan partnerowi."],
     teamleiter:["Książka telefoniczna","W ☰ → <b>📞 Książka telefoniczna</b> zapisujesz ważne numery. W <b>„Kto to jest?”</b> dotknij kierownik zmiany, kolega, rodzina, lekarz, nagły wypadek albo wpisz coś sam. Potem imię i numer. Lista jest według tego posortowana. <b>Zadzwoń</b> otwiera aplikację telefonu, <b>Kopiuj numer</b> kopiuje go do schowka."],
     leer:["Bez modelu 17,5 (pusty kalendarz)","Nie pracujesz w modelu 17,5? W ☰ → <b>🔁 Grafik zmian</b> na dole dotknij <b>„Usuń model 17,5 (pusty kalendarz)”</b> i potwierdź drugim dotknięciem. Kalendarz będzie pusty, a na tej samej stronie utworzysz własny model zmian. Twoje wpisy zostaną zachowane. „Włącz ponownie model 17,5” to cofa. Dotyczy to tylko twojego telefonu, u innych nic się nie zmienia."],
-    einstellungen:["Ustawienia","Język, włączanie i wyłączanie animacji i dźwięku, głośność, urlop na rok, godziny na dzień odbioru i przeniesione nadgodziny, rutyny oraz początek twojego rytmu 17,5 (poniedziałek, w którym zaczyna się blok popołudniowy)."],
-    farben:["Zmień kolory","Dotknij pola koloru, aby zmienić kolor zmiany porannej, popołudniowej, nocnej, urlopu, TZ, odbioru, chorobowego, urlopu okolicznościowego, nadgodzin, świąt albo paska weekendu. „Przywróć kolory” ustawia wszystko z powrotem domyślnie."],
-    sicherung:["Kopia zapasowa","Twoje wpisy są zapisane tylko na tym telefonie. Co jakiś czas zapisz <b>kopię zapasową</b>. Na nowym telefonie przywrócisz ją przez „Wczytaj kopię”."],
+    einstellungen:["Ustawienia","Włączanie i wyłączanie animacji i dźwięku, głośność, urlop na rok, godziny na dzień odbioru i przeniesione nadgodziny, godziny zmian oraz początek twojego rytmu 17,5 (poniedziałek, w którym zaczyna się blok popołudniowy). Na samej górze przejdziesz do <b>🎨 Kolory i legenda</b>. Język, kopię zapasową, rutyny i grafik zmian znajdziesz bezpośrednio w menu ☰."],
+    farben:["Zmień kolory","W ☰ → Ustawienia → <b>🎨 Kolory i legenda</b>: Dotknij pola koloru, aby zmienić kolor zmiany porannej, popołudniowej, nocnej, urlopu, TZ, odbioru, chorobowego, urlopu okolicznościowego, nadgodzin, świąt albo paska weekendu. „Przywróć kolory” ustawia wszystko z powrotem domyślnie. Poniżej jest legenda ze wszystkimi znakami."],
+    sicherung:["Kopia zapasowa","Twoje wpisy są zapisane tylko na tym telefonie. Co jakiś czas zapisz <b>kopię zapasową</b>. Na nowym telefonie przywrócisz ją przez „Wczytaj kopię”. Jeśli ostatnia kopia ma ponad 30 dni, mały pasek pod kartą „Dziś” ci o tym przypomni. Dotknięcie otwiera kopię zapasową, ✕ ukrywa pasek na 30 dni."],
     partner:["Udostępnij plan partnerowi","W ☰ → <b>👥 Partner</b> raz wpisujesz swoje imię. Potem wysyłasz plan przez <b>💬 Wyślij przez WhatsApp</b>, przez <b>Udostępnij</b> albo pokazujesz <b>🔳 kod QR</b>, który partner skanuje aparatem. Udostępniane są zmiany, urlop, TZ, odbiór nadgodzin i urlop okolicznościowy. <b>Dni chorobowe, notatki i nadgodziny pozostają prywatne.</b> Jeśli coś zmieniłeś, po prostu wyślij link jeszcze raz."],
-    partner2:["Odbierz plan","Partner dotyka linku albo skanuje kod QR i wybiera <b>Zapisz i zobacz</b>. Jego własny plan pozostaje bez zmian. <b>iPhone:</b> jeśli aplikacja jest używana z ekranu początkowego, przytrzymaj link w WhatsApp, wybierz „Kopiuj” i wklej go w aplikacji w ☰ → Partner → <b>Użyj linku</b>."],
-    partner3:["Oglądaj plan partnera","U góry pojawia się niebieski pasek <b>👀 Plan: …</b>. Plan można tylko oglądać, nie zmieniać. <b>Wróć do mojego planu</b> prowadzi do twojego kalendarza. Później otworzysz go znowu przez ☰ → Partner → <b>Zobacz</b>. Możliwych jest też kilka planów, na przykład od kolegów."],
+    partner2:["Odbierz plan","Partner dotyka linku albo skanuje kod QR i wybiera <b>Zapisz i zobacz</b>. Jego własny plan pozostaje bez zmian. <b>iPhone:</b> jeśli aplikacja jest używana z ekranu początkowego, przytrzymaj link w WhatsApp, wybierz „Kopiuj” i wklej go w aplikacji w ☰ → Partner → <b>Użyj linku</b>. W polu <b>Nazwa na twojej liście</b> możesz zmienić nazwę, na przykład gdy dwóch kolegów ma to samo imię. Ta sama nazwa zastępuje starą wersję."],
+    partner3:["Oglądaj plan partnera","U góry pojawia się niebieski pasek <b>👀 Plan: …</b>. Plan można tylko oglądać, nie zmieniać. <b>Wróć do mojego planu</b> prowadzi do twojego kalendarza. Później otworzysz go znowu przez ☰ → Partner → <b>Zobacz</b>. Możliwych jest też kilka planów, na przykład od kolegów. Na pasku widać też, z jakiego dnia jest plan."],
     sound:["Animacja i dźwięk","Tło zmienia się z porą roku: śnieg, kwiaty, słońce, liście, a jesienią czasem burza. Postacie, takie jak kaczki, zajączek wielkanocny, Święty Mikołaj czy lampiony, pasują do miesiąca. Dotknięcie unosi małe wiry. <b>Przyciskiem dźwięku</b> włączasz odgłosy natury. Święta mają własne dźwięki, gdy dotkniesz dnia albo gdy jest on dziś. Od 20 do 31 grudnia grają kolędy, a w Sylwestra zaczynają się fajerwerki, gdy 31 grudnia jest na środku ekranu."],
     impressum:["Informacje prawne","W menu ☰ → Informacje prawne znajdziesz, kto wymyślił i zrobił aplikację i jak są traktowane twoje dane."],
     kachel:["Ikona na telefonie i przekazanie kolegom","Otwórz Schichtplaner w przeglądarce (Android: ⋮ → „Dodaj do ekranu głównego”, iPhone: Udostępnij → „Do ekranu początkowego”). Koledzy dostają link przez WhatsApp. Każdy zapisuje własne wpisy i każdy może ustawić własny rytm w ustawieniach."]
@@ -1290,6 +1297,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const dn2=[dstDay(fromDn(TODAY).y,2),dstDay(fromDn(TODAY).y,9),dstDay(fromDn(TODAY).y+1,2)].find(d=>d>=TODAY&&d-TODAY<=14), bar=document.getElementById("dstBar");
     if(dn2!=null){const sp=dst(dn2),k=dn2-TODAY;bar.hidden=false;bar.innerHTML='🕑 <b>'+(k===0?'Heute Nacht':k===1?'Morgen':'In '+k+' Tagen')+'</b> ('+fmtS(dn2)+'): '+(sp==="Sommerzeit"?'Uhr 2→3 vorstellen':'Uhr 3→2 zurückstellen')+(shift(dn2-1)==="N"?' · Nachtschicht '+(sp==="Sommerzeit"?'1 h kürzer':'1 h länger'):'');bar.dataset.go=dn2}
     else bar.hidden=true;
+    { const kb=document.getElementById("bakBar"), last=+store.get("sp_lastbak",0)||0, sn=+store.get("sp_baksnooze",0)||0, days=Math.floor((Date.now()-last)/864e5); // Erinnerung: letzte Sicherung älter als 30 Tage
+      const show=!PV&&TAB==="me"&&Object.keys(vac).length+Object.keys(notes).length+ot.length>=5&&(!last||days>=30)&&Date.now()-sn>30*864e5;
+      kb.hidden=!show; if(show)document.getElementById("bakGo").innerHTML='💾 <b>'+(last?'Letzte Sicherung vor '+days+' Tagen.':'Zeit für eine Sicherung deiner Daten.')+'</b> <span>Antippen zum Sichern</span>'; }
     { const bb=document.getElementById("bdBar"), up=bdays.map(b=>({b,n:bdNext(b,TODAY)})).filter(x=>x.n-TODAY<=bdLead).sort((x,y)=>x.n-y.n);
       if(!up.length){bb.hidden=true}else{const n0=up[0].n,same=up.filter(x=>x.n===n0),k=n0-TODAY,more=up.length-same.length;
         const eh=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1739,7 +1749,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function backupData(){ if(TAB!=="me")switchTab("me",true); // Sicherung immer vom eigenen Kalender, nicht vom gerade gewählten Reiter
     return {app:"schichtplan-17-5",version:1,saved:todayIso(),myname:store.get("sp_myname",""),anchor:iso(anchor),quota,vac,colors,anim:animOn,notes,contacts,ot,otCfg,models,partners:store.get("sp_partners",[]),routines,base,bdays,bdLead,shT:store.get("sp_shtimes",null),cals,calData:(()=>{const o={};Object.keys(localStorage).filter(k=>k.startsWith("sp_c_")).forEach(k=>{try{o[k]=JSON.parse(localStorage.getItem(k))}catch(e){}});return o})()}}
-  function saveBackup(){const j=JSON.stringify(backupData()); saveFile("Schichtplaner-Sicherung-"+todayIso()+".json",j,j)}
+  function saveBackup(){const j=JSON.stringify(backupData()); store.set("sp_lastbak",Date.now()); renderToday(); saveFile("Schichtplaner-Sicherung-"+todayIso()+".json",j,j)}
   function parseBackup(txt){
     let d; try{d=JSON.parse(txt)}catch(e){return null}
     if(!d||d.app!=="schichtplan-17-5"||typeof d.vac!=="object")return null;
@@ -1784,6 +1794,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         if(Array.isArray(d.partners)){try{partners=d.partners.filter(p=>p&&p.n&&p.a);savePartners()}catch(e){}}
         if(d.myname&&typeof d.myname==="string")store.set("sp_myname",d.myname.slice(0,40));
         shT=Object.assign({},SHT0,store.get("sp_shtimes",{})); renderTabs();
+        store.set("sp_lastbak",Date.now());
         repaintAll(); closeSheet(); toast("Sicherung geladen");}
     };
   }
@@ -2143,27 +2154,35 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     sheet.dataset.sure="";
   }
 
+  function backupSheet(){ openSheet('<h3>Sicherung</h3><p>Deine Einträge, Notizen und Telefonnummern liegen nur auf diesem Handy. Speichere ab und zu eine Sicherung.</p><button class="btn primary" data-a="bak">Sicherung speichern</button><button class="btn" data-a="res">Sicherung laden</button><button class="btn" data-a="close">Schließen</button>');
+    sheet.onclick=e2=>{const b=e2.target.closest("[data-a]")?.dataset.a;if(b==="bak"){closeSheet();saveBackup()}else if(b==="res")restoreSheet();else if(b==="close")closeSheet()} }
   // ---------- Menü ----------
   document.getElementById("menuBtn").onclick=()=>{
     if(PV)return partnerSheet();
     const nc=Object.keys(notes).length;
-    openSheet('<h3>Menü</h3><div class="mgrid">'+
+    openSheet('<h3>Menü</h3>'+
+      '<h4 class="mgh">Kalender</h4><div class="mgrid">'+
       '<button class="mtile" data-m="stats"><span>📊</span>Statistik<small>Zähler, Jahreskalender, PDF</small></button>'+
       '<button class="mtile" data-m="entries"><span>📋</span>Meine Einträge<small>ändern, löschen, hinspringen</small></button>'+
       '<button class="mtile" data-m="notes"><span>📝</span>Notizen<small>'+(nc?nc+' Notiz'+(nc===1?'':'en'):'noch keine')+'</small></button>'+
-      '<button class="mtile" data-m="contacts"><span>📞</span>Telefonbuch<small>'+(contacts.length?contacts.length+' Nummer'+(contacts.length===1?'':'n'):'Nummern eintragen')+'</small></button>'+
       '<button class="mtile" data-m="year"><span>🗓️</span>Jahresübersicht<small>ganzes Jahr, A4</small></button>'+
-      '<button class="mtile" data-m="partner"><span>👥</span>Partner<small>Plan teilen per Link oder QR</small></button>'+
       '<button class="mtile" data-m="models"><span>🔁</span>Schichtplan<small>'+(base==="none"?'17,5 aus · ':'17,5-Modell · ')+(models.length?models.length+' eigene':'eigenes anlegen')+'</small></button>'+
-      '<button class="mtile" data-m="fam"><span>👨‍👩‍👧</span>Übersicht<small>Familie: wer hat wann was</small></button>'+
-      '<button class="mtile" data-m="bdays"><span>🎂</span>Geburtstage<small>'+(bdays.length?bdays.length+' eingetragen':'eintragen, Hinweis vorher')+'</small></button>'+
       '<button class="mtile" data-m="routines"><span>🧹</span>Routinen<small>'+(routines.length?routines.length+' Routine'+(routines.length===1?'':'n'):'z. B. Hausordnung')+'</small></button>'+
+      '</div>'+
+      '<h4 class="mgh">Familie und Kontakte</h4><div class="mgrid">'+
+      '<button class="mtile" data-m="fam"><span>👨‍👩‍👧</span>Übersicht<small>Familie: wer hat wann was</small></button>'+
+      '<button class="mtile" data-m="partner"><span>👥</span>Partner<small>Plan teilen per Link oder QR</small></button>'+
+      '<button class="mtile" data-m="bdays"><span>🎂</span>Geburtstage<small>'+(bdays.length?bdays.length+' eingetragen':'eintragen, Hinweis vorher')+'</small></button>'+
+      '<button class="mtile" data-m="contacts"><span>📞</span>Telefonbuch<small>'+(contacts.length?contacts.length+' Nummer'+(contacts.length===1?'':'n'):'Nummern eintragen')+'</small></button>'+
+      '</div>'+
+      '<h4 class="mgh">App</h4><div class="mgrid">'+
       '<button class="mtile" data-m="settings"><span>⚙️</span>Einstellungen<small>Farben, Urlaub, Rhythmus</small></button>'+
-      '<button class="mtile" data-m="help"><span>📖</span>Anleitung<small>alle Funktionen mit Bildern</small></button>'+
-      '<button class="mtile" data-m="impressum"><span>ℹ️</span>Impressum<small>Idee, Umsetzung, Datenschutz</small></button>'+
-      '<button class="mtile" data-m="news"><span>🆕</span>Was ist neu<small class="nt">Version '+APP_VERSION+'</small></button>'+
+      '<button class="mtile" data-m="backup"><span>💾</span>Sicherung<small>speichern oder laden</small></button>'+
       '<button class="mtile nt" data-m="lang"><span>🌐</span>Sprache · Language<small>Deutsch · English · Türkçe · Română · Русский · Polski</small></button>'+
-      '<button class="mtile" data-m="backup"><span>💾</span>Sicherung<small>speichern oder laden</small></button></div>'+
+      '<button class="mtile" data-m="help"><span>📖</span>Anleitung<small>alle Funktionen mit Bildern</small></button>'+
+      '<button class="mtile" data-m="news"><span>🆕</span>Was ist neu<small class="nt">Version '+APP_VERSION+'</small></button>'+
+      '<button class="mtile" data-m="impressum"><span>ℹ️</span>Impressum<small>Idee, Umsetzung, Datenschutz</small></button>'+
+      '</div>'+
       '<button class="btn" data-a="close">Schließen</button>');
     sheet.onclick=ev=>{const m=ev.target.closest("[data-m]")?.dataset.m, a=ev.target.closest("[data-a]")?.dataset.a;
       if(a==="close")return closeSheet(); if(!m)return;
@@ -2183,8 +2202,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(m==="impressum")openImpressum();
       if(m==="lang"){openSheet('<h3 class="nt">🌐 Sprache · Language · Dil · Limbă · Язык · Język</h3><div class="langs nt">'+[["de","🇩🇪","Deutsch"],["en","🇬🇧","English"],["tr","🇹🇷","Türkçe"],["ro","🇷🇴","Română"],["ru","🇷🇺","Русский"],["pl","🇵🇱","Polski"]].map(([c,f,n])=>'<button type="button" class="langb'+(LANG===c?' on':'')+'" data-lang="'+c+'"><span>'+f+'</span>'+n+'</button>').join("")+'</div><button class="btn" data-a="close">Schließen</button>');sheet.onclick=ev=>{if(ev.target.closest("[data-a]"))closeSheet()}}
       if(m==="settings")document.getElementById("setBtn").click();
-      if(m==="backup"){openSheet('<h3>Sicherung</h3><p>Deine Einträge, Notizen und Telefonnummern liegen nur auf diesem Handy. Speichere ab und zu eine Sicherung.</p><button class="btn primary" data-a="bak">Sicherung speichern</button><button class="btn" data-a="res">Sicherung laden</button><button class="btn" data-a="close">Schließen</button>');
-        sheet.onclick=e2=>{const b=e2.target.closest("[data-a]")?.dataset.a;if(b==="bak"){closeSheet();saveBackup()}else if(b==="res")restoreSheet();else if(b==="close")closeSheet()}}
+      if(m==="backup")backupSheet();
     };
   };
 
@@ -2656,7 +2674,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["feiertage","Feiertage und besondere Tage","feiertage",
      "Alle Feiertage in Bayern sowie Heiligabend und Silvester sind <b>rot und frei</b>, mit eigenem Symbol. Unter jedem Monat stehen die Feiertage und besonderen Tage wie Nikolaus oder Muttertag. 🕑 markiert die Zeitumstellung, 14 Tage vorher erscheint oben ein Hinweis."],
     ["menue","Das Menü ☰","menue",
-     "Über ☰ oben rechts erreichst du alle Seiten: Statistik, Meine Einträge, Notizen, Telefonbuch, Jahresübersicht, Partner, Schichtplan, Übersicht, Geburtstage, Routinen, Einstellungen, Was ist neu, Sicherung und diese Anleitung. Auf jeder dieser Seiten schwebt unten rechts der blaue Knopf <b>‹ Kalender</b>. Damit kommst du von überall sofort zurück zum Kalender, ohne nach oben scrollen zu müssen."],
+     "Über ☰ oben rechts erreichst du alle Seiten: Statistik, Meine Einträge, Notizen, Telefonbuch, Jahresübersicht, Partner, Schichtplan, Übersicht, Geburtstage, Routinen, Einstellungen, Was ist neu, Sicherung und diese Anleitung. Auf jeder dieser Seiten schwebt unten rechts der blaue Knopf <b>‹ Kalender</b>. Damit kommst du von überall sofort zurück zum Kalender, ohne nach oben scrollen zu müssen. Das Menü ist in drei Gruppen geteilt: <b>Kalender</b>, <b>Familie und Kontakte</b> und <b>App</b>."],
     ["statistik","Statistik","statistik",
      "Alle Zähler eines Jahres auf einen Blick, dazu deine Überstunden pro Monat als Balken. Mit ‹ › wechselst du das Jahr."],
     ["statistik2","Jahreskalender und Speichern","statistik2",
@@ -2682,17 +2700,17 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     ["leer","Ohne 17,5-Modell (leerer Kalender)","leer",
      "Arbeitest du nicht im 17,5-Modell? Unter ☰ → <b>🔁 Schichtplan</b> tippst du unten auf <b>„17,5-Modell entfernen (leerer Kalender)“</b> und bestätigst mit einem zweiten Tippen. Dann ist der Kalender leer und du legst auf derselben Seite dein eigenes Schichtmodell an. Deine Einträge bleiben erhalten. Mit „17,5-Modell wieder einschalten“ machst du es rückgängig. Das gilt nur für dein Handy, bei anderen ändert sich nichts."],
     ["einstellungen","Einstellungen","einstellungen",
-     "Sprache (Deutsch, English, Türkçe, Română), Animation und Sound an- und ausschalten, Lautstärke, Urlaubsanspruch, Stunden pro Ausgleichstag und Überstunden-Übertrag, Routinen und der Start deines 17,5-Rhythmus (ein Montag, an dem dein Spät-Block beginnt)."],
+     "Animation und Sound an- und ausschalten, Lautstärke, Urlaubsanspruch, Stunden pro Ausgleichstag und Überstunden-Übertrag, Schichtzeiten und der Start deines 17,5-Rhythmus (ein Montag, an dem dein Spät-Block beginnt). Ganz oben geht es zu <b>🎨 Farben und Legende</b>. Sprache, Sicherung, Routinen und Schichtplan findest du direkt im Menü ☰."],
     ["farben","Farben ändern","farben",
-     "Tippe auf ein Farbfeld, um die Farbe für Früh, Spät, Nacht, Urlaub, TZ, Ausgleich, Krank, Sonderurlaub, Überstunden, Feiertage oder das Wochenend-Band zu ändern. „Farben zurücksetzen“ stellt alles auf Standard."],
+     "Unter ☰ → Einstellungen → <b>🎨 Farben und Legende</b>: Tippe auf ein Farbfeld, um die Farbe für Früh, Spät, Nacht, Urlaub, TZ, Ausgleich, Krank, Sonderurlaub, Überstunden, Feiertage oder das Wochenend-Band zu ändern. „Farben zurücksetzen“ stellt alles auf Standard. Darunter steht die Legende mit allen Zeichen."],
     ["sicherung","Sicherung","sicherung",
-     "Deine Einträge liegen nur auf diesem Handy. Speichere ab und zu eine <b>Sicherung</b>. Auf einem neuen Handy spielst du sie mit „Sicherung laden“ wieder ein."],
+     "Deine Einträge liegen nur auf diesem Handy. Speichere ab und zu eine <b>Sicherung</b>. Auf einem neuen Handy spielst du sie mit „Sicherung laden“ wieder ein. Ist die letzte Sicherung länger als 30 Tage her, erinnert dich eine kleine Leiste unter der Heute-Karte. Antippen öffnet die Sicherung, ✕ blendet sie für 30 Tage aus."],
     ["partner","Plan mit Partner teilen","partner",
      "Unter ☰ → <b>👥 Partner</b> trägst du einmal deinen Namen ein. Dann schickst du deinen Plan mit <b>💬 Per WhatsApp senden</b>, über <b>Teilen</b> oder zeigst einen <b>🔳 QR-Code</b>, den dein Partner mit der Kamera scannt. Geteilt werden Schichten, Urlaub, TZ, Ausgleich und Sonderurlaub. <b>Krankheitstage, Notizen und Überstunden bleiben privat.</b> Hast du etwas geändert, schickst du einfach noch einmal den Link."],
     ["partner2","Plan empfangen","partner2",
-     "Dein Partner tippt auf den Link oder scannt den QR-Code und wählt <b>Speichern und ansehen</b>. Sein eigener Plan bleibt unverändert. <b>iPhone:</b> Wird die App vom Home-Bildschirm benutzt, den Link in WhatsApp lange drücken, „Kopieren“ wählen und in der App unter ☰ → Partner → <b>Link übernehmen</b> einfügen."],
+     "Dein Partner tippt auf den Link oder scannt den QR-Code und wählt <b>Speichern und ansehen</b>. Sein eigener Plan bleibt unverändert. <b>iPhone:</b> Wird die App vom Home-Bildschirm benutzt, den Link in WhatsApp lange drücken, „Kopieren“ wählen und in der App unter ☰ → Partner → <b>Link übernehmen</b> einfügen. Bei <b>Name in deiner Liste</b> kannst du den Namen ändern, zum Beispiel wenn zwei Kollegen gleich heißen. Ein gleicher Name ersetzt den alten Stand."],
     ["partner3","Partner-Plan ansehen","partner3",
-     "Oben erscheint eine blaue Leiste <b>👀 Plan von …</b>. Der Plan lässt sich nur ansehen, nicht ändern. Mit <b>Zurück zu meinem Plan</b> kommst du zu deinem Kalender. Später öffnest du ihn wieder über ☰ → Partner → <b>Ansehen</b>. Auch mehrere Pläne, zum Beispiel von Kollegen, sind möglich."],
+     "Oben erscheint eine blaue Leiste <b>👀 Plan von …</b>. Der Plan lässt sich nur ansehen, nicht ändern. Mit <b>Zurück zu meinem Plan</b> kommst du zu deinem Kalender. Später öffnest du ihn wieder über ☰ → Partner → <b>Ansehen</b>. Auch mehrere Pläne, zum Beispiel von Kollegen, sind möglich. In der Leiste steht auch, von wann der Plan ist (<b>Stand</b>)."],
     ["kinder","Kinder-Kalender (Schule, Kindergarten)","kinder",
      "Ein Kinder-Kalender hat einen <b>Wochenplan</b> mit Uhrzeiten für jeden Wochentag. Im Kalender stehen die Zeiten im Tag, z. B. 8:00 und 13:00. Bei der Schule sind die <b>bayerischen Schulferien</b> automatisch frei (schraffiert), Feiertage sind immer frei. Tag antippen: <b>Frei an diesem Tag</b> (z. B. krank, Ausflug, Schließtag, auch mehrere Tage), <b>Andere Uhrzeit</b>, <b>Notiz</b> (z. B. Turnbeutel) oder zurück <b>wie im Wochenplan</b>."],
     ["kinder2","Wochenplan einstellen","kinder2",
@@ -2738,21 +2756,25 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
   // ---------- Einstellungen ----------
+  function colorsSheet(){ // Farben und Legende (früher in den Einstellungen)
+    openSheet('<h3>Farben und Legende</h3><div class="cols">'+COLKEYS.map(([k,l])=>'<label class="colrow" for="c_'+k+'"><input type="color" id="c_'+k+'" data-ck="'+k+'" value="'+curCol(k)+'"><span>'+l+'</span></label>').join("")+'</div>'+
+      '<button class="btn" data-a="resetcol">Farben zurücksetzen</button>'+
+      '<h4>Legende</h4>'+document.getElementById("legendTpl").innerHTML+
+      '<button class="btn" data-a="back">Zurück</button><button class="btn" data-a="close">Schließen</button>');
+    sheet.querySelectorAll("[data-ck]").forEach(inp=>inp.oninput=()=>{colors[inp.dataset.ck]=inp.value;store.set("sp_colors",colors);applyColors();renderToday();renderBudget()});
+    sheet.onclick=ev=>{const a=ev.target.closest("[data-a]")?.dataset.a; if(!a)return;
+      if(a==="close")return closeSheet(); if(a==="back")return document.getElementById("setBtn").click();
+      if(a==="resetcol"){colors={};store.set("sp_colors",colors);applyColors();renderToday();renderBudget();sheet.querySelectorAll("[data-ck]").forEach(i=>i.value=curCol(i.dataset.ck))}};
+  }
   document.getElementById("setBtn").onclick=()=>{
     const cyc=PATTERN.map(p=>'<i class="'+p+'"></i>').join("");
-    openSheet('<h3>Schichtplaner</h3>'+
-      '<h4 class="nt">🌐 Sprache · Language · Dil · Limbă · Язык · Język</h4><div class="langs nt">'+[["de","🇩🇪","Deutsch"],["en","🇬🇧","English"],["tr","🇹🇷","Türkçe"],["ro","🇷🇴","Română"],["ru","🇷🇺","Русский"],["pl","🇵🇱","Polski"]].map(([c,f,n])=>'<button type="button" class="langb'+(LANG===c?' on':'')+'" data-lang="'+c+'"><span>'+f+'</span>'+n+'</button>').join("")+'</div>'+
-      '<button class="mtile helptile" data-a="help"><span>📖</span>Anleitung<small>Alle Funktionen mit Bildern erklärt</small></button>'+
-      '<button class="mtile helptile" data-a="impressum"><span>ℹ️</span>Impressum<small>Idee: Hans-Jürgen Schlichting · Umsetzung: Claude</small></button>'+
-      '<button class="btn" data-a="year">Jahresübersicht '+viewYear+' (A4) <small>ganzes Jahr auf einer Seite</small></button>'+
+    openSheet('<h3>Einstellungen</h3>'+
+      (CUR?'<p class="calfor">✏️ <span>Gilt für den Kalender</span> <b class="nt">'+esc((calById(CUR)||{}).name||"")+'</b></p>':'')+
+      '<button class="btn" data-a="colors">🎨 Farben und Legende <small>Farben ändern, Zeichen erklärt</small></button>'+
+      '<h4>Animation und Sound</h4>'+
       '<label class="chk" for="animChk"><input type="checkbox" id="animChk"'+(animOn?' checked':'')+'> Jahreszeiten-Animation anzeigen</label>'+
       '<label class="chk" for="sndChk"><input type="checkbox" id="sndChk"'+(SND.on?' checked':'')+'> Jahreszeiten-Sound</label>'+
       '<label class="f" for="sndVol">Lautstärke<input type="range" id="sndVol" min="0" max="1" step="0.05" value="'+SND.vol+'"></label>'+
-      '<h4>Farben</h4><div class="cols">'+COLKEYS.map(([k,l])=>'<label class="colrow" for="c_'+k+'"><input type="color" id="c_'+k+'" data-ck="'+k+'" value="'+curCol(k)+'"><span>'+l+'</span></label>').join("")+'</div>'+
-      '<button class="btn" data-a="resetcol">Farben zurücksetzen</button>'+
-      '<h4>Daten sichern</h4><div class="row2"><button class="btn half" data-a="bak">Sicherung speichern</button><button class="btn half" data-a="res">Sicherung laden</button></div>'+
-      '<p>Deine Einträge liegen nur auf diesem Handy. Speichere ab und zu eine Sicherung, damit nichts verloren geht.</p>'+
-      '<h4>Legende</h4>'+document.getElementById("legendTpl").innerHTML+
       '<h4>Urlaubsanspruch pro Jahr</h4><div class="row2">'+
       '<label class="f" for="qU">Urlaub (U)<input type="number" id="qU" min="0" max="60" inputmode="numeric" value="'+quota.U+'"></label>'+
       '<label class="f" for="qTZ">TZ-Urlaub<input type="number" id="qTZ" min="0" max="60" inputmode="numeric" value="'+quota.TZ+'"></label></div>'+
@@ -2760,9 +2782,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<label class="f" for="agH">Stunden pro Ausgleichstag<input type="number" id="agH" min="0" max="24" step="0.25" inputmode="decimal" value="'+otCfg.agHours+'"></label>'+
       '<label class="f" for="otCarry">Übertrag (Stunden)<input type="number" id="otCarry" min="-999" max="9999" step="0.25" inputmode="decimal" value="'+otCfg.carry+'"></label></div>'+
       '<p>Saldo = Übertrag + eingetragene Überstunden − Ausgleichstage × Stunden.</p>'+
-      '<h4>Schichtplan</h4><button class="btn" data-a="models">Schichtmodelle und 17,5-Modell <small>'+(models.length?models.length+' eigene':base==="none"?'noch keins':'nur 17,5-Modell')+'</small></button>'+
-      '<h4>Routinen</h4><button class="btn" data-a="routines">Routinen verwalten <small>'+(routines.length?routines.length+' Routine'+(routines.length===1?'':'n'):'z. B. Hausordnung')+'</small></button>'+
-      (CUR?'<p class="calfor">✏️ <span>Gilt für den Kalender</span> <b class="nt">'+esc((calById(CUR)||{}).name||"")+'</b></p>':'')+
       '<h4>Schichtzeiten</h4><div class="wkrows">'+["F","S","N"].map(k=>'<div class="wkrow"><span>'+NAMES[k]+'</span><input type="time" class="inp" data-sht="'+k+':0" value="'+shT[k][0]+'"><input type="time" class="inp" data-sht="'+k+':1" value="'+shT[k][1]+'"></div>').join("")+'</div>'+
       '<p class="smeta">Für die Familien-Übersicht (wer kann bringen und abholen).</p>'+
       '<h4>Schichtrhythmus (17,5-Modell)</h4>'+
@@ -2772,24 +2791,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       '<label class="f" for="anc">Ein Montag, an dem dein Spät-Block beginnt<input type="date" id="anc" value="'+iso(anchor)+'"></label>'+
       '<div class="err" id="ancErr"></div>'+
       '<button class="btn primary" data-a="save">Speichern</button>'+
-      '<button class="btn" data-a="close">Schließen</button>');
+      '<button class="btn" data-a="close">Schließen</button>'+
+      '<p class="smeta">Sprache, Sicherung, Routinen und Schichtplan findest du im Menü ☰.</p>');
     document.getElementById("animChk").onchange=e=>setAnim(e.target.checked);
     document.getElementById("sndChk").onchange=e=>setSound(e.target.checked);
     document.getElementById("sndVol").oninput=e=>{SND.vol=+e.target.value;store.set("sp_vol",SND.vol);if(SND.E&&SND.on)SND.E.master.gain.setTargetAtTime(SND.vol*2.2,SND.E.ctx.currentTime,.1)};
     sheet.querySelectorAll("[data-sht]").forEach(inp=>inp.onchange=()=>{const [k,i]=inp.dataset.sht.split(":");if(!inp.value)return;shT[k]=shT[k].slice();shT[k][+i]=inp.value;store.set("sp_shtimes",shT)});
-    sheet.querySelectorAll("[data-ck]").forEach(inp=>inp.oninput=()=>{colors[inp.dataset.ck]=inp.value;store.set("sp_colors",colors);applyColors();renderToday();renderBudget()});
     sheet.onclick=ev=>{
       const a=ev.target.closest("[data-a]")?.dataset.a; if(!a)return;
       if(a==="close")return closeSheet();
-      if(a==="year"){closeSheet();return openYear(viewYear)}
-      if(a==="models")return modelsSheet();
-      if(a==="routines")return routinesSheet();
-      if(a==="help"){closeSheet();return openHelp()}
-      if(a==="impressum")return openImpressum();
-      if(a==="bak"){closeSheet();return saveBackup()}
-      if(a==="res"){return restoreSheet()}
-      if(a==="resetcol"){colors={};store.set("sp_colors",colors);applyColors();renderToday();renderBudget();
-        sheet.querySelectorAll("[data-ck]").forEach(i=>i.value=curCol(i.dataset.ck));return}
+      if(a==="colors")return colorsSheet();
       const v=document.getElementById("anc").value; if(!v)return;
       const n=parseIso(v);
       if(fromDn(n).w!==1){document.getElementById("ancErr").textContent="Bitte einen Montag wählen. Der Spät-Block startet immer montags.";return}
@@ -2952,6 +2963,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
 
+  document.getElementById("bakGo").onclick=()=>backupSheet();
+  document.getElementById("bakX").onclick=()=>{store.set("sp_baksnooze",Date.now());renderToday()};
   document.getElementById("bdBar").onclick=e=>{const g=+e.currentTarget.dataset.go;if(g)jumpTo(g)};
   // ---------- Schwebender Knopf: von jeder Seite zurück zum Kalender ----------
   { const OV=["yearView","statsView","notesView","helpView","entriesView","contactsView","bdaysView","famView"].map(id=>document.getElementById(id)), bf=document.getElementById("backFab");
@@ -2993,6 +3006,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     PV=p; base=p.b||"175"; routines=[]; bdays=[]; anchor=parseIso(p.a); vac=unpackVac(p.e); models=p.m; notes={}; ot=[]; quota=p.q; mCache=null;
     document.body.classList.add("pv"); document.getElementById("pvBar").hidden=false;
     document.getElementById("pvName").textContent="👀 Plan von "+p.n;
+    { const d=new Date(p.t), old=Date.now()-p.t>30*864e5; // wie alt ist der Plan? Älter als 30 Tage: Warnzeichen
+      document.getElementById("pvStand").textContent=(old?"⚠️ ":"")+"Stand "+d.getDate()+"."+(d.getMonth()+1)+"."+(d.getFullYear()!==new Date().getFullYear()?d.getFullYear():""); }
     closeSheet(); repaintAll(); scrollToToday(false); renderTabs(); toast("Du siehst jetzt den Plan von "+p.n);
   }
   function showOwn(){ if(!PV)return; TAB="me";
@@ -3054,15 +3069,20 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     };
   }
   function receive(p){
-    const old=partners.find(x=>x.n===p.n);
     const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)&&!navigator.standalone;
     openSheet('<h3>Plan empfangen</h3><p>📲 <b>Schichtplan von '+esc(p.n)+'</b><br>Stand '+stand(p.t)+'</p>'+
-      (old?'<p class="pvnote">Ersetzt den bisherigen Stand vom '+stand(old.t)+'.</p>':'')+
+      '<label class="f" for="rcName">Name in deiner Liste<input type="text" id="rcName" class="inp" maxlength="40" value="'+esc(p.n)+'"></label>'+
+      '<div id="rcOld"></div><div class="err" id="rcErr"></div>'+
       '<p class="pvnote">Dein eigener Plan bleibt unverändert. Der Plan von '+esc(p.n)+' kommt als eigene Ansicht dazu.</p>'+
       '<button class="btn primary" data-a="ok">Speichern und ansehen</button><button class="btn" data-a="no">Nicht speichern</button>');
+    const inp=document.getElementById("rcName");
+    const upd=()=>{const old=partners.find(x=>x.n===inp.value.trim()); // gleicher Name = alter Stand wird ersetzt; anderer Name = beide bleiben
+      document.getElementById("rcOld").innerHTML=old?'<p class="pvnote">Ersetzt den bisherigen Stand vom '+stand(old.t)+'.</p><p class="pvnote">Ist das eine andere Person mit gleichem Namen? Dann ändere oben den Namen, damit beide Pläne bleiben.</p>':''};
+    inp.oninput=upd; upd();
     sheet.onclick=e=>{const a=e.target.closest("[data-a]")?.dataset.a;
       if(a==="no")return closeSheet();
-      if(a==="ok"){savePartner(p);showPartner(p);
+      if(a==="ok"){const nm=inp.value.trim().slice(0,40); if(!nm){document.getElementById("rcErr").textContent="Bitte einen Namen eintragen.";return}
+        p.n=nm; savePartner(p);showPartner(p);
         if(ios)setTimeout(()=>{openSheet('<h3>Hinweis fürs iPhone</h3><p>Der Plan ist jetzt in Safari gespeichert. Wenn du die App vom Home-Bildschirm benutzt, kopiere den Link aus WhatsApp und füge ihn dort ein: Menü ☰ → Partner → „Link übernehmen“.</p><button class="btn" data-a="x">Verstanden</button>');sheet.onclick=()=>closeSheet()},600)}};
   }
   function hashLink(){ if(!/#p=/.test(location.hash))return; const h=location.hash;history.replaceState(null,"",location.pathname+location.search);
@@ -3296,8 +3316,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   famV.onclick=e=>{const b=e.target.closest("[data-fv]");if(!b)return;if(b.dataset.fv==="x")return closeOverlay(famV);famStart+=+b.dataset.fv;renderFam();famV.scrollTop=0};
 
   // ---- Versionen ----
-  const APP_VERSION="2.2";
+  const APP_VERSION="2.3";
   const CHANGES=[
+    ["2.3","10.11.2026",["Menü in drei Gruppen: Kalender, Familie und Kontakte, App", "Einstellungen kürzer, Farben und Legende auf einer eigenen Seite", "Partner-Plan zeigt, von wann er ist (Stand)", "Plan empfangen: Name änderbar, falls zwei Personen gleich heißen", "Erinnerung, wenn die letzte Sicherung älter als 30 Tage ist"],
+     ["Menu in three groups: Calendar, Family and contacts, App", "Shorter settings, colours and legend on their own page", "Partner plan shows its date", "Receiving a plan: name can be changed if two people have the same name", "Reminder when the last backup is older than 30 days"],
+     ["Menü üç grupta: Takvim, Aile ve kişiler, Uygulama", "Ayarlar daha kısa, renkler ve açıklama ayrı bir sayfada", "Partner planı hangi tarihli olduğunu gösterir", "Plan alırken: iki kişinin adı aynıysa ad değiştirilebilir", "Son yedek 30 günden eskiyse hatırlatma"],
+     ["Meniu în trei grupe: Calendar, Familie și contacte, Aplicație", "Setări mai scurte, culori și legendă pe o pagină separată", "Planul partenerului arată de când este", "La primirea unui plan: numele poate fi schimbat dacă două persoane au același nume", "Memento când ultima copie de siguranță este mai veche de 30 de zile"],
+     ["Меню в трёх группах: Календарь, Семья и контакты, Приложение", "Настройки короче, цвета и легенда на отдельной странице", "План партнёра показывает, от какого он числа", "При получении плана имя можно изменить, если двух человек зовут одинаково", "Напоминание, если последней резервной копии больше 30 дней"],
+     ["Menu w trzech grupach: Kalendarz, Rodzina i kontakty, Aplikacja", "Krótsze ustawienia, kolory i legenda na osobnej stronie", "Plan partnera pokazuje, z jakiego jest dnia", "Przy odbiorze planu można zmienić nazwę, gdy dwie osoby mają to samo imię", "Przypomnienie, gdy ostatnia kopia zapasowa ma ponad 30 dni"]],
     ["2.2","10.11.2026",["Partner-Link funktioniert jetzt auch, wenn die App schon geöffnet ist", "Sicherung speichert immer den eigenen Kalender, auch wenn gerade ein anderer Reiter gewählt ist", "„Heute“ stimmt wieder, wenn die App über Nacht offen war"],
      ["Partner link now also works when the app is already open", "Backup always saves your own calendar, even when another tab is selected", "“Today” is correct again when the app stayed open overnight"],
      ["Partner bağlantısı artık uygulama açıkken de çalışıyor", "Yedek, başka bir sekme seçili olsa bile her zaman kendi takvimini kaydeder", "Uygulama gece açık kaldığında “Bugün” yine doğru"],

@@ -43,7 +43,7 @@ Endlos-Kalender (ganze Seite scrollt, Kopf sticky), Wochentage in Kacheln, Woche
 - **Versionen:** `APP_VERSION` + `CHANGES` (je Version Datum und Punkte in de/en/tr/ro/ru/pl), Seite über Menü „🆕 Was ist neu“ (`openChanges`), Version auch im Impressum. **Bei jeder neuen Version dort einen Eintrag ergänzen und `APP_VERSION` erhöhen.**
 
 ## Sprachen (Deutsch, English, Türkçe, Română, Русский, Polski)
-- Auswahl: Menü → 🌐 „Sprache · Language“ oder Einstellungen oben. Speichert `sp_lang` ("de" Standard | "en" | "tr" | "ro" | "ru" | "pl") und lädt die Seite neu. Ohne Schlüssel = Deutsch (bestehende Nutzer unverändert).
+- Auswahl: Menü → 🌐 „Sprache · Language“ (seit 2.3 nicht mehr in den Einstellungen). Speichert `sp_lang` ("de" Standard | "en" | "tr" | "ro" | "ru" | "pl") und lädt die Seite neu. Ohne Schlüssel = Deutsch (bestehende Nutzer unverändert).
 - Technik (am Anfang des Haupt-Scripts): `LANG`, `LI` (0–4 = en/tr/ro/ru/pl), `L(de,en,tr,ro,ru,pl)`. **Der Code bleibt deutsch**; ein MutationObserver (`startI18n`/`trNode`) übersetzt jeden sichtbaren Text und die Attribute placeholder/aria-label/title/alt über `trS()`:
   1. `I18N_D` = Wörterbuch „deutscher Text → [en, tr, ro, ru, pl]“ (exakter, getrimmter Text),
   2. `I18N_P` = Muster für Texte mit Zahlen/Namen (`$1` = roh, `%1` = übersetzt, `{$1:день|дня|дней}` = russische/polnische Mehrzahl nach Zahl in Gruppe 1, Funktion `plF`),
@@ -56,6 +56,14 @@ Endlos-Kalender (ganze Seite scrollt, Kopf sticky), Wochentage in Kacheln, Woche
 - Nutzerdaten (Namen, Notizen) werden nicht übersetzt, außer sie gleichen zufällig einem Wörterbuch-Eintrag. Elemente mit Klasse `nt` werden nie übersetzt.
 - Schichtbuchstaben F/S/N und Kürzel U/TZ/AG/K/SU/FT/ÜS bleiben in allen Sprachen gleich.
 - Sicherung vor Einbau: Branch `sicherung-vor-sprachen` auf GitHub (vor Russisch/Polnisch: `sicherung-vor-ru-pl`).
+
+## Menü, Einstellungen, Sicherung (Version 2.2/2.3)
+- Sicherung davor: Branch `sicherung-vor-aufraeumen`.
+- **Menü** in drei Gruppen (`<h4 class="mgh">`): Kalender (Statistik, Meine Einträge, Notizen, Jahresübersicht, Schichtplan, Routinen), Familie und Kontakte (Übersicht, Partner, Geburtstage, Telefonbuch), App (Einstellungen, Sicherung, Sprache, Anleitung, Was ist neu, Impressum).
+- **Einstellungen** (`#setBtn`, versteckt, über das Menü) enthalten nur noch: Animation/Sound/Lautstärke, Urlaubsanspruch, Überstunden, Schichtzeiten, Schichtrhythmus. Oben Knopf „🎨 Farben und Legende“ → `colorsSheet()` (Farben, Zurücksetzen, Legende, „Zurück“). Sprache, Sicherung, Routinen, Schichtplan, Anleitung, Impressum, Jahresübersicht stehen nur noch im Menü (Wunsch: kürzer, nichts doppelt).
+- **Sicherung** (`backupSheet()`): `backupData()` und `restoreSheet()` schalten zuerst auf den Reiter „Ich“ (sonst würden die Daten des gewählten Zusatzkalenders als eigene gesichert). Enthält auch `myname`. `sp_lastbak` = Zeit der letzten Sicherung, `sp_baksnooze` = Erinnerung weggetippt.
+- **Erinnerungsleiste** `#bakBar` unter der Geburtstagsleiste (in `renderToday`): erscheint nur im eigenen Kalender, ab 5 Einträgen, wenn die letzte Sicherung ≥ 30 Tage her ist oder noch keine gespeichert wurde; Antippen öffnet die Sicherung, ✕ blendet 30 Tage aus.
+- **Neuer Tag:** Wird die App sichtbar und das Datum hat gewechselt (über Nacht offen), lädt sie neu (`visibilitychange`), außer ein Sheet ist offen.
 
 ## 17,5-Modell ausschalten
 - Menü → **🔁 Schichtplan** (früher „Schichtmodelle“) → unten „17,5-Modell entfernen (leerer Kalender)“ (zweimal tippen). Nicht mehr in den Einstellungen (Wunsch des Nutzers). Setzt nur `sp_base="none"` auf diesem Gerät; ohne den Schlüssel gilt weiter das 17,5-Modell (bestehende Nutzer unverändert). `rawShift()` liefert dann „X“, außer ein eigenes Schichtmodell gilt. Einträge bleiben erhalten. Rückgängig über „17,5-Modell wieder einschalten“.
@@ -79,6 +87,7 @@ Endlos-Kalender (ganze Seite scrollt, Kopf sticky), Wochentage in Kacheln, Woche
 - Teilen ohne Server: Daten stecken im Link `…/#p=1<base64url(deflate-raw(JSON))>` (Fallback `0` = unkomprimiert). Per WhatsApp (wa.me), Teilen-Menü, Link kopieren oder QR-Code (qrcode-generator 1.4.4, MIT, direkt in der Datei eingebaut, funktioniert offline).
 - Geteilt werden nur Rhythmus (Anker, plus `b:0`, wenn das 17,5-Modell aus ist), eigene Schichtmodelle, Urlaubskonto und Einträge U/TZ/AG/SU ab ca. 400 Tagen zurück. **Nicht geteilt:** Krank, Notizen, Überstunden.
 - Empfänger: Link öffnen → „Speichern und ansehen“. Partner-Plan ist eine eigene, schreibgeschützte Ansicht (blaue Leiste „Plan von …“ + „Zurück zu meinem Plan“). Während der Ansicht werden die eigenen Variablen getauscht und `store.set` für eigene Daten gesperrt (`PV`, `PVKEYS`).
+- Empfangen (`receive`): Feld „Name in deiner Liste“ (vorbelegt mit dem Absendernamen); gleicher Name ersetzt den alten Stand, anderer Name (z. B. „Thomas K.“) legt einen zweiten Plan an. Der Link wird auch erkannt, wenn die App schon offen ist (`hashchange` → `hashLink`). Die blaue Leiste zeigt „Stand T.M.“ (`#pvStand`), älter als 30 Tage mit ⚠️.
 - Neuer Link mit gleichem Namen ersetzt den alten Stand. Kein automatischer Live-Abgleich (Wunsch des Nutzers: ohne Server).
 - iPhone: Safari und Home-Bildschirm-App haben getrennte Speicher → Hinweis, Link in der App unter Partner → „Link übernehmen“ einzufügen.
 
