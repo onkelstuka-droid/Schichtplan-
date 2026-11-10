@@ -1737,7 +1737,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       const ta=document.getElementById("cpTxt");
       navigator.clipboard?.writeText(ta.value).then(()=>toast("Kopiert"),()=>{ta.select();toast("Text markiert, jetzt kopieren")}) ?? (ta.select(),toast("Text markiert, jetzt kopieren"));};
   }
-  function backupData(){return {app:"schichtplan-17-5",version:1,saved:todayIso(),anchor:iso(anchor),quota,vac,colors,anim:animOn,notes,contacts,ot,otCfg,models,partners:store.get("sp_partners",[]),routines,base,bdays,bdLead,shT:store.get("sp_shtimes",null),cals,calData:(()=>{const o={};Object.keys(localStorage).filter(k=>k.startsWith("sp_c_")).forEach(k=>{try{o[k]=JSON.parse(localStorage.getItem(k))}catch(e){}});return o})()}}
+  function backupData(){ if(TAB!=="me")switchTab("me",true); // Sicherung immer vom eigenen Kalender, nicht vom gerade gewählten Reiter
+    return {app:"schichtplan-17-5",version:1,saved:todayIso(),myname:store.get("sp_myname",""),anchor:iso(anchor),quota,vac,colors,anim:animOn,notes,contacts,ot,otCfg,models,partners:store.get("sp_partners",[]),routines,base,bdays,bdLead,shT:store.get("sp_shtimes",null),cals,calData:(()=>{const o={};Object.keys(localStorage).filter(k=>k.startsWith("sp_c_")).forEach(k=>{try{o[k]=JSON.parse(localStorage.getItem(k))}catch(e){}});return o})()}}
   function saveBackup(){const j=JSON.stringify(backupData()); saveFile("Schichtplaner-Sicherung-"+todayIso()+".json",j,j)}
   function parseBackup(txt){
     let d; try{d=JSON.parse(txt)}catch(e){return null}
@@ -1746,6 +1747,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     return d;
   }
   function restoreSheet(){
+    if(TAB!=="me")switchTab("me",true);
     openSheet('<h3>Sicherung laden</h3><p>Wähle die gespeicherte Datei (.json) oder füge den kopierten Sicherungstext ein.</p>'+
       '<label class="btn" for="bkFile">Datei auswählen <small>.json</small><input type="file" id="bkFile" accept=".json,application/json,text/plain" hidden></label>'+
       '<textarea id="bkTxt" rows="4" placeholder="Oder Sicherungstext hier einfügen"></textarea>'+
@@ -1780,6 +1782,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         if(Array.isArray(d.routines)){routines=d.routines.filter(x=>x&&x.name&&x.start);saveRoutines()}
         if(d.base==="none"||d.base==="175"){base=d.base;store.set("sp_base",base)}
         if(Array.isArray(d.partners)){try{partners=d.partners.filter(p=>p&&p.n&&p.a);savePartners()}catch(e){}}
+        if(d.myname&&typeof d.myname==="string")store.set("sp_myname",d.myname.slice(0,40));
+        shT=Object.assign({},SHT0,store.get("sp_shtimes",{})); renderTabs();
         repaintAll(); closeSheet(); toast("Sicherung geladen");}
     };
   }
@@ -2562,7 +2566,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const done=()=>EVS.forEach(e=>removeEventListener(e,kick,true));
     EVS.forEach(e=>addEventListener(e,kick,{capture:true,passive:true}));
     setTimeout(()=>{if(SND.on&&!(SND.E&&SND.E.ctx.state==="running"))toast("🔊 Einmal auf den Bildschirm tippen, dann startet der Sound")},1500)}
-  document.addEventListener("visibilitychange",()=>{if(!SND.E)return;if(document.hidden)SND.E.ctx.suspend();else if(SND.on)SND.E.ctx.resume()});
+  document.addEventListener("visibilitychange",()=>{const d=new Date(); // über Nacht offen geblieben: „Heute“ stimmt nicht mehr -> neu laden
+    if(!document.hidden&&dn(d.getFullYear(),d.getMonth(),d.getDate())!==TODAY&&sheet.hidden){location.reload();return}
+    if(!SND.E)return;if(document.hidden)SND.E.ctx.suspend();else if(SND.on)SND.E.ctx.resume()});
 
   // ---------- Eigene Schichtmodelle ----------
   // models=[{id,name,from:"YYYY-MM-DD",to:"YYYY-MM-DD",blocks:[["S",6],["X",1],...]}]; das zuletzt angelegte gewinnt bei Überschneidung
@@ -3059,8 +3065,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(a==="ok"){savePartner(p);showPartner(p);
         if(ios)setTimeout(()=>{openSheet('<h3>Hinweis fürs iPhone</h3><p>Der Plan ist jetzt in Safari gespeichert. Wenn du die App vom Home-Bildschirm benutzt, kopiere den Link aus WhatsApp und füge ihn dort ein: Menü ☰ → Partner → „Link übernehmen“.</p><button class="btn" data-a="x">Verstanden</button>');sheet.onclick=()=>closeSheet()},600)}};
   }
-  if(/#p=/.test(location.hash)){const h=location.hash;history.replaceState(null,"",location.pathname+location.search);
+  function hashLink(){ if(!/#p=/.test(location.hash))return; const h=location.hash;history.replaceState(null,"",location.pathname+location.search);
     readLink(h).then(p=>{if(p)setTimeout(()=>receive(p),400);else toast("Der Link ist unvollständig. Bitte noch einmal schicken lassen.")})}
+  hashLink(); window.addEventListener("hashchange",hashLink); // auch wenn die App schon offen ist und der Link angetippt wird
 
   // =====================================================================
   // Mehrere Kalender (Reiter), Kinder-Wochenpläne, Familien-Übersicht, Versionen
@@ -3289,8 +3296,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   famV.onclick=e=>{const b=e.target.closest("[data-fv]");if(!b)return;if(b.dataset.fv==="x")return closeOverlay(famV);famStart+=+b.dataset.fv;renderFam();famV.scrollTop=0};
 
   // ---- Versionen ----
-  const APP_VERSION="2.1";
+  const APP_VERSION="2.2";
   const CHANGES=[
+    ["2.2","10.11.2026",["Partner-Link funktioniert jetzt auch, wenn die App schon geöffnet ist", "Sicherung speichert immer den eigenen Kalender, auch wenn gerade ein anderer Reiter gewählt ist", "„Heute“ stimmt wieder, wenn die App über Nacht offen war"],
+     ["Partner link now also works when the app is already open", "Backup always saves your own calendar, even when another tab is selected", "“Today” is correct again when the app stayed open overnight"],
+     ["Partner bağlantısı artık uygulama açıkken de çalışıyor", "Yedek, başka bir sekme seçili olsa bile her zaman kendi takvimini kaydeder", "Uygulama gece açık kaldığında “Bugün” yine doğru"],
+     ["Linkul de partener funcționează acum și când aplicația este deja deschisă", "Copia de siguranță salvează mereu calendarul propriu, chiar dacă este ales alt tab", "„Azi” este din nou corect când aplicația a rămas deschisă peste noapte"],
+     ["Ссылка партнёра теперь работает и когда приложение уже открыто", "Резервная копия всегда сохраняет твой собственный календарь, даже если выбрана другая вкладка", "«Сегодня» снова верно, если приложение оставалось открытым на ночь"],
+     ["Link partnera działa teraz także wtedy, gdy aplikacja jest już otwarta", "Kopia zapasowa zawsze zapisuje twój własny kalendarz, nawet gdy wybrana jest inna zakładka", "„Dziś” znów się zgadza, gdy aplikacja była otwarta przez noc"]],
     ["2.1","8.11.2026",["Neue Sprachen: Russisch und Polnisch", "PDFs mit kyrillischen und polnischen Buchstaben", "Anleitung mit Bildern auf Russisch und Polnisch"],
      ["New languages: Russian and Polish", "PDFs with Cyrillic and Polish letters", "Guide with pictures in Russian and Polish"],
      ["Yeni diller: Rusça ve Lehçe", "Kiril ve Leh harfli PDF'ler", "Rusça ve Lehçe resimli kılavuz"],
