@@ -24,7 +24,7 @@ Sicherung (JSON) enthält alles; Laden über Menü → Sicherung.
 - Eigene Schichtmodelle (Blöcke F/S/N/X mit Anzahl, Zeitraum von–bis) überschreiben das Modell im Zeitraum; zuletzt angelegtes gewinnt.
 - **Alle Feiertage Bayern + Heiligabend + Silvester sind frei** (rot, „frei“). `rawShift()` = Rhythmus, `shift()` = mit Feiertagen frei.
 - Urlaub/TZ werden nur an Schichttagen abgezogen, nie an Feiertagen. AG/K/SU zählen Schichttage, keine Feiertage. Einträge überschreiben sich gegenseitig (eine Art pro Tag).
-- Überstunden-Saldo = Übertrag + Überstunden − Ausgleichstage × Stunden pro AG-Tag (Standard 8).
+- Überstunden-Saldo = Übertrag + Überstunden − Stunden aller Ausgleichstage. Jeder AG-Tag hat eigene Stunden (seit 2.4): `sp_otcfg.d` {Tagnummer: Stunden}, ohne Eintrag gilt die Vorgabe `agHours` (Standard 8). `agH(n)`/`setAgH(n,h)`/`agMin(pred)`; Eingabe beim Eintragen (ein Tag: `askLength`, Zeitraum: `openPicker`, Feld „Stunden, die pro Tag abgezogen werden“) und später über Tag antippen → „Stunden speichern“. `saveVac()` räumt Stunden gelöschter AG-Tage auf. Sicherung davor: Branch `sicherung-vor-ausgleichstunden`.
 - Zähler FT = Feiertage, die auf einen Schichttag fallen.
 - Besondere Tage ohne Feiertag (nur Symbol): Faschingsbeginn 11.11., Weiberfastnacht, Rosenmontag, Faschingsdienstag, Ostersonntag, Muttertag, Nikolaus. Zeitumstellung (letzter So im März/Okt) separat über `dst()`.
 
