@@ -103,11 +103,7 @@ Endlos-Kalender (ganze Seite scrollt, Kopf sticky), Wochentage in Kacheln, Woche
 - Bei Klangänderungen Hörproben als MP3 schicken (OfflineAudioContext rendern, ffmpeg), Nutzer entscheidet nach Gehör.
 - Druckvorlagen/PDFs, Screenshots für die Anleitung bei größeren Änderungen aktualisieren.
 
-## Englisch-App „Vokabelheft Englisch“ (Unterordner `englisch/`)
-- Adresse: https://onkelstuka-droid.github.io/Schichtplan-/englisch/ – eigene App (eigenes Symbol, Manifest, Offline-Speicher), unabhängig vom Schichtplaner.
-- Quelle: `englisch/src/vokabelheft.html` (alles in einer Datei). Bauen: `python3 englisch/build.py` → `englisch/index.html`, `sw.js`, `manifest.webmanifest`, `icons/` (Symbole werden nur erzeugt, wenn sie fehlen). Danach committen, `git push origin main`.
-- Der Schichtplaner-Service-Worker (`build.py`) ignoriert `/englisch/` und löscht nur Caches `schichtplan-*`; der Englisch-SW nur `vokabelheft-*`. Beides so lassen, sonst stören sich die Apps offline.
-- Inhalt: `RAW` (17 Themen, Wörter und Sätze als `englisch|deutsch`, Alternativen mit „ / “), `GRAM_RAW` + `GCAT` (Grammatik-Lücken mit Regel). Schlüssel der Wörter = Thema + englischer Text; Text ändern = Wort gilt als neu.
-- Übungen: Wort erkennen (mcEN/mcDE), Hören, Schreiben (Tippfehler-Toleranz), Satzbau, Grammatik, Sprechen (Spracherkennung von Chrome, `webDict()`), Karteikarten, Fehler üben, „Tägliche Runde“. Wiederholung nach Lernkarteien (Box 0–6, „sitzt“ ab Box 3).
-- Fortschritt: localStorage `vokabelheft_en_v1` (XP, Tage, srs, Grammatik, Stempel, Einstellungen). Sicherung als JSON-Datei über Einstellungen. Vorlesen über die Handy-Stimme (speechSynthesis, britisch/amerikanisch).
-- Eine Version läuft zusätzlich als Claude-Artifact (claude.ai/artifact/NBC18Ru7C1xvM7S2HU9BuV, speichert dort im Claude-Konto). Weiterentwicklung hier.
+## Englisch-App „Vokabelheft Englisch“ (umgezogen)
+- Eigenes Projekt: github.com/onkelstuka-droid/Englisch, Adresse https://onkelstuka-droid.github.io/Englisch/ (Übergabe-Notizen dort in CLAUDE.md).
+- Hier in `englisch/` liegt nur noch eine Weiterleitung (`index.html`) und ein `sw.js`, der den alten Offline-Speicher (`vokabelheft-*`) löscht und sich selbst entfernt. Nicht löschen, damit alte Startbildschirm-Symbole weiterleiten.
+- Der Schichtplaner-Service-Worker (`build.py`) ignoriert `/englisch/` und löscht nur Caches `schichtplan-*` – so lassen, weil beide Apps dieselbe Herkunft (onkelstuka-droid.github.io) und damit denselben Cache-Speicher haben. Die Englisch-App nutzt `englisch-app-*` und localStorage `vokabelheft_en_v1`.
